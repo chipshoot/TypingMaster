@@ -1,0 +1,6 @@
+@TypingMaster.Server_HostAddress = http://localhost:5271
+
+GET {{TypingMaster.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

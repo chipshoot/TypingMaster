@@ -1,0 +1,102 @@
+# Ignore .NET build artifacts
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Ignore user-specific files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+*.lock.json
+
+# Ignore IDE-specific files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.sln.iml
+
+# Ignore NuGet packages and restore files
+[Nn]u[Gg]et/
+*.nupkg
+packages/
+.nuget/
+nuget.exe
+
+# Ignore local development files
+appsettings.Development.json
+
+# Ignore Azure Functions artifacts
+AzureFunctions/
+
+# Ignore test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Ignore output files
+out/
+dist/
+
+# Ignore local launch settings
+launchSettings.json
+
+# Ignore Rider-specific files
+*.sln.dotnet
+*.ide/
+
+# Ignore macOS folder attributes
+.DS_Store
+
+# Ignore logs and diagnostics
+logs/
+*.log
+*.csv
+*.pid
+
+# Ignore compiled outputs
+*.dll
+*.pdb
+*.exe
+*.cache
+
+# Ignore local development environment files
+.env
+.env.local
+
+# Ignore JetBrains Rider cache
+.idea/
+
+# Ignore Visual Studio cache/options directory
+.vs/
+
+# Ignore Azure Functions local settings
+local.settings.json
+
+# Ignore ReSharper files
+_ReSharper.*
+*.ReSharper
+
+# Ignore coverage reports
+coverage/
+*.coverage
+*.coverage.xml
+
+# Ignore Node.js dependencies (if using JavaScript interop)
+node_modules/

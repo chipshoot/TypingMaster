@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingMaster.Client", "TypingMaster.Client\TypingMaster.Client.csproj", "{A78CECE0-73B6-4A9E-B673-F2166D413C31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingMaster.Server", "TypingMaster.Server\TypingMaster.Server.csproj", "{0983DCC4-FE17-4C29-97FC-600C53D209B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingMaster.Shared", "TypingMaster.Shared\TypingMaster.Shared.csproj", "{380E0EB7-3C2E-430F-9231-F47B1B0DAF4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingMaster.Tests", "TypingMaster.Tests\TypingMaster.Tests.csproj", "{786D5221-3D02-4EC5-9388-AB9D3B2F3007}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A78CECE0-73B6-4A9E-B673-F2166D413C31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A78CECE0-73B6-4A9E-B673-F2166D413C31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A78CECE0-73B6-4A9E-B673-F2166D413C31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A78CECE0-73B6-4A9E-B673-F2166D413C31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0983DCC4-FE17-4C29-97FC-600C53D209B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0983DCC4-FE17-4C29-97FC-600C53D209B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0983DCC4-FE17-4C29-97FC-600C53D209B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0983DCC4-FE17-4C29-97FC-600C53D209B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{380E0EB7-3C2E-430F-9231-F47B1B0DAF4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{380E0EB7-3C2E-430F-9231-F47B1B0DAF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{380E0EB7-3C2E-430F-9231-F47B1B0DAF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{380E0EB7-3C2E-430F-9231-F47B1B0DAF4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{786D5221-3D02-4EC5-9388-AB9D3B2F3007}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{786D5221-3D02-4EC5-9388-AB9D3B2F3007}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{786D5221-3D02-4EC5-9388-AB9D3B2F3007}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{786D5221-3D02-4EC5-9388-AB9D3B2F3007}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
