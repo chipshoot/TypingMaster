@@ -1,0 +1,332 @@
+﻿@page "/typing-practice"
+
+<h3>Typing Practice</h3>
+<style>
+    .w-full {
+    width: 100%;
+    }
+
+    .h-full {
+    height: 100%;
+    }
+
+    .w-10 {
+    width: 2.5rem;
+    }
+
+    .w-16 {
+    width: 4rem;
+    }
+
+    .w-40{
+    width: 15rem;
+    }
+
+    .h-10 {
+    height: 2.5rem;
+    }
+
+    .h-16 {
+    height: 4rem;
+    }
+
+    .space-x-1 > *:not(:last-child) {
+    margin-right: 0.25rem;
+    }
+
+    .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
+    }
+
+    .justify-between {
+    justify-content: space-between;
+    }
+
+    .items-center {
+    align-items: center;
+    }
+
+    .bg-transparent {
+    background-color: transparent;
+    }
+
+    .resize-none {
+    resize: none;
+    }
+
+    .outline-none {
+    outline: 2px solid transparent;
+    outline-offset: 2px
+    }
+
+    .top-0 {
+    top: 0;
+    }
+
+    .left-0 {
+    left: 0;
+    }
+
+    .p-4 {
+    padding: 1rem;
+    }
+
+    .point-events-none {
+    pointer-events: none;
+    }
+
+    .absolute {
+    position: absolute;
+    }
+
+    .relative {
+    position: relative;
+    }
+
+    .monospace-font{
+    font-family: 'Courier New', Courier, monospace;
+    }
+
+    .arrow {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 10px solid black;
+    margin-left: calc(var(--arrow-position, 0) * 1ch);
+    }
+
+    .arrow.hidden{
+    visibility:hidden;
+    }
+</style>
+<Card HeaderText="Typing Trainer" class="mt-3">
+    <BodyTemplate>
+        <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative">
+            <textarea @ref="_inputRef"
+            @bind="_textInput"
+            @oninput="HandleInputChange"
+            @onkeydown="HandleKeyDown"
+            @onkeyup="HandleKeyUp"
+            spellcheck="false"
+            class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
+            style="color: transparent; caret-color: white;"></textarea>
+            <div class="pointer-events-none">
+                @for (var i = 0; i < Text.Length; i++)
+                {
+                    <span key="@i" class="arrow @(i == _cursorPosition ? "" : "hidden")"></span>
+                }
+            </div>
+            <div class="pointer-events-none">
+                @for (var i = 0; i < Text.Length; i++)
+                {
+                    <span key="@i" class="monospace-font @(i >= _textInput.Length ? "" : GetCharClass(i))">
+                        @Text[i]
+                    </span>
+                }
+            </div>
+            <div class="pointer-events-none mt-2">
+                @for (var i = 0; i < _inputChars.Length; i++)
+                {
+                    <span key="@i" class="monospace-font @(i >= _textInput.Length ? "" : GetCharClass(i))">
+                        @((MarkupString)(_inputChars[i] == ' ' ? "&nbsp;" : _inputChars[i].ToString()))
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="d-flex justify-between items-center mb-4">
+            <div>
+                <p>WPM: @_wpm</p>
+                <p>Accuracy: @_accuracy%</p>
+            </div>
+            <Button OnClick="HandleReset">Reset</Button>
+        </div>
+        <div class="d-flex flex-column items-center space-y-2">
+            @for (var rowIndex = 0; rowIndex < _keyboardLayout.Length; rowIndex++)
+            {
+                <div key="@rowIndex" class="d-flex space-x-1">
+                    @if (rowIndex == 3)
+                    {
+                        @RenderKey("Shift")
+                    }
+                    @foreach (var key in _keyboardLayout[rowIndex])
+                    {
+                        @RenderKey(key)
+                    }
+                    @if (rowIndex == 3)
+                    {
+                        @RenderKey("Shift")
+                    }
+                </div>
+            }
+            <div class="d-flex space-x-1">
+                @RenderKey("Space")
+            </div>
+        </div>
+    </BodyTemplate>
+</Card>
+
+@code {
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+
+    private string _textInput = string.Empty;
+    private string _inputChars = string.Empty;
+    private string? _lastKeyPressed;
+    private bool _shiftPressed = false;
+    private int _cursorPosition = 0;
+    private ElementReference _inputRef;
+    private double _elapsedTime= 0;
+    private System.Threading.Timer? _timer;
+    private DateTime? _startTime;
+    private DateTime? _endTime;
+    private int _wpm = 0;
+    private int _accuracy = 0;
+
+    private string[][] _keyboardLayout =
+    [
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+    ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+    ["z", "x", "c", "v", "b", "n", "m"]
+    ];
+
+    protected override void OnInitialized()
+    {
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _inputRef.FocusAsync();
+
+        }
+    }
+
+    private void UpdateTimer(object? state)
+    {
+        if (_startTime !=null)
+        {
+            _elapsedTime = (DateTime.Now - _startTime.Value).TotalSeconds;
+            CalculateWpmAndAccuracy();
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void HandleInputChange(ChangeEventArgs e)
+    {
+        var newInput = e.Value?.ToString();
+        if (newInput != null && newInput.Length <= Text.Length)
+        {
+            _textInput = newInput;
+            _cursorPosition = newInput.Length;
+            _lastKeyPressed = newInput.LastOrDefault().ToString();
+            UpdateIncorrectChars();
+            //PlayBeep();
+
+            // start the timer when user starts typing
+            if (_textInput.Length == 1 && _startTime == null)
+            {
+                _startTime=DateTime.Now;
+                _timer = new System.Threading.Timer(UpdateTimer, null, 0, 1000);
+            }
+
+            // stop the timer when the user finishes typing
+            if (_textInput.Length == Text.Length)
+            {
+                _endTime = DateTime.Now;
+                _timer?.Change(Timeout.Infinite, 0);
+                CalculateWpmAndAccuracy();
+            }
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Shift")
+        {
+            _shiftPressed = true;
+        }
+        else if (e.Key == " ")
+        {
+            _lastKeyPressed = "Space";
+        }
+        else
+        {
+            _lastKeyPressed = e.Key;
+        }
+    }
+
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Shift")
+        {
+            _shiftPressed = false;
+        }
+        _lastKeyPressed = null;
+    }
+
+    private string GetCharClass(int index)
+    {
+        if (_textInput.Length <= index)
+        {
+            return string.Empty;
+        }
+        return _textInput[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
+    }
+
+    private void UpdateIncorrectChars()
+    {
+        _inputChars = string.Empty;
+        foreach (var t in _textInput)
+        {
+            _inputChars += t;
+        }
+    }
+
+    private void CalculateWpmAndAccuracy()
+    {
+        if (_startTime == null)
+            return;
+
+        // Calculate WPM
+        var timeInMinutes = _elapsedTime/ 60;
+        var wordsTyped = Text.Split(' ').Length;
+        _wpm = (int)(wordsTyped / timeInMinutes);
+
+        // Calculate Accuracy
+        var errors = _textInput.Zip(Text, (c1, c2) => c1 != c2).Count(isError => isError);
+        _accuracy = (int)(((double)(Text.Length - errors) / Text.Length) * 100);
+    }
+    private RenderFragment RenderKey(string key) => builder =>
+    {
+        var isPressed = key == _lastKeyPressed;
+        var displayKey = _shiftPressed && key.Length == 1 && char.IsLetter(key[0]) ? key.ToUpper() : key;
+        var isShiftKey = key == "Shift";
+        var isSpaceKey = key == "Space";
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", $"{(isShiftKey ? "w-16" : isSpaceKey ? "w-40" : "w-10")} h-10 flex items-center justify-center border rounded {(isPressed || (isShiftKey && _shiftPressed) ? "bg-primary text-white" : "bg-body-secondary")}");
+        builder.AddContent(2, isSpaceKey ? " " : displayKey);
+        builder.CloseElement();
+    };
+
+    private void HandleReset()
+    {
+        _textInput = "";
+        _inputChars = "";
+        _cursorPosition = 0;
+        _startTime = null;
+        _endTime = null;
+        _wpm = 0;
+        _accuracy = 0;
+        _lastKeyPressed = null;
+        _shiftPressed = false;
+        _inputRef.FocusAsync();
+        _timer = null;
+    }
+}

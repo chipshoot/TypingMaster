@@ -1,3 +1,4 @@
+using BootstrapBlazor.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TypingMaster.Client;
@@ -8,4 +9,5 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
+builder.Services.AddBootstrapBlazor();
 await builder.Build().RunAsync();
