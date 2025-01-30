@@ -18,7 +18,7 @@
     width: 4rem;
     }
 
-    .w-40{
+    .w-40 {
     width: 15rem;
     }
 
@@ -85,7 +85,7 @@
     position: relative;
     }
 
-    .monospace-font{
+    .monospace-font {
     font-family: 'Courier New', Courier, monospace;
     }
 
@@ -99,8 +99,8 @@
     margin-left: calc(var(--arrow-position, 0) * 1ch);
     }
 
-    .arrow.hidden{
-    visibility:hidden;
+    .arrow.hidden {
+    visibility: hidden;
     }
 </style>
 <Card HeaderText="Typing Trainer" class="mt-3">
@@ -169,6 +169,7 @@
     </BodyTemplate>
 </Card>
 
+
 @code {
     [Parameter]
     public string Text { get; set; } = string.Empty;
@@ -179,12 +180,13 @@
     private bool _rightShiftPressed = false;
     private int _cursorPosition = 0;
     private ElementReference _inputRef;
-    private double _elapsedTime= 0;
+    private double _elapsedTime = 0;
     private System.Threading.Timer? _timer;
     private DateTime? _startTime;
     private DateTime? _endTime;
     private int _wpm = 0;
     private int _accuracy = 0;
+    private TypingStats? _typingStats;
 
     private string[][] _keyboardLayout =
     [
@@ -209,7 +211,7 @@
 
     private void UpdateTimer(object? state)
     {
-        if (_startTime !=null)
+        if (_startTime != null)
         {
             _elapsedTime = (DateTime.Now - _startTime.Value).TotalSeconds;
             CalculateWpmAndAccuracy();
@@ -224,14 +226,13 @@
         {
             _textInput = newInput;
             _cursorPosition = newInput.Length;
-            _lastKeyPressed = newInput.LastOrDefault().ToString();
             UpdateIncorrectChars();
             //PlayBeep();
 
             // start the timer when user starts typing
             if (_textInput.Length == 1 && _startTime == null)
             {
-                _startTime=DateTime.Now;
+                _startTime = DateTime.Now;
                 _timer = new System.Threading.Timer(UpdateTimer, null, 0, 1000);
             }
 
@@ -274,9 +275,10 @@
             case "ShiftRight":
                 _rightShiftPressed = false;
                 break;
+            default:
+                _lastKeyPressed = null;
+                break;
         }
-
-        _lastKeyPressed = null;
     }
 
     private string GetCharClass(int index)
@@ -303,7 +305,7 @@
             return;
 
         // Calculate WPM
-        var timeInMinutes = _elapsedTime/ 60;
+        var timeInMinutes = _elapsedTime / 60;
         var wordsTyped = Text.Split(' ').Length;
         _wpm = (int)(wordsTyped / timeInMinutes);
 
@@ -325,6 +327,16 @@
         builder.CloseElement();
     };
 
+    private void HandleWpmChanged(int wpm)
+    {
+        _wpm = wpm;
+    }
+
+    private void HandleAccuracyChanged(int accuracy)
+    {
+        _accuracy = accuracy;
+    }
+
     private void HandleReset()
     {
         _textInput = "";
@@ -339,5 +351,6 @@
         _rightShiftPressed = false;
         _inputRef.FocusAsync();
         _timer = null;
+        _typingStats?.Reset();
     }
 }
