@@ -1,5 +1,77 @@
-﻿<h3>TypingStats</h3>
+﻿
+@implements IDisposable
 
 @code {
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
 
+    [Parameter]
+    public string UserInput { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<int> OnWpmChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnAccuracyChanged { get; set; }
+
+    private double _elapsedTime = 0;
+    private System.Threading.Timer? _timer;
+    private DateTime? _startTime = null;
+    private int _wpm = 0;
+    private int _accuracy = 0;
+
+    protected override void OnParametersSet()
+    {
+        if (UserInput.Length == 1 && _startTime == null)
+        {
+            StartTimer();
+        }
+        else if (UserInput.Length == Text.Length && _timer !=null)
+        {
+            StopTimer();
+        }
+
+        // CalculateWpmAndAccuracy();
+    }
+
+    private void StartTimer()
+    {
+        _startTime = DateTime.Now;
+        _timer = new System.Threading.Timer(_ =>
+        {
+            _elapsedTime = (DateTime.Now - _startTime.Value).TotalSeconds;
+            InvokeAsync(CalculateWpmAndAccuracy);
+
+        }, null, 0, 1000);
+    }
+
+    private void StopTimer() => _timer?.Dispose();
+
+    private void CalculateWpmAndAccuracy()
+    {
+        if (_startTime == null)
+            return;
+
+        // Calculate WPM
+        var timeInMinutes = _elapsedTime / 60;
+        var wordsTyped = Text.Split(' ').Length;
+        _wpm = (int)(wordsTyped / timeInMinutes);
+
+        // Calculate Accuracy
+        var errors = UserInput.Zip(Text, (c1, c2) => c1 != c2).Count(isError => isError);
+        _accuracy = (int)((double)(Text.Length - errors) / Text.Length * 100);
+
+        OnWpmChanged.InvokeAsync(_wpm);
+        OnAccuracyChanged.InvokeAsync(_accuracy);
+    }
+
+    public void Reset()
+    {
+        _startTime = null;
+        _wpm = 0;
+        _accuracy = 0;
+        StopTimer();
+    }
+
+    public void Dispose() => _timer?.Dispose();
 }

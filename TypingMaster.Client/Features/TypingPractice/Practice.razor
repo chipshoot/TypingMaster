@@ -90,7 +90,8 @@
                       @onkeyup="HandleKeyUp"
                       spellcheck="false"
                       class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-                      style="color: transparent; caret-color: white; overflow:hidden"></textarea>
+                      style="color: transparent; caret-color: white; overflow:hidden"
+                      disabled="@_isCompleted"></textarea>
             <div class="pointer-events-none">
                 @for (var i = 0; i < Text.Length; i++)
                 {
@@ -124,6 +125,11 @@
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed" RightShiftPressed="@_rightShiftPressed" />
     </BodyTemplate>
 </Card>
+<TypingStats Text="@Text"
+             UserInput="@_textInput"
+             OnWpmChanged="@(wpm=>_wpm=wpm)"
+             OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
+             @ref="@_typingStats"></TypingStats>
 
 @code {
     [Parameter]
@@ -135,33 +141,16 @@
     private bool _rightShiftPressed = false;
     private int _cursorPosition = 0;
     private ElementReference _inputRef;
-    private double _elapsedTime = 0;
-    private System.Threading.Timer? _timer;
-    private DateTime? _startTime;
-    private DateTime? _endTime;
-    private int _wpm = 0;
-    private int _accuracy = 0;
+    private int _wpm;
+    private int _accuracy;
     private TypingStats? _typingStats;
-
-    protected override void OnInitialized()
-    {
-    }
+    private bool _isCompleted = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await _inputRef.FocusAsync();
-        }
-    }
-
-    private void UpdateTimer(object? state)
-    {
-        if (_startTime != null)
-        {
-            _elapsedTime = (DateTime.Now - _startTime.Value).TotalSeconds;
-            CalculateWpmAndAccuracy();
-            InvokeAsync(StateHasChanged);
         }
     }
 
@@ -173,18 +162,9 @@
             _textInput = newInput;
             _cursorPosition = newInput.Length;
             UpdateEchoChars();
-
-            if (_textInput.Length == 1 && _startTime == null)
-            {
-                _startTime = DateTime.Now;
-                _timer = new System.Threading.Timer(UpdateTimer, null, 0, 1000);
-            }
-
             if (_textInput.Length == Text.Length)
             {
-                _endTime = DateTime.Now;
-                _timer?.Change(Timeout.Infinite, 0);
-                CalculateWpmAndAccuracy();
+                _isCompleted = true;
             }
         }
     }
@@ -242,33 +222,18 @@
         }
     }
 
-    private void CalculateWpmAndAccuracy()
-    {
-        if (_startTime == null)
-            return;
-
-        var timeInMinutes = _elapsedTime / 60;
-        var wordsTyped = Text.Split(' ').Length;
-        _wpm = (int)(wordsTyped / timeInMinutes);
-
-        var errors = _textInput.Zip(Text, (c1, c2) => c1 != c2).Count(isError => isError);
-        _accuracy = (int)((double)(Text.Length - errors) / Text.Length * 100);
-    }
-
     private void HandleReset()
     {
         _textInput = "";
         _inputChars = "";
         _cursorPosition = 0;
-        _startTime = null;
-        _endTime = null;
         _wpm = 0;
         _accuracy = 0;
         _lastKeyPressed = null;
         _leftShiftPressed = false;
         _rightShiftPressed = false;
-        _inputRef.FocusAsync();
-        _timer = null;
+        _isCompleted = false;
         _typingStats?.Reset();
+        _inputRef.FocusAsync();
     }
 }
