@@ -82,14 +82,15 @@
 <Card HeaderText="Typing Trainer" class="mt-3">
     <BodyTemplate>
         <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative">
-            <textarea @ref="_inputRef"
+            <textarea id="typingInput"
+                      @ref="_inputRef"
                       @bind="_textInput"
                       @oninput="HandleInputChange"
                       @onkeydown="HandleKeyDown"
                       @onkeyup="HandleKeyUp"
                       spellcheck="false"
                       class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-                      style="color: transparent; caret-color: white;"></textarea>
+                      style="color: transparent; caret-color: white; overflow:hidden"></textarea>
             <div class="pointer-events-none">
                 @for (var i = 0; i < Text.Length; i++)
                 {
@@ -252,16 +253,6 @@
 
         var errors = _textInput.Zip(Text, (c1, c2) => c1 != c2).Count(isError => isError);
         _accuracy = (int)((double)(Text.Length - errors) / Text.Length * 100);
-    }
-
-    private void HandleWpmChanged(int wpm)
-    {
-        _wpm = wpm;
-    }
-
-    private void HandleAccuracyChanged(int accuracy)
-    {
-        _accuracy = accuracy;
     }
 
     private void HandleReset()
