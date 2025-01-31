@@ -1,0 +1,110 @@
+﻿<style>
+    .w-10 {
+        width: 2.5rem;
+    }
+
+    .w-16 {
+        width: 4rem;
+    }
+
+    .w-40 {
+        width: 15rem;
+    }
+
+    .h-10 {
+        height: 2.5rem;
+    }
+
+    .space-x-1 > *:not(:last-child) {
+        margin-right: 0.25rem;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .items-center {
+        align-items: center;
+    }
+
+    .justify-center {
+        justify-content: center;
+    }
+
+    .border {
+        border: 1px solid #ccc;
+    }
+
+    .rounded {
+        border-radius: 0.25rem;
+    }
+
+    .bg-primary {
+        background-color: #007bff;
+    }
+
+    .text-white {
+        color: white;
+    }
+
+    .bg-body-secondary {
+        background-color: #f8f9fa;
+    }
+</style>
+
+<div class="d-flex flex-column items-center space-y-2">
+    @for (var rowIndex = 0; rowIndex < _keyboardLayout.Length; rowIndex++)
+    {
+        <div key="@rowIndex" class="d-flex space-x-1">
+            @if (rowIndex == 3)
+            {
+                @RenderKey("ShiftLeft")
+            }
+            @foreach (var key in _keyboardLayout[rowIndex])
+            {
+                @RenderKey(key)
+            }
+            @if (rowIndex == 3)
+            {
+                @RenderKey("ShiftRight")
+            }
+        </div>
+    }
+    <div class="d-flex space-x-1">
+        @RenderKey("Space")
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string? LastKeyPressed { get; set; } = null;
+
+    [Parameter]
+    public bool LeftShiftPressed { get; set; }
+
+    [Parameter]
+    public bool RightShiftPressed { get; set; }
+
+    private readonly string[][] _keyboardLayout =
+    [
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+    ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+    ["z", "x", "c", "v", "b", "n", "m"]
+    ];
+
+    private RenderFragment RenderKey(string key) => builder =>
+    {
+        var isPressed = key == LastKeyPressed;
+        var displayKey = (LeftShiftPressed || RightShiftPressed) && key.Length == 1 && char.IsLetter(key[0]) ? key.ToUpper() : key;
+        displayKey = key is "ShiftLeft" or "ShiftRight" ? "Shift" : displayKey;
+        var isShiftKey = key is "ShiftLeft" or "ShiftRight";
+        var isSpaceKey = key == "Space";
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", $"{(isShiftKey ? "w-16" : isSpaceKey ? "w-40" : "w-10")} h-10 flex items-center justify-center border rounded {(isPressed || (key == "ShiftLeft" && LeftShiftPressed) || (key == "ShiftRight" && RightShiftPressed) ? "bg-primary text-white" : "bg-body-secondary")}");
+        builder.AddContent(2, isSpaceKey ? " " : displayKey);
+        builder.CloseElement();
+    };
+}
