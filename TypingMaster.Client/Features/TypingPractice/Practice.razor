@@ -125,11 +125,11 @@
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed" RightShiftPressed="@_rightShiftPressed" />
     </BodyTemplate>
 </Card>
-<TypingStats Text="@Text"
+<TypingStatsCalculator Text="@Text"
              UserInput="@_textInput"
              OnWpmChanged="@(wpm=>_wpm=wpm)"
              OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
-             @ref="@_typingStats"></TypingStats>
+             @ref="@_typingStats"></TypingStatsCalculator>
 
 @code {
     [Parameter]
@@ -143,7 +143,7 @@
     private ElementReference _inputRef;
     private int _wpm;
     private int _accuracy;
-    private TypingStats? _typingStats;
+    private TypingStatsCalculator? _typingStats;
     private bool _isCompleted = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

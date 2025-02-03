@@ -16,4 +16,8 @@
     <Folder Include="wwwroot\imges\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Features\TypingPractice\TypingStatsCalculator.razor" />
+  </ItemGroup>
+
 </Project>
