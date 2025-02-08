@@ -3,12 +3,19 @@
     public class Account
     {
         public int Id { get; set; }
-        public string AccountName { get; set; }
-        public string Email { get; set; }
-        public UserProfile User { get; set; }
-        public TypingStats GoalStats { get; set; }
-        public TypingStats CurrentStats { get; set; }
+
+        public string AccountName { get; set; } = null!;
+
+        public string Email { get; set; } = null!;
+
+        public UserProfile User { get; set; } = null!;
+
+        public TypingStats? GoalStats { get; set; }
+
+        public IList<LearningProgress> Progress { get; set; } = null!;
+
         public double PracticeTime { get; set; } // Total practice time in hours
-        public Course CurrentCourse { get; set; }
+
+        public Course CurrentCourse { get; set; } = null!;
     }
 }

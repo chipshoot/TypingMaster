@@ -1,7 +1,8 @@
 ﻿namespace TypingMaster.Business.Models;
 
-public class CourseMaterial
+public class Lesson
 {
+    public int Id { get; set; }
     public string PracticeText { get; set; } = null!;
-    public SkillLevel Level { get; set; }
+    public int Point { get; set; }
 }

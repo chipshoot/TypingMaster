@@ -1,103 +1,95 @@
 ﻿@page "/typing-practice"
 
-<h3>Typing Practice</h3>
 <style>
     .w-full {
-        width: 100%;
+    width: 100%;
     }
 
     .h-full {
-        height: 100%;
+    height: 100%;
     }
 
     .space-y-2 > :not([hidden]) ~ :not([hidden]) {
-        --tw-space-y-reverse: 0;
-        margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
-        margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
+    --tw-space-y-reverse: 0;
+    margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
     }
 
     .justify-between {
-        justify-content: space-between;
+    justify-content: space-between;
     }
 
     .items-center {
-        align-items: center;
+    align-items: center;
     }
 
     .bg-transparent {
-        background-color: transparent;
+    background-color: transparent;
     }
 
     .resize-none {
-        resize: none;
+    resize: none;
     }
 
     .outline-none {
-        outline: 2px solid transparent;
-        outline-offset: 2px
+    outline: 2px solid transparent;
+    outline-offset: 2px
     }
 
     .top-0 {
-        top: 0;
+    top: 0;
     }
 
     .left-0 {
-        left: 0;
+    left: 0;
     }
 
     .p-4 {
-        padding: 1rem;
+    padding: 1rem;
     }
 
     .point-events-none {
-        pointer-events: none;
+    pointer-events: none;
     }
 
     .absolute {
-        position: absolute;
+    position: absolute;
     }
 
     .relative {
-        position: relative;
+    position: relative;
     }
 
     .monospace-font {
-        font-family: 'Courier New', Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     }
 
-    .arrow {
-        display: inline-block;
-        width: 0;
-        height: 0;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        border-top: 10px solid black;
-        margin-left: calc(var(--arrow-position, 0) * 1ch);
+    .arrowUp {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 0.5ch solid transparent;
+    border-right: 0.5ch solid transparent;
+    border-bottom: 1ch solid black;
+    margin-left: calc(var(--arrow-position, 0) * 1ch);
     }
-
-        .arrow.hidden {
-            visibility: hidden;
-        }
+    .arrow.hidden {
+    visibility: hidden;
+    }
 </style>
-<Card HeaderText="Typing Trainer" class="mt-3">
+<Card class="mt-3">
     <BodyTemplate>
         <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative">
             <textarea id="typingInput"
-                      @ref="_inputRef"
-                      @bind="_textInput"
-                      @oninput="HandleInputChange"
-                      @onkeydown="HandleKeyDown"
-                      @onkeyup="HandleKeyUp"
-                      spellcheck="false"
-                      class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-                      style="color: transparent; caret-color: white; overflow:hidden"
-                      disabled="@_isCompleted"></textarea>
-            <div class="pointer-events-none">
-                @for (var i = 0; i < Text.Length; i++)
-                {
-                    <span key="@i" class="arrow @(i == _cursorPosition ? "" : "hidden")"></span>
-                }
-            </div>
+            @ref="_inputRef"
+            @bind="_textInput"
+            @oninput="HandleInputChange"
+            @onkeydown="HandleKeyDown"
+            @onkeyup="HandleKeyUp"
+            spellcheck="false"
+            class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
+            style="color: transparent; caret-color: white; overflow:hidden"
+            disabled="@_isCompleted"></textarea>
             <div class="pointer-events-none">
                 @for (var i = 0; i < Text.Length; i++)
                 {
@@ -113,27 +105,34 @@
                         @((MarkupString)(_inputChars[i] == ' ' ? "&nbsp;" : _inputChars[i].ToString()))
                     </span>
                 }
+                @if (!_isCourseFinished)
+                {
+                    <span key="@_inputChars.Length" class="monospace-font arrowUp"></span>
+                }
+
             </div>
         </div>
         <div class="d-flex justify-between items-center mb-4">
             <div>
-                <p>WPM: @_wpm</p>
-                <p>Accuracy: @_accuracy%</p>
+                <p>WPM: @_wpm, Accuracy: @_accuracy%</p>
             </div>
-            <Button OnClick="HandleReset">Reset</Button>
         </div>
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed" RightShiftPressed="@_rightShiftPressed" />
     </BodyTemplate>
 </Card>
 <TypingStatsCalculator Text="@Text"
-             UserInput="@_textInput"
-             OnWpmChanged="@(wpm=>_wpm=wpm)"
-             OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
-             @ref="@_typingStats"></TypingStatsCalculator>
+UserInput="@_textInput"
+OnWpmChanged="@(wpm=>_wpm=wpm)"
+OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
+@ref="@_typingStats"></TypingStatsCalculator>
 
 @code {
+
     [Parameter]
     public string Text { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<TypingStats> OnTypingCompleted { get; set; }
     private string _textInput = string.Empty;
     private string _inputChars = string.Empty;
     private string? _lastKeyPressed;
@@ -145,6 +144,7 @@
     private int _accuracy;
     private TypingStatsCalculator? _typingStats;
     private bool _isCompleted = false;
+    private bool _isCourseFinished = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -154,17 +154,18 @@
         }
     }
 
-    private void HandleInputChange(ChangeEventArgs e)
+    private async Task HandleInputChange(ChangeEventArgs e)
     {
         var newInput = e.Value?.ToString();
-        if (newInput != null && newInput.Length <= Text.Length)
+        if (newInput != null && newInput.Length <= Text.Length + 1)
         {
             _textInput = newInput;
             _cursorPosition = newInput.Length;
             UpdateEchoChars();
-            if (_textInput.Length == Text.Length)
+            if (_textInput.Length == Text.Length + 1) // make sure the last character can be input
             {
                 _isCompleted = true;
+                await OnTypingCompleted.InvokeAsync(new TypingStats { Wpm = _wpm, Accuracy = _accuracy });
             }
         }
     }
@@ -206,6 +207,11 @@
 
     private string GetCharClass(int index)
     {
+        if (_isCourseFinished)
+        {
+            return "text-success"; 
+        }
+
         if (_textInput.Length <= index)
         {
             return string.Empty;
@@ -222,7 +228,7 @@
         }
     }
 
-    private void HandleReset()
+    public void HandleReset(bool courseFinished = false)
     {
         _textInput = "";
         _inputChars = "";
@@ -235,5 +241,10 @@
         _isCompleted = false;
         _typingStats?.Reset();
         _inputRef.FocusAsync();
+        if (courseFinished)
+        {
+            _isCompleted = true;
+            _isCourseFinished = true;
+        }
     }
 }

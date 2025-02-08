@@ -3,6 +3,6 @@
     public class Course
     {
         public int Id { get; set; }
-        public List<CourseMaterial> Materials { get; set; } = [];
+        public List<Lesson> Lessons { get; set; } = [];
     }
 }

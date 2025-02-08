@@ -13,31 +13,37 @@ namespace TypingMaster.Tests
             var course = new Course
             {
                 Id = 1,
-                Materials =
-               [
-                   new CourseMaterial
-                    { PracticeText = "Beginner Course.", Level = SkillLevel.Beginner },
-                new CourseMaterial
-                    { PracticeText = "Novice Course.", Level = SkillLevel.Novice },
-                new CourseMaterial
-                    { PracticeText = "Intermediate Course.", Level = SkillLevel.Intermediate },
-                new CourseMaterial
-                    { PracticeText = "Advanced Course.", Level = SkillLevel.Advanced },
-                new CourseMaterial
-                    { PracticeText = "Expert Course.", Level = SkillLevel.Expert }
-               ]
+                Lessons =
+                [
+                    new Lesson
+                        { Id = 1, PracticeText = "Beginner Course.", Point = 1 },
+                    new Lesson
+                        { Id = 2, PracticeText = "Novice Course.", Point = 2 },
+                    new Lesson
+                        { Id = 3, PracticeText = "Intermediate Course.", Point = 3 },
+                    new Lesson
+                        { Id = 4, PracticeText = "Advanced Course.", Point = 4 },
+                    new Lesson
+                        { Id = 5, PracticeText = "Expert Course.", Point = 5 },
+                    new Lesson
+                        { Id = 6, PracticeText = "Beginner Course2.", Point = 1 }
+                ]
             };
 
             _accounts =
-               [
-                   new Account
+            [
+                new Account
                 {
                     Id = 1,
                     AccountName = "BeginnerUser",
                     Email = "testuser@example.com",
                     User = new UserProfile { FirstName = "Beginner", LastName = "User", Title = "Mr." },
                     GoalStats = new TypingStats { Wpm = 75, Accuracy = 95 },
-                    CurrentStats = new TypingStats { Wpm = 20, Accuracy = 70 },
+                    Progress =
+                    [
+                        new LearningProgress
+                            { Stats = new TypingStats { Wpm = 20, Accuracy = 70 }, CourseId = 1, LessonId = 1 }
+                    ],
                     PracticeTime = 10.5,
                     CurrentCourse = course
                 },
@@ -49,7 +55,11 @@ namespace TypingMaster.Tests
                     Email = "testuser@example.com",
                     User = new UserProfile { FirstName = "Novice", LastName = "User", Title = "Mr." },
                     GoalStats = new TypingStats { Wpm = 75, Accuracy = 95 },
-                    CurrentStats = new TypingStats { Wpm = 32, Accuracy = 82 },
+                    Progress =
+                    [
+                        new LearningProgress
+                            { Stats = new TypingStats { Wpm = 32, Accuracy = 82 }, CourseId = 1, LessonId = 2 }
+                    ],
                     PracticeTime = 10.5,
                     CurrentCourse = course
                 },
@@ -61,7 +71,11 @@ namespace TypingMaster.Tests
                     Email = "testuser@example.com",
                     User = new UserProfile { FirstName = "Intermediate", LastName = "User", Title = "Mr." },
                     GoalStats = new TypingStats { Wpm = 75, Accuracy = 95 },
-                    CurrentStats = new TypingStats { Wpm = 46, Accuracy = 86 },
+                    Progress =
+                    [
+                        new LearningProgress
+                            { Stats = new TypingStats { Wpm = 46, Accuracy = 86 }, CourseId = 1, LessonId = 3 }
+                    ],
                     PracticeTime = 10.5,
                     CurrentCourse = course
                 },
@@ -73,12 +87,15 @@ namespace TypingMaster.Tests
                     Email = "testuser@example.com",
                     User = new UserProfile { FirstName = "Advanced", LastName = "User", Title = "Miss" },
                     GoalStats = new TypingStats { Wpm = 80, Accuracy = 95 },
-                    CurrentStats = new TypingStats { Wpm = 61, Accuracy = 94 },
+                    Progress =
+                    [
+                        new LearningProgress
+                            { Stats = new TypingStats { Wpm = 61, Accuracy = 94 }, CourseId = 1, LessonId = 4 }
+                    ],
                     PracticeTime = 10.5,
                     CurrentCourse = course
                 }
-
-               ];
+            ];
             _typingTrainer = new TypingTrainer(_accounts[0]);
         }
 
@@ -101,25 +118,25 @@ namespace TypingMaster.Tests
         }
 
         [Theory]
-        [InlineData(SkillLevel.Beginner, "Beginner Course.")]
-        [InlineData(SkillLevel.Novice, "Novice Course.")]
-        [InlineData(SkillLevel.Intermediate, "Intermediate Course.")]
-        [InlineData(SkillLevel.Advanced, "Advanced Course.")]
-        [InlineData(SkillLevel.Expert, "Expert Course.")]
-        public void CanGetTextBasedOnLevel(SkillLevel level, string expectedText)
+        [InlineData(1, "Beginner Course.")]
+        [InlineData(2, "Novice Course.")]
+        [InlineData(3, "Intermediate Course.")]
+        [InlineData(4, "Advanced Course.")]
+        [InlineData(5, "Expert Course.")]
+        public void CanGetTextBasedOnId(int lessonId, string expectedText)
         {
             // Act
-            var actualText = _typingTrainer.GetPracticeText(level);
+            var actualText = _typingTrainer.GetPracticeText(lessonId);
 
             // Assert
             Assert.Equal(expectedText, actualText);
         }
 
         [Theory]
-        [InlineData("BeginnerUser", "Beginner Course.")]
+        [InlineData("BeginnerUser", "Beginner Course2.")]
         [InlineData("NoviceUser", "Novice Course.")]
         [InlineData("IntermediateUser", "Intermediate Course.")]
-        [InlineData("AdvancedUser", "Advanced Course.")]
+        [InlineData("AdvancedUser", "Expert Course.")]
         public void CanGetTextBasedOnAccount(string accountName, string expectedText)
         {
             // Arrange
@@ -128,7 +145,81 @@ namespace TypingMaster.Tests
             _typingTrainer = new TypingTrainer(account);
 
             // Act
-            var actualText = _typingTrainer.GetPracticeText();
+            var (_, actualText) = _typingTrainer.GetPracticeText();
+
+            // Assert
+            Assert.Equal(expectedText, actualText);
+        }
+
+        [Fact]
+        public void CanGetTextForNewUser()
+        {
+            // Arrange
+            var account = _accounts.FirstOrDefault();
+            Assert.NotNull(account);
+            account.Progress = new List<LearningProgress>();
+
+            // Act
+            var (_, text) = _typingTrainer.GetPracticeText();
+
+            // Assert
+            Assert.Equal("Beginner Course.", text);
+        }
+
+        [Fact]
+        public void CanGetNextTextWithSameLevelWhenCurrentStatsDoesNotImprove()
+        {
+            // Arrange
+            var account = _accounts.FirstOrDefault();
+            Assert.NotNull(account);
+            account.Progress =
+            [
+                new LearningProgress { CourseId = 1, LessonId = 1, Stats = new TypingStats { Wpm = 20, Accuracy = 70 } }
+            ];
+
+            // Act
+            var (_, text) = _typingTrainer.GetPracticeText();
+
+            // Assert
+            Assert.Equal("Beginner Course2.", text);
+        }
+
+        [Fact]
+        public void CanGetNextTextWithNextLevelWhenCurrentStatsImproved()
+        {
+            // Arrange
+            var account = _accounts.FirstOrDefault();
+            Assert.NotNull(account);
+            account.Progress =
+            [
+                new LearningProgress { CourseId = 1, LessonId = 1, Stats = new TypingStats { Wpm = 20, Accuracy = 70 } },
+                new LearningProgress { CourseId = 1, LessonId = 6, Stats = new TypingStats { Wpm = 74, Accuracy = 90 } }
+            ];
+
+            // Act
+            var (_, text) = _typingTrainer.GetPracticeText();
+
+            // Assert
+            Assert.Equal("Novice Course.", text);
+        }
+
+        [Fact]
+        public void CanGetCourseFinishTextWhenAllLessonFinished()
+        {
+            // Arrange
+            const string expectedText = "Congratulation, You have completed all lessons in this course.";
+            var account = _accounts.FirstOrDefault();
+            Assert.NotNull(account);
+            account.Progress =
+            [
+                new LearningProgress { CourseId = 1, LessonId = 5, Stats = new TypingStats { Wpm = 20, Accuracy = 70 } },
+                new LearningProgress { CourseId = 1, LessonId = 5, Stats = new TypingStats { Wpm = 74, Accuracy = 90 } }
+            ];
+
+            _typingTrainer = new TypingTrainer(account);
+
+            // Act
+            var (_, actualText) = _typingTrainer.GetPracticeText();
 
             // Assert
             Assert.Equal(expectedText, actualText);
