@@ -6,7 +6,7 @@
             </div>
             <div class="d-flex">
                 <div class="me-2">
-                    <Dropdown TValue="string" Items="@GetProgress()" Color="Color.Info"></Dropdown>
+                    <PracticeHistory StatsList="@StatsList"></PracticeHistory>
                 </div>
                 <div>
                     <Button Color="Color.Primary" OnClick="ResetPractice">RePractise</Button>
@@ -24,6 +24,12 @@
     private Practice? _practice;
     private Account? _account;
     private Lesson? _curLesson;
+
+    private IList<TypingStats> StatsList
+    {
+        get { return _account?.Progress.Select(p => p.Stats).ToList() ?? new List<TypingStats>(); }
+    }
+
 
     protected override void OnInitialized()
     {
@@ -46,27 +52,6 @@
             (_curLesson, _text) = _trainer.GetPracticeText();
         }
         _practice?.HandleReset(_curLesson == null);
-    }
-
-    private IEnumerable<SelectedItem> GetProgress()
-    {
-        List<SelectedItem> items =
-        [
-            new SelectedItem { Text = "Practice History", Value= "0" }
-        ];
-        if (_account == null || !_account.Progress.Any())
-        {
-            return items;
-        }
-
-        var records = _account.Progress.Select(l => new SelectedItem { Text = FormatProgressText(l.Stats), Value = l.LessonId.ToString() }).ToList();
-        items.AddRange(records);
-        return items;
-    }
-
-    private string FormatProgressText(TypingStats? stats)
-    {
-        return stats != null ? $"{_trainer?.GetSkillLevel(stats).ToString()}: wpm:{stats.Wpm}, accuracy:{stats.Accuracy}" : string.Empty;
     }
 
     private void ResetPractice()

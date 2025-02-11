@@ -111,7 +111,7 @@ namespace TypingMaster.Tests
             var stats = new TypingStats { Wpm = wpm, Accuracy = accuracy };
 
             // Act
-            var actualLevel = _typingTrainer.GetSkillLevel(stats);
+            var actualLevel = stats.GetSkillLevel();
 
             // Assert
             Assert.Equal(expectedLevel, actualLevel);

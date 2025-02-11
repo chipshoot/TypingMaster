@@ -8,38 +8,6 @@ public class TypingTrainer(Account account) : ITypingTrainer
     private readonly Account _account = account ?? throw new ArgumentException(nameof(account));
     private readonly Course _course = account.CurrentCourse ?? throw new ArgumentException(nameof(account.CurrentCourse));
 
-    public SkillLevel GetSkillLevel(TypingStats stats)
-    {
-        double pointWpm = stats.Wpm switch
-        {
-            < 30 => 1,
-            < 45 => 2,
-            < 60 => 3,
-            < 75 => 4,
-            _ => 5
-        };
-
-        double pointAccuracy = stats.Accuracy switch
-        {
-            < 80 => 1,
-            < 85 => 2,
-            < 90 => 3,
-            < 95 => 4,
-            _ => 5
-        };
-
-        var point = (pointWpm * 0.4) + (pointAccuracy * 0.6);
-        return point switch
-        {
-            >= 1 and <= 1.9 => SkillLevel.Beginner,
-            >= 2 and <= 2.9 => SkillLevel.Novice,
-            >= 3 and <= 3.9 => SkillLevel.Intermediate,
-            >= 4 and <= 4.9 => SkillLevel.Advanced,
-            >= 5 => SkillLevel.Expert,
-            _ => throw new ArgumentOutOfRangeException(nameof(stats))
-        };
-    }
-
     public string GetPracticeText(int lessonId)
     {
         return _course.Lessons.FirstOrDefault(x => x.Id == lessonId)?.PracticeText ?? string.Empty;
@@ -67,7 +35,7 @@ public class TypingTrainer(Account account) : ITypingTrainer
         }
         var curLessonId = currentProgress.LessonId;
         var curLessonPoint = _course.Lessons.FirstOrDefault(x => x.Id == curLessonId)?.Point ?? 1;
-        var curSkill = currentProgress.Stats == null ? SkillLevel.Beginner : GetSkillLevel(currentProgress.Stats);
+        var curSkill = currentProgress.Stats?.GetSkillLevel() ?? SkillLevel.Beginner;
 
         // if current skill level above advanced, return the lesson with bigger point, otherwise return the lesson with same point
         Lesson? nextLesson;
