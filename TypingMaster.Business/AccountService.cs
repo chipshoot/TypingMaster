@@ -20,25 +20,20 @@ public class AccountService(ICourseService courseService) : IAccountService
                 LastName = "User",
                 Title = "Mr."
             },
-            GoalStats = new TypingStats
+            GoalStats = new DrillStats
             {
                 Wpm = 60,
                 Accuracy = 98.5
             },
-            Progress =
-            [
-                new LearningProgress
+            History =
+                new PracticeLog
                 {
-                    CourseId = 1,
-                    LessonId = 1,
-                    Stats = new TypingStats
-                    {
-                        Wpm = 30,
-                        Accuracy = 79.0
-                    }
-                }
-            ],
-            PracticeTime = 15.0, // Total practice time in hours
+                    CurrentCourseId = 1,
+                    CurrentLessonId = 1,
+                    PracticeStats = [],
+                    KeyStats = [],
+                    PracticeDuration = 0
+                },
             CurrentCourse = _courseService.GetCourse(1)
         };
     }

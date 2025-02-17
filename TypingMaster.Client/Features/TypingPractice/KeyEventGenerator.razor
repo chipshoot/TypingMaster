@@ -1,0 +1,88 @@
+﻿@code {
+    private DateTime _lastKeyUpTime;
+    private DateTime _keyDownTime;
+    private bool _isFirstKey = true;
+
+    [Parameter]
+    public EventCallback<KeyEvent> OnKeyEventGenerated { get; set; }
+
+    [Parameter]
+    public KeyboardEventArgs? KeyEventArgs { get; set; }
+
+    [Parameter]
+    public char CharExpected { get; set; }
+
+    [Parameter]
+    public KeyEvent? KeyEvent { get; set; }
+
+
+    protected override void OnParametersSet()
+    {
+        if (KeyEventArgs != null)
+        {
+            HandleKeyEvent(KeyEventArgs);
+        }
+    }
+
+    public void HandleKeyEvent(KeyboardEventArgs e)
+    {
+        switch (e.Type)
+        {
+            case "keydown":
+                HandleKeyDown(e);
+                break;
+            case "keyup":
+                HandleKeyUp(e);
+                break;
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        _keyDownTime = DateTime.Now;
+
+        float latency = 0;
+        if (_isFirstKey)
+        {
+            _isFirstKey = false;
+        }
+        else
+        {
+            latency = (float)(_keyDownTime - _lastKeyUpTime).TotalMilliseconds;
+        }
+
+        var charExpected = CharExpected;
+        KeyEvent = new KeyEvent
+        {
+            Key = charExpected,
+            TypedKey = e.Key[0],
+            IsCorrect = e.Key[0] == charExpected,
+            KeyDownTime = DateTime.Now,
+            Latency = latency
+        };
+    }
+
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        var charExpected = CharExpected;
+        if (KeyEvent == null)
+        {
+            KeyEvent = new KeyEvent
+            {
+                Key = charExpected,
+                TypedKey = e.Key[0],
+                IsCorrect = e.Key[0] == charExpected,
+                KeyDownTime = DateTime.Now,
+                Latency = 0
+            };
+        }
+        else
+        {
+            KeyEvent.KeyUpTime = DateTime.Now;
+
+        }
+
+        OnKeyEventGenerated.InvokeAsync(KeyEvent);
+        _lastKeyUpTime = DateTime.Now;
+    }
+}

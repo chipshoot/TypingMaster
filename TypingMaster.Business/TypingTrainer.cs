@@ -1,84 +1,93 @@
-﻿using TypingMaster.Business.Contract;
+﻿using Serilog;
+using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
 
 namespace TypingMaster.Business;
 
-public class TypingTrainer(Account account) : ITypingTrainer
+public class TypingTrainer(Account account, ILogger logger) : ITypingTrainer
 {
     private readonly Account _account = account ?? throw new ArgumentException(nameof(account));
-    private readonly Course _course = account.CurrentCourse ?? throw new ArgumentException(nameof(account.CurrentCourse));
+    private readonly ICourse _course = account.CurrentCourse ?? throw new ArgumentException(nameof(account.CurrentCourse));
+    private readonly PracticeLog _practiceLog = account.History ?? throw new ArgumentException(nameof(account.History));
+    private readonly ILogger _logger = logger ?? throw new ArgumentException(nameof(logger));
 
     public string GetPracticeText(int lessonId)
     {
         return _course.Lessons.FirstOrDefault(x => x.Id == lessonId)?.PracticeText ?? string.Empty;
     }
 
-    public (Lesson? lesson, string practiceText) GetPracticeText()
+    public string GetPracticeText()
     {
-        if (_account.Progress == null) throw new InvalidOperationException("Progress not found.");
+        if (_account.History == null) throw new InvalidOperationException("Practice history not found.");
         if (_course.Lessons == null) throw new InvalidOperationException("Course lesson not found.");
 
-        LearningProgress currentProgress;
+        //PracticeLog currentProgress;
 
-        if (_account.Progress.Any())
-        {
-            currentProgress = _account.Progress.Last();
-        }
-        else
-        {
-            currentProgress = new LearningProgress
-            {
-                CourseId = _account.CurrentCourse.Id,
-                LessonId = 0,
-                Stats = null
-            };
-        }
-        var curLessonId = currentProgress.LessonId;
-        var curLessonPoint = _course.Lessons.FirstOrDefault(x => x.Id == curLessonId)?.Point ?? 1;
-        var curSkill = currentProgress.Stats?.GetSkillLevel() ?? SkillLevel.Beginner;
+        //if (_account.Progress.Any())
+        //{
+        //    currentProgress = _account.Progress.Last();
+        //}
+        //else
+        //{
+        //    currentProgress = new LearningProgress
+        //    {
+        //        CourseId = _account.CurrentCourse.Id,
+        //        LessonId = 0,
+        //        Stats = null
+        //    };
+        //}
+        //var curLessonId = currentProgress.LessonId;
+        //var curLessonPoint = _course.Lessons.FirstOrDefault(x => x.Id == curLessonId)?.Point ?? 1;
+        //var curSkill = currentProgress.Stats?.GetSkillLevel() ?? SkillLevel.Beginner;
 
         // if current skill level above advanced, return the lesson with bigger point, otherwise return the lesson with same point
-        Lesson? nextLesson;
-        if (curSkill >= SkillLevel.Advanced)
-        {
-            nextLesson = _course.Lessons.FirstOrDefault(l => l.Point > curLessonPoint);
-        }
-        else
-        {
-            nextLesson = _course.Lessons.FirstOrDefault(l => l.Point == curLessonPoint && l.Id > curLessonId)
-                         ?? _course.Lessons.FirstOrDefault(l => l.Point == curLessonPoint && l.Id == curLessonId);
-        }
+        //Lesson? nextLesson;
+        //if (curSkill >= SkillLevel.Advanced)
+        //{
+        //    nextLesson = _course.Lessons.FirstOrDefault(l => l.Point > curLessonPoint);
+        //}
+        //else
+        //{
+        //    nextLesson = _course.Lessons.FirstOrDefault(l => l.Point == curLessonPoint && l.Id > curLessonId)
+        //                 ?? _course.Lessons.FirstOrDefault(l => l.Point == curLessonPoint && l.Id == curLessonId);
+        //}
 
-        // get next lesson of the current level
-        if (nextLesson != null)
-        {
-            return (nextLesson, nextLesson.PracticeText);
-        }
+        //// get next lesson of the current level
+        //if (nextLesson != null)
+        //{
+        //    return (nextLesson, nextLesson.PracticeText);
+        //}
 
-        return (null, "Congratulation, You have completed all lessons in this course.");
+        return "Congratulation, You have completed all lessons in this course.";
     }
 
-    public void CheckPracticeResult(int courseId, int lessonId, TypingStats stats)
+    public void CheckPracticeResult(DrillStats stats)
     {
-        if (_course.Id != courseId)
+        try
         {
-            throw new ArgumentOutOfRangeException(nameof(courseId));
+            ArgumentNullException.ThrowIfNull(stats, nameof(stats));
+            if (_course.Id != stats.CourseId)
+            {
+                throw new ArgumentOutOfRangeException(nameof(stats.CourseId));
+            }
+
+            if (_course.Lessons.All(l => l.Id != stats.LessonId))
+            {
+                throw new ArgumentOutOfRangeException(nameof(stats.LessonId));
+            }
+
+            //_account.Progress.Add(new LearningProgress
+            //{
+            //    CourseId = courseId,
+            //    LessonId = lessonId,
+            //    Stats = stats,
+            //    FinishDate = DateTime.Now
+            //});
+
         }
-
-        if (_course.Lessons.All(l => l.Id != lessonId))
+        catch (Exception ex)
         {
-            throw new ArgumentOutOfRangeException(nameof(lessonId));
+            _logger.Error(ex, "Error checking practice result");
         }
-
-        ArgumentNullException.ThrowIfNull(stats, nameof(stats));
-
-        _account.Progress.Add(new LearningProgress
-        {
-            CourseId = courseId,
-            LessonId = lessonId,
-            Stats = stats,
-            FinishDate = DateTime.Now
-        });
-
     }
 }

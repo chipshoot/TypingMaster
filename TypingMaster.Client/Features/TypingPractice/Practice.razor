@@ -118,7 +118,18 @@
             </div>
         </div>
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed" RightShiftPressed="@_rightShiftPressed" />
+        @* <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated" CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs" KeyEvent="@_keyEvent"></KeyEventGenerator> *@
     </BodyTemplate>
+    <FooterTemplate>
+        <div class="d-flex justify-between items-center mb-4">
+            @* <p>@Description</p> *@
+            @foreach (var i in _keyEvents)
+            {
+                <p>@i.Key</p>
+            }
+
+        </div>
+    </FooterTemplate>
 </Card>
 <TypingStatsCalculator Text="@Text"
 UserInput="@_textInput"
@@ -128,13 +139,20 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
 
 @code {
 
+
+
     [Parameter]
     public string Text { get; set; } = string.Empty;
 
     [Parameter]
-    public EventCallback<TypingStats> OnTypingCompleted { get; set; }
+    public string Description { get; set; } = TypingMasterConstants.DefaultPracticePrompt;
+
+    [Parameter]
+    public EventCallback<DrillStats> OnTypingCompleted { get; set; }
+
     private string _textInput = string.Empty;
     private string _inputChars = string.Empty;
+    private char _nextKeyExpected;
     private string? _lastKeyPressed;
     private bool _leftShiftPressed = false;
     private bool _rightShiftPressed = false;
@@ -143,9 +161,19 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
     private int _wpm;
     private int _accuracy;
     private TypingStatsCalculator? _typingStats;
+    private KeyEventGenerator? _keyEventGenerator;
     private bool _isCompleted = false;
     private bool _isCourseFinished = false;
+    private KeyboardEventArgs? _keyEventArgs;
+    private KeyEvent? _keyEvent;
+    private List<KeyEvent> _keyEvents = new List<KeyEvent>();
 
+    protected override void OnInitialized()
+    {
+        _typingStats = new TypingStatsCalculator();
+        _keyEventGenerator = new KeyEventGenerator();
+        _nextKeyExpected = Text[0];
+    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -162,16 +190,23 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
             _textInput = newInput;
             _cursorPosition = newInput.Length;
             UpdateEchoChars();
-            if (_textInput.Length == Text.Length + 1) // make sure the last character can be input
+
+            // make sure the last character can be input
+            if (_textInput.Length == Text.Length + 1)
             {
                 _isCompleted = true;
-                await OnTypingCompleted.InvokeAsync(new TypingStats { Wpm = _wpm, Accuracy = _accuracy });
+                await OnTypingCompleted.InvokeAsync(new DrillStats { Wpm = _wpm, Accuracy = _accuracy });
+            }
+            else
+            {
+                //_nextKeyExpected = Text[_textInput.Length];
             }
         }
     }
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
+
         switch (e.Code)
         {
             case "ShiftLeft":
@@ -182,9 +217,13 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
                 break;
             case "Space":
                 _lastKeyPressed = e.Code;
+                _keyEventArgs = e;
+                //_keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
                 break;
             default:
                 _lastKeyPressed = e.Key;
+                _keyEventArgs = e;
+                //_keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
                 break;
         }
     }
@@ -201,6 +240,8 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
                 break;
             default:
                 _lastKeyPressed = null;
+                _keyEventArgs = e;
+                //_keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
                 break;
         }
     }
@@ -246,5 +287,10 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
             _isCompleted = true;
             _isCourseFinished = true;
         }
+    }
+
+    private void HandleKeyEventGenerated(KeyEvent keyEvent)
+    {
+        //_keyEvents.Add(keyEvent);
     }
 }

@@ -6,6 +6,6 @@ namespace TypingMaster.Business.Contract
     {
         string GetPracticeText(int lessonId);
 
-        void CheckPracticeResult(int courseId, int lessonId, TypingStats stats);
+        void CheckPracticeResult(DrillStats stats);
     }
 }

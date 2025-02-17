@@ -1,13 +1,14 @@
 ﻿using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
+using TypingMaster.Business.Models.Courses;
 
 namespace TypingMaster.Business;
 
 public class CourseService : ICourseService
 {
-    public Course GetCourse(int id)
+    public ICourse GetCourse(int id)
     {
-        return new Course
+        return new AdvancedLevelCourse()
         {
             Id = 1,
             Lessons =

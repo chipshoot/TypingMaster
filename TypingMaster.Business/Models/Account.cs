@@ -1,4 +1,6 @@
-﻿namespace TypingMaster.Business.Models
+﻿using TypingMaster.Business.Contract;
+
+namespace TypingMaster.Business.Models
 {
     public class Account
     {
@@ -10,12 +12,10 @@
 
         public UserProfile User { get; set; } = null!;
 
-        public TypingStats? GoalStats { get; set; }
+        public DrillStats? GoalStats { get; set; }
 
-        public IList<LearningProgress> Progress { get; set; } = null!;
+        public PracticeLog History { get; set; } = null!;
 
-        public double PracticeTime { get; set; } // Total practice time in hours
-
-        public Course CurrentCourse { get; set; } = null!;
+        public ICourse CurrentCourse { get; set; } = null!;
     }
 }

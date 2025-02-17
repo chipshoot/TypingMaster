@@ -4,7 +4,7 @@ namespace TypingMaster.Business;
 
 public static class Extensions
 {
-    public static SkillLevel GetSkillLevel(this TypingStats stats)
+    public static SkillLevel GetSkillLevel(this StatsBase stats)
     {
         double pointWpm = stats.Wpm switch
         {
