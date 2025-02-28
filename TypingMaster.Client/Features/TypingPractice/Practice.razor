@@ -203,7 +203,7 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
                     TypedText = _textInput,
                     Wpm = _wpm,
                     Accuracy = _accuracy,
-                    KeyEvents = _keyEvents,
+                    KeyEvents = _keyEvents.Copy(),
                     FinishTime = DateTime.Now
                 });
             }

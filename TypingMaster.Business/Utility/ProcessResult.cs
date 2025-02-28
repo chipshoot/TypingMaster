@@ -7,6 +7,8 @@ public class ProcessResult(ILogger? logger = null)
 {
     public ProcessResultStatus Status { get; set; } = ProcessResultStatus.NotSet;
 
+    public IEnumerable<string> InformationList { get; set; } = [];
+
     public string ErrorMessage { get; set; } = "";
 
     public string CallStack { get; set; } = "";
@@ -30,5 +32,12 @@ public class ProcessResult(ILogger? logger = null)
     public void AddSuccess()
     {
         Status = ProcessResultStatus.Success;
+    }
+
+    public void AddInformation(string message)
+    {
+        Status = ProcessResultStatus.NotSet;
+        InformationList.ToList().Add(message);
+        logger?.Information(message);
     }
 }

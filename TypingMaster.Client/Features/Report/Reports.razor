@@ -17,22 +17,45 @@
         <Collapse IsAccordion="true">
             <CollapseItems>
                 <CollapseItem Text="Lesson - Practice" IsCollapsed="false">
-                    <Table TItem="ProgressItem" Items="@GetItems()" HeaderStyle="TableHeaderStyle.Light" IsBordered="true" IsStriped="true">
+                    <Table TItem="ProgressRecord" Items="@GetItems()" HeaderStyle="TableHeaderStyle.Light"
+                    IsBordered="true" IsStriped="true">
                         <MultiHeaderTemplate>
                             <tr>
-                                <th rowspan="2" style="vertical-align:bottom;"><div class="header-cell">Type</div></th>
-                                <th rowspan="2" style="vertical-align:bottom;"><div class="header-cell header-multi-row">Name</div></th>
-                                <th rowspan="2" style="vertical-align:bottom;"><div class="header-cell header-multi-row">Keys above 20 WPM</div></th>
-                                <th rowspan="2" style="vertical-align:bottom;"><div class="header-cell header-multi-row">Date</div></th>
-                                <th colspan="2"><div class="header-cell">Overall</div></th>
-                                <th colspan="3"><div class="header-cell">Speed Breakdown</div></th>
+                                <th rowspan="2" style="vertical-align:bottom;">
+                                    <div class="header-cell">Type</div>
+                                </th>
+                                <th rowspan="2" style="vertical-align:bottom;">
+                                    <div class="header-cell header-multi-row">Name</div>
+                                </th>
+                                <th rowspan="2" style="vertical-align:bottom;">
+                                    <div class="header-cell header-multi-row">Keys above 20 WPM</div>
+                                </th>
+                                <th rowspan="2" style="vertical-align:bottom;">
+                                    <div class="header-cell header-multi-row">Date</div>
+                                </th>
+                                <th colspan="2">
+                                    <div class="header-cell">Overall</div>
+                                </th>
+                                <th colspan="3">
+                                    <div class="header-cell">Speed Breakdown</div>
+                                </th>
                             </tr>
                             <tr>
-                                <th><div class="header-cell">Accuracy</div></th>
-                                <th><div class="header-cell">Speed</div></th>
-                                <th><div class="header-cell">Letter</div></th>
-                                <th><div class="header-cell">Number</div></th>
-                                <th><div class="header-cell">Symbol</div></th>
+                                <th>
+                                    <div class="header-cell">Accuracy</div>
+                                </th>
+                                <th>
+                                    <div class="header-cell">Speed</div>
+                                </th>
+                                <th>
+                                    <div class="header-cell">Letter</div>
+                                </th>
+                                <th>
+                                    <div class="header-cell">Number</div>
+                                </th>
+                                <th>
+                                    <div class="header-cell">Symbol</div>
+                                </th>
                             </tr>
                         </MultiHeaderTemplate>
                         <TableColumns>
@@ -69,7 +92,6 @@
 @code {
 
 
-
     [Parameter] public int AccountId { get; set; } = 1;
     private Chart _barChart;
     private IEnumerable<string>? _keys;
@@ -94,10 +116,10 @@
         }
 
         var data = new List<ChartDataset>
-        {
-            new() { Label = "Average Press Duration", Data = _keyStats["typeSpeed"].Select(v => Math.Round(v, 1)).Cast<object>() },
-            new() { Label = "Average Latency", Data = _keyStats["latency"].Select(v => Math.Round(v, 1)).Cast<object>() }
-        };
+{
+new() { Label = "Average Press Duration", Data = _keyStats["typeSpeed"].Select(v => Math.Round(v, 1)).Cast<object>() },
+new() { Label = "Average Latency", Data = _keyStats["latency"].Select(v => Math.Round(v, 1)).Cast<object>() }
+};
 
         return data;
     }
@@ -110,47 +132,28 @@
         }
 
         var data = new List<ChartDataset>
-        {
-            new()
-            {
-                Label = "Overall Accuracy", Data = _keyStats["accuracy"].Select(v => Math.Round(v, 1)).Cast<object>()
-            }
-        };
+{
+new()
+{
+Label = "Overall Accuracy", Data = _keyStats["accuracy"].Select(v => Math.Round(v, 1)).Cast<object>()
+}
+};
 
         return data;
     }
 
-    private List<ProgressItem> GetItems()
+    private List<ProgressRecord> GetItems()
     {
-        return
-        [
-            new ProgressItem
-            {
-                Type = "Practice",
-                Name = "Base class",
-                Date = DateTime.Now.ToString(),
-                GoodWpmKeys = 21,
-                OverallAccuracy = 82,
-                OverallSpeed = 56,
-                BreakdownLetter = 60,
-                BreakdownNumber = 0,
-                BreakdownSymbol = 0
-            }
-        ];
+        if (Context.CurrentAccount == null || Context.CurrentCourse == null)
+        {
+            return [];
+        }
 
+        var progress = ReportService.GetProgressRecords(Context.CurrentAccount.History, Context.CurrentCourse);
+
+        return progress.ToList();
     }
 
-    private class ProgressItem
-    {
-        public string Type { get; set; } = null!;
-        public string Name { get; set; } = null!;
-        public string Date { get; set; } = null!;
-        public int GoodWpmKeys { get; set; }
-        public double OverallAccuracy { get; set; }
-        public double OverallSpeed { get; set; }
-        public int BreakdownLetter { get; set; }
-        public int BreakdownNumber { get; set; }
-        public int BreakdownSymbol { get; set; }
 
-    }
-}
+
+   }

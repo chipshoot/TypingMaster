@@ -14,6 +14,8 @@ namespace TypingMaster.Business.Models.Courses
 
         public int Id { get; set; }
 
+        public string Name { get; set; } =  "Skill Level Charge Course";
+
         public string CompleteText => CourseCompleteText;
 
         public IEnumerable<Lesson> Lessons { get; set; } = [];
@@ -51,11 +53,8 @@ namespace TypingMaster.Business.Models.Courses
         {
             ArgumentNullException.ThrowIfNull(stats);
 
-            var curLesson = Lessons.FirstOrDefault(l => l.Id == stats.LessonId);
-            if (curLesson == null)
-            {
-                throw new InvalidOperationException("Lesson not found.");
-            }
+            var curLesson = Lessons.FirstOrDefault(l => l.Id == stats.LessonId) ??
+                            throw new InvalidOperationException("Lesson not found.");
 
             Lesson? nextLesson;
             var curSkill = stats.GetSkillLevel();

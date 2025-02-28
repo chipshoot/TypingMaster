@@ -6,6 +6,8 @@ public interface ICourse
 {
     int Id { get; set; }
 
+    string Name { get; set; }
+
     IEnumerable<Lesson> Lessons { get; set; }
 
     string CompleteText { get; }
