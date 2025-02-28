@@ -12,10 +12,10 @@ namespace TypingMaster.Business.Models
 
         public UserProfile User { get; set; } = null!;
 
-        public DrillStats? GoalStats { get; set; }
+        public StatsBase? GoalStats { get; set; }
 
         public PracticeLog History { get; set; } = null!;
 
-        public ICourse CurrentCourse { get; set; } = null!;
+        public int CourseId { get; set; }
     }
 }

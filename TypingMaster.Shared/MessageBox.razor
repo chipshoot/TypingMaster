@@ -1,0 +1,28 @@
+﻿<style>
+    .message-display {
+        margin-top: 0rem;
+        margin-bottom: 1rem;
+    }
+</style>
+<div class="message-display">
+    <Collapse IsAccordion="true">
+        <CollapseItems>
+            <CollapseItem Text="@Header" IsCollapsed="@IsCollapse">
+                <div>
+                    <p>@Message</p>
+                </div>
+            </CollapseItem>
+        </CollapseItems>
+    </Collapse>
+</div>
+@code {
+
+    [Parameter]
+    public string Header { get; set; } = "";
+
+    [Parameter]
+    public string Message { get; set; } = "";
+
+    [Parameter]
+    public bool IsCollapse { get; set; } = true;
+}

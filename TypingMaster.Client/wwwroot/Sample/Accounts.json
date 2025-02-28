@@ -1,0 +1,94 @@
+{
+  "Id": 1,
+  "AccountName": "SampleUser",
+  "Email": "sample.user@example.com",
+  "User": {
+    "FirstName": "Sample",
+    "LastName": "User",
+    "Title": "Mr."
+  },
+  "GoalStats": {
+    "Wpm": 60,
+    "Accuracy": 98.5
+  },
+  "History": {
+    "CurrentCourseId": 1,
+    "CurrentLessonId": 1,
+    "PracticeStats": [
+      {
+        "CourseId": 1,
+        "LessonId": 1,
+        "TypedText": "The quick brown fox jumps over the lazy dog.",
+        "KeyEvents": [
+          {
+            "Key": "T",
+            "TypedKey": "T",
+            "IsCorrect": true,
+            "KeyDownTime": "2025-02-25T10:00:00Z",
+            "KeyUpTime": "2025-02-25T10:00:01Z",
+            "Latency": 0.1
+          },
+          {
+            "Key": "h",
+            "TypedKey": "h",
+            "IsCorrect": true,
+            "KeyDownTime": "2025-02-25T10:00:01Z",
+            "KeyUpTime": "2025-02-25T10:00:02Z",
+            "Latency": 0.1
+          }
+        ],
+        "StartTime": "2025-02-25T10:00:00Z",
+        "FinishTime": "2025-02-25T10:05:00Z",
+        "Wpm": 60,
+        "Accuracy": 98.5
+      },
+      {
+        "CourseId": 1,
+        "LessonId": 2,
+        "TypedText": "A quick movement of the enemy will jeopardize six gunboats.",
+        "KeyEvents": [
+          {
+            "Key": "A",
+            "TypedKey": "A",
+            "IsCorrect": true,
+            "KeyDownTime": "2025-02-25T10:10:00Z",
+            "KeyUpTime": "2025-02-25T10:10:01Z",
+            "Latency": 0.1
+          },
+          {
+            "Key": "q",
+            "TypedKey": "q",
+            "IsCorrect": true,
+            "KeyDownTime": "2025-02-25T10:10:01Z",
+            "KeyUpTime": "2025-02-25T10:10:02Z",
+            "Latency": 0.1
+          }
+        ],
+        "StartTime": "2025-02-25T10:10:00Z",
+        "FinishTime": "2025-02-25T10:15:00Z",
+        "Wpm": 55,
+        "Accuracy": 97.0
+      }
+    ],
+    "KeyStats": {
+      "a": {
+        "Key": "a",
+        "TypingCount": 100,
+        "CorrectCount": 85,
+        "PressDuration": 19,
+        "Latency": 28.5,
+        "Wpm": 60
+      },
+      "b": {
+        "Key": "b",
+        "TypingCount": 80,
+        "CorrectCount": 35,
+        "PressDuration": 25,
+        "Latency": 15,
+        "Wpm": 55
+      }
+    },
+    "PracticeDuration": 0
+  },
+  "CourseId": 1
+}

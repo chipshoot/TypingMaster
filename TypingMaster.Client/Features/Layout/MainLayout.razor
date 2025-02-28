@@ -1,9 +1,26 @@
 ﻿@inherits LayoutComponentBase
-
+<style>
+    .nav-link-white {
+        color: white !important;
+    }
+</style>
 <div class="container-fluid">
-<Header></Header>
-
-<main class="container mt-5 mb-5">
-    @Body
-</main>
+    <Layout ShowFooter="true" AdditionalAssemblies="[typeof(MainLayout).Assembly]">
+        <Header>
+            <div>Typing Master</div>
+            <nav class="ms-3">
+                <NavLink class="btn btn-link nav-link-white" href="trainer" Match="NavLinkMatch.All">Lessons</NavLink>
+                <NavLink class="btn btn-link nav-link-white" href="tests">Tests</NavLink>
+                <NavLink class="btn btn-link nav-link-white" href="reports">Reports</NavLink>
+                <NavLink class="btn btn-link nav-link-white" href="leaderboard">Options</NavLink>
+                <NavLink class="btn btn-link nav-link-white" href="leaderboard">Game</NavLink>
+                <NavLink class="btn btn-link nav-link-white" href="leaderboard">Help</NavLink>
+                <NavLink class="btn btn-link nav-link-white" href="leaderboard">Logout</NavLink>
+            </nav>
+        </Header>
+        <Main>
+            @Body
+        </Main>
+        <Footer>Developing mode</Footer>
+    </Layout>
 </div>

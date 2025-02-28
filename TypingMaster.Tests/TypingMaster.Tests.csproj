@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BootstrapBlazor.Chart" Version="9.0.0" />
+    <PackageReference Include="bunit" Version="1.38.5" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -24,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TypingMaster.Business\TypingMaster.Business.csproj" />
+    <ProjectReference Include="..\TypingMaster.Client\TypingMaster.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>

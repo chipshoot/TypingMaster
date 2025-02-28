@@ -1,0 +1,54 @@
+﻿@using System.ComponentModel.DataAnnotations
+
+<Chart ChartType="ChartType.Bar" Title="@Title"
+OnInitAsync="()=>OnInitAsync(IsStacked, IsSetTitle)" 
+OnClickDataAsync="OnClickDataAsync"
+@ref="_chart" />
+
+@code {
+    [Parameter, Required]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string XTitle { get; set; } = string.Empty;
+
+    [Parameter ]
+    public string YTitle { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool IsStacked { get; set; }
+
+    [Parameter]
+    public bool IsSetTitle { get; set; }
+
+    [Parameter]
+    public Func<(int DatasetIndex, int Index), Task> OnClickDataAsync { get; set; }
+
+    [Parameter]
+    public IEnumerable<string> Xlabels { get; set; }
+
+    [Parameter]
+    public IEnumerable<ChartDataset> Data { get; set; }
+
+    private Chart _chart;
+
+    public Task<ChartDataSource> OnInitAsync(bool stacked, bool setTitle = true)
+    {
+        var ds = new ChartDataSource();
+
+        if (setTitle)
+        {
+            ds.Options.Title = Title; 
+        }
+
+        ds.Options.X.Title = XTitle;
+        ds.Options.Y.Title = YTitle;
+        ds.Options.X.Stacked = stacked;
+        ds.Options.Y.Stacked = stacked;
+        ds.Labels = Xlabels;
+        ds.Data.AddRange(Data.ToList());
+
+        return Task.FromResult(ds);
+    }
+
+}

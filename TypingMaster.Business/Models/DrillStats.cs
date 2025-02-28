@@ -9,7 +9,7 @@ public class DrillStats : StatsBase
     public string TypedText { get; set; } = null!;
 
     // hold the stats for each key in the lesson
-    public IEnumerable<KeyEvent> KeyStats { get; set; } = null!;
+    public Queue<KeyEvent> KeyEvents { get; set; } = null!;
 
     // time stamp when the lesson starts
     public DateTime? StartTime { get; set; }

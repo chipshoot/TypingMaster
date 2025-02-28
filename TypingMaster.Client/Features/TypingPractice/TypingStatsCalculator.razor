@@ -12,13 +12,13 @@
     public EventCallback<int> OnWpmChanged { get; set; }
 
     [Parameter]
-    public EventCallback<int> OnAccuracyChanged { get; set; }
+    public EventCallback<double> OnAccuracyChanged { get; set; }
 
     private double _elapsedTime = 0;
     private System.Threading.Timer? _timer;
     private DateTime? _startTime = null;
     private int _wpm = 0;
-    private int _accuracy = 0;
+    private double _accuracy = 0;
 
     protected override void OnParametersSet()
     {

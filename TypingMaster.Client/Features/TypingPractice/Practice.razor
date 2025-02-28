@@ -1,4 +1,6 @@
 ﻿@page "/typing-practice"
+@using TypingMaster.Shared
+@inject ILogger Logger
 
 <style>
     .w-full {
@@ -9,7 +11,7 @@
     height: 100%;
     }
 
-    .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    .space-y-2> :not([hidden])~ :not([hidden]) {
     --tw-space-y-reverse: 0;
     margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
     margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
@@ -73,23 +75,19 @@
     border-bottom: 1ch solid black;
     margin-left: calc(var(--arrow-position, 0) * 1ch);
     }
+
     .arrow.hidden {
     visibility: hidden;
     }
+
 </style>
 <Card class="mt-3">
     <BodyTemplate>
         <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative">
-            <textarea id="typingInput"
-            @ref="_inputRef"
-            @bind="_textInput"
-            @oninput="HandleInputChange"
-            @onkeydown="HandleKeyDown"
-            @onkeyup="HandleKeyUp"
-            spellcheck="false"
+            <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
+            @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
             class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-            style="color: transparent; caret-color: white; overflow:hidden"
-            disabled="@_isCompleted"></textarea>
+            style="color: transparent; caret-color: white; overflow:hidden" disabled="@_isCompleted"></textarea>
             <div class="pointer-events-none">
                 @for (var i = 0; i < Text.Length; i++)
                 {
@@ -109,40 +107,41 @@
                 {
                     <span key="@_inputChars.Length" class="monospace-font arrowUp"></span>
                 }
-
             </div>
         </div>
         <div class="d-flex justify-between items-center mb-4">
             <div>
-                <p>WPM: @_wpm, Accuracy: @_accuracy%</p>
+                <p>WPM: @_wpm, Accuracy: @_accuracy%, @Level.ToString()</p>
             </div>
         </div>
-        <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed" RightShiftPressed="@_rightShiftPressed" />
-        @* <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated" CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs" KeyEvent="@_keyEvent"></KeyEventGenerator> *@
+        @if (!string.IsNullOrEmpty(CurrentLesson?.Description))
+        {
+            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Description" IsCollapse="false" />
+        }
+        <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
+        RightShiftPressed="@_rightShiftPressed" />
+        <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated"
+        CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs"></KeyEventGenerator>
     </BodyTemplate>
     <FooterTemplate>
         <div class="d-flex justify-between items-center mb-4">
-            @* <p>@Description</p> *@
-            @foreach (var i in _keyEvents)
-            {
-                <p>@i.Key</p>
-            }
-
+            <p>@Description</p>
         </div>
     </FooterTemplate>
 </Card>
-<TypingStatsCalculator Text="@Text"
-UserInput="@_textInput"
-OnWpmChanged="@(wpm=>_wpm=wpm)"
-OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
-@ref="@_typingStats"></TypingStatsCalculator>
+<TypingStatsCalculator Text="@Text" UserInput="@_textInput" OnWpmChanged="@(wpm => _wpm = wpm)"
+OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></TypingStatsCalculator>
 
 @code {
 
 
 
+
+
+
+
     [Parameter]
-    public string Text { get; set; } = string.Empty;
+    public Lesson? CurrentLesson { get; set; }
 
     [Parameter]
     public string Description { get; set; } = TypingMasterConstants.DefaultPracticePrompt;
@@ -150,6 +149,7 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
     [Parameter]
     public EventCallback<DrillStats> OnTypingCompleted { get; set; }
 
+    private string Text => CurrentLesson?.PracticeText ?? string.Empty;
     private string _textInput = string.Empty;
     private string _inputChars = string.Empty;
     private char _nextKeyExpected;
@@ -158,21 +158,23 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
     private bool _rightShiftPressed = false;
     private int _cursorPosition = 0;
     private ElementReference _inputRef;
+    private string _lessonHeader = string.Empty;
     private int _wpm;
-    private int _accuracy;
+    private double _accuracy;
+    private SkillLevel Level => (_wpm, _accuracy).GetSkillLevel();
     private TypingStatsCalculator? _typingStats;
     private KeyEventGenerator? _keyEventGenerator;
     private bool _isCompleted = false;
     private bool _isCourseFinished = false;
     private KeyboardEventArgs? _keyEventArgs;
-    private KeyEvent? _keyEvent;
-    private List<KeyEvent> _keyEvents = new List<KeyEvent>();
+    private Queue<KeyEvent> _keyEvents = [];
 
     protected override void OnInitialized()
     {
         _typingStats = new TypingStatsCalculator();
         _keyEventGenerator = new KeyEventGenerator();
-        _nextKeyExpected = Text[0];
+        _nextKeyExpected = string.IsNullOrEmpty(Text) ? '\0' : Text[_textInput.Length];
+        _lessonHeader = $"Lesson: {CurrentLesson?.Id}";
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -195,18 +197,26 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
             if (_textInput.Length == Text.Length + 1)
             {
                 _isCompleted = true;
-                await OnTypingCompleted.InvokeAsync(new DrillStats { Wpm = _wpm, Accuracy = _accuracy });
+                await OnTypingCompleted.InvokeAsync(new DrillStats
+                {
+                    LessonId = CurrentLesson.Id,
+                    TypedText = _textInput,
+                    Wpm = _wpm,
+                    Accuracy = _accuracy,
+                    KeyEvents = _keyEvents,
+                    FinishTime = DateTime.Now
+                });
             }
             else
             {
-                //_nextKeyExpected = Text[_textInput.Length];
+                var idx = _textInput.Length >= Text.Length ? Text.Length - 1 : _textInput.Length;
+                _nextKeyExpected = Text[idx];
             }
         }
     }
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-
         switch (e.Code)
         {
             case "ShiftLeft":
@@ -218,12 +228,12 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
             case "Space":
                 _lastKeyPressed = e.Code;
                 _keyEventArgs = e;
-                //_keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
+                _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
                 break;
             default:
                 _lastKeyPressed = e.Key;
                 _keyEventArgs = e;
-                //_keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
+                _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
                 break;
         }
     }
@@ -241,7 +251,7 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
             default:
                 _lastKeyPressed = null;
                 _keyEventArgs = e;
-                //_keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
+                _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
                 break;
         }
     }
@@ -250,7 +260,7 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
     {
         if (_isCourseFinished)
         {
-            return "text-success"; 
+            return "text-success";
         }
 
         if (_textInput.Length <= index)
@@ -282,6 +292,9 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
         _isCompleted = false;
         _typingStats?.Reset();
         _inputRef.FocusAsync();
+        _keyEvents.Clear();
+        _nextKeyExpected = Text[0];
+        _keyEventGenerator?.Reset();
         if (courseFinished)
         {
             _isCompleted = true;
@@ -289,8 +302,11 @@ OnAccuracyChanged="@(accuracy=>_accuracy=accuracy)"
         }
     }
 
-    private void HandleKeyEventGenerated(KeyEvent keyEvent)
+    private void HandleKeyEventGenerated(Queue<KeyEvent> keyEvents)
     {
-        //_keyEvents.Add(keyEvent);
+
+        //var jsonString = JsonSerializer.Serialize(keyEvents);
+        //Logger.Debug(jsonString);
+        _keyEvents = keyEvents;
     }
 }

@@ -80,7 +80,7 @@ namespace TypingMaster.Business.Models.Courses
                 LessonId = 1,
                 Wpm = 0,
                 Accuracy = 0,
-                KeyStats = [],
+                KeyEvents = [],
                 TypedText = string.Empty,
                 StartTime = DateTime.Now,
                 FinishTime = DateTime.UtcNow

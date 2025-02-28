@@ -2,6 +2,6 @@
 {
     public interface ICourseService
     {
-        public ICourse GetCourse(int id);
+        Task<ICourse> GetCourse(int id);
     }
 }

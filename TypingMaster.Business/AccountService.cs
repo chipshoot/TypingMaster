@@ -1,40 +1,64 @@
-﻿using TypingMaster.Business.Contract;
+﻿using System.Text.Json;
+using Serilog;
+using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
 
 namespace TypingMaster.Business;
 
-public class AccountService(ICourseService courseService) : IAccountService
+public class AccountService(ILogger logger) : ServiceBase(logger), IAccountService
 {
-    private readonly ICourseService _courseService = courseService ?? throw new ArgumentException(nameof(courseService));
-
-    public Account GetAccount(int id)
+    public async Task<Account?> GetAccount(int id)
     {
-        return new Account
+        var savedAcc = new Account();
+        return savedAcc;
+    }
+
+    public async Task<Account?> CreateAccount(Account? account)
+    {
+        if (account == null || string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.Email))
         {
-            Id = id,
-            AccountName = "SampleUser",
-            Email = "sample.user@example.com",
-            User = new UserProfile
-            {
-                FirstName = "Sample",
-                LastName = "User",
-                Title = "Mr."
-            },
-            GoalStats = new DrillStats
-            {
-                Wpm = 60,
-                Accuracy = 98.5
-            },
-            History =
-                new PracticeLog
-                {
-                    CurrentCourseId = 1,
-                    CurrentLessonId = 1,
-                    PracticeStats = [],
-                    KeyStats = [],
-                    PracticeDuration = 0
-                },
-            CurrentCourse = _courseService.GetCourse(1)
-        };
+            ProcessResult.AddError(InvalidAccountData);
+            return null;
+        }
+
+        try
+        {
+            await SaveAccount(account);
+            ProcessResult.AddSuccess();
+            return account;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return null;
+        }
+    }
+
+    public async Task UpdateAccount(Account? account)
+    {
+        if (account == null || string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.Email))
+        {
+            ProcessResult.AddError(InvalidAccountData);
+            return;
+        }
+
+        try
+        {
+            await SaveAccount(account);
+            ProcessResult.AddSuccess();
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+        }
+    }
+
+    public Task<bool> IsAccountUpdated(int accountId, int version)
+    {
+        return Task.FromResult(true);
+    }
+
+    private async Task SaveAccount(Account account)
+    {
     }
 }

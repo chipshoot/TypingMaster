@@ -1,10 +1,12 @@
 ﻿@code {
-    private DateTime _lastKeyUpTime;
-    private DateTime _keyDownTime;
-    private bool _isFirstKey = true;
+
+    private KeyboardEventArgs? _previousKeyEventArgs;
+    private Queue<KeyEvent> _keyEvents = new();
+    public KeyEvent? KeyEvent { get; set; }
+    private HashSet<string> _processedEventIds = [];
 
     [Parameter]
-    public EventCallback<KeyEvent> OnKeyEventGenerated { get; set; }
+    public EventCallback<Queue<KeyEvent>> OnKeyEventGenerated { get; set; }
 
     [Parameter]
     public KeyboardEventArgs? KeyEventArgs { get; set; }
@@ -12,15 +14,13 @@
     [Parameter]
     public char CharExpected { get; set; }
 
-    [Parameter]
-    public KeyEvent? KeyEvent { get; set; }
-
 
     protected override void OnParametersSet()
     {
-        if (KeyEventArgs != null)
+        if (KeyEventArgs != null && (_previousKeyEventArgs == null || !KeyEventArgs.Equals(_previousKeyEventArgs)))
         {
             HandleKeyEvent(KeyEventArgs);
+            _previousKeyEventArgs = KeyEventArgs;
         }
     }
 
@@ -37,52 +37,54 @@
         }
     }
 
-    private void HandleKeyDown(KeyboardEventArgs e)
+    public void Reset()
     {
-        _keyDownTime = DateTime.Now;
+        KeyEvent = null;
+        _keyEvents.Clear();
+        _processedEventIds.Clear();
+    }
 
+    public void HandleKeyDown(KeyboardEventArgs e)
+    {
         float latency = 0;
-        if (_isFirstKey)
+
+        var keyDownTime = DateTime.Now;
+        if (_keyEvents.Count > 0)
         {
-            _isFirstKey = false;
-        }
-        else
-        {
-            latency = (float)(_keyDownTime - _lastKeyUpTime).TotalMilliseconds;
+            latency = (float)(keyDownTime - _keyEvents.Last().KeyUpTime).TotalMilliseconds;
         }
 
         var charExpected = CharExpected;
+
         KeyEvent = new KeyEvent
         {
             Key = charExpected,
             TypedKey = e.Key[0],
             IsCorrect = e.Key[0] == charExpected,
-            KeyDownTime = DateTime.Now,
+            KeyDownTime = keyDownTime,
             Latency = latency
         };
     }
 
-    private void HandleKeyUp(KeyboardEventArgs e)
+    public void HandleKeyUp(KeyboardEventArgs e)
     {
-        var charExpected = CharExpected;
-        if (KeyEvent == null)
+        if (KeyEvent != null)
         {
-            KeyEvent = new KeyEvent
+            // Generate a unique EventId
+            var eventId = $"{KeyEvent.Key}_{KeyEvent.TypedKey}_{KeyEvent.KeyDownTime}_{DateTime.Now}";
+            if (!_processedEventIds.Add(eventId))
             {
-                Key = charExpected,
-                TypedKey = e.Key[0],
-                IsCorrect = e.Key[0] == charExpected,
-                KeyDownTime = DateTime.Now,
-                Latency = 0
-            };
-        }
-        else
-        {
+                return;
+            }
+
             KeyEvent.KeyUpTime = DateTime.Now;
-
+            _keyEvents.Enqueue(KeyEvent);
+            OnKeyEventGenerated.InvokeAsync(_keyEvents);
         }
+    }
 
-        OnKeyEventGenerated.InvokeAsync(KeyEvent);
-        _lastKeyUpTime = DateTime.Now;
+    public Queue<KeyEvent> GetKeyEvents()
+    {
+        return _keyEvents;
     }
 }

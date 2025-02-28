@@ -6,6 +6,11 @@ public static class Extensions
 {
     public static SkillLevel GetSkillLevel(this StatsBase stats)
     {
+        return (stats.Wpm, stats.Accuracy).GetSkillLevel();
+    }
+
+    public static SkillLevel GetSkillLevel(this (int Wpm, double Accuracy) stats)
+    {
         double pointWpm = stats.Wpm switch
         {
             < 30 => 1,
