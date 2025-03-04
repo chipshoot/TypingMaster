@@ -1,7 +1,7 @@
 {
   "Id": 1,
-  "AccountName": "SampleUser",
-  "Email": "sample.user@example.com",
+  "AccountName": "Fang",
+  "Email": "fang@example.com",
   "User": {
     "FirstName": "Sample",
     "LastName": "User",
@@ -44,7 +44,7 @@
       },
       {
         "CourseId": 1,
-        "LessonId": 2,
+        "LessonId": 1,
         "TypedText": "A quick movement of the enemy will jeopardize six gunboats.",
         "KeyEvents": [
           {
@@ -67,7 +67,7 @@
         "StartTime": "2025-02-25T10:10:00Z",
         "FinishTime": "2025-02-25T10:15:00Z",
         "Wpm": 55,
-        "Accuracy": 97.0
+        "Accuracy": 27.0
       }
     ],
     "KeyStats": {
