@@ -1,5 +1,4 @@
-﻿using TypingMaster.Business.Contract;
-
+﻿
 namespace TypingMaster.Business.Models
 {
     public class Account
@@ -8,7 +7,10 @@ namespace TypingMaster.Business.Models
 
         public string AccountName { get; set; } = null!;
 
-        public string Email { get; set; } = null!;
+        /// <summary>
+        /// Unique email address of the account and also in system
+        /// </summary>
+        public string AccountEmail { get; set; } = null!;
 
         public UserProfile User { get; set; } = null!;
 

@@ -16,7 +16,7 @@ public class CourseService : ICourseService
                     new Lesson
                     {
                         Id = 1,
-                        PracticeText = "This is the introductory material for typing.",
+                        PracticeText = "This is the introductory material for typing.  The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
                         Point = 1,
                         Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
                     },
@@ -24,7 +24,7 @@ public class CourseService : ICourseService
                     new Lesson
                     {
                         Id = 2,
-                        PracticeText = "This is the introductory beginner material for typing.",
+                        PracticeText = "This is the introductory beginner material for typing.  This is the introductory material for typing.  The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
                         Point = 1,
                         Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
                     },

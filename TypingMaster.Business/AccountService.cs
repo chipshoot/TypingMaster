@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Serilog;
+﻿using Serilog;
 using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
 
@@ -15,7 +14,7 @@ public class AccountService(ILogger logger) : ServiceBase(logger), IAccountServi
 
     public async Task<Account?> CreateAccount(Account? account)
     {
-        if (account == null || string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.Email))
+        if (account == null || string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.AccountEmail))
         {
             ProcessResult.AddError(InvalidAccountData);
             return null;
@@ -36,7 +35,7 @@ public class AccountService(ILogger logger) : ServiceBase(logger), IAccountServi
 
     public async Task UpdateAccount(Account? account)
     {
-        if (account == null || string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.Email))
+        if (account == null || string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.AccountEmail))
         {
             ProcessResult.AddError(InvalidAccountData);
             return;
