@@ -91,7 +91,7 @@
                 @for (var i = 0; i < Text.Length; i++)
                 {
                     <span key="@i" class="monospace-font @(i >= _textInput.Length ? "" : GetCharClass(i))">
-                        @Text[i]
+                        @((MarkupString)(Text[i] == ' ' ? "&nbsp;" : Text[i].ToString()))
                     </span>
                 }
             </div>
