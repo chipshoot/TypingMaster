@@ -27,7 +27,7 @@
             <FieldItems>
                 <EditorItem @bind-Field="@context.Account">
                     <EditTemplate Context="value">
-                        <BootstrapInput TValue="string" PlaceHolder="Email" type="email" maxLength="254" @bind-value="@value.UserName" ShowLabel="true" DisplayText="Account" />
+                        <BootstrapInput TValue="string" PlaceHolder="Email" type="email" maxLength="254" @bind-value="@value.Account" ShowLabel="true" DisplayText="Account" />
                     </EditTemplate>
                 </EditorItem>
                 <EditorItem @bind-Field="@context.Password">
@@ -37,27 +37,27 @@
                 </EditorItem>
             </FieldItems>
             <Buttons>
-                <Button ButtonType="ButtonType.Submit" class="btn btn-primary" disabled="@(isLoading)">Login</Button>
-                <Button ButtonType="ButtonType.Button" class="btn btn-primary" disabled="@(isLoading)">SignUp</Button>
+                <Button ButtonType="ButtonType.Submit" class="btn btn-primary" disabled="@(_isLoading)">Login</Button>
+                <Button ButtonType="ButtonType.Button" class="btn btn-primary" disabled="@(_isLoading)">SignUp</Button>
             </Buttons>
         </EditorForm>
     </ValidateForm>
 </div>
 
 @code {
-    private LoginModel _loginModel = new();
-    private bool isLoading = false;
-    private string errorMessage;
+    private readonly LoginModel _loginModel = new();
+    private bool _isLoading = false;
+    private string? _errorMessage;
 
     private async Task HandleLogin(EditContext context)
     {
-        isLoading = true;
-        errorMessage = null;
+        _isLoading = true;
+        _errorMessage = null;
 
         // Simulate a login process
         await Task.Delay(1000);
 
-        if (_loginModel.Account == "fang@yahoo.com" && _loginModel.Password == "password")
+        if (_loginModel is { Account: "fang@yahoo.com", Password: "password" })
         {
 
             AppState.CurrentAccount = await GetAccount();
@@ -75,26 +75,27 @@
         }
         else
         {
-            errorMessage = "Invalid username or password.";
+            _errorMessage = "Invalid username or password.";
         }
 
-        isLoading = false;
+        _isLoading = false;
     }
 
-    private async Task<Account> GetAccount()
+    private async Task<Account?> GetAccount()
     {
         var data = await Http.GetStringAsync("Sample/Accounts.json");
         var account = JsonSerializer.Deserialize<Account>(data);
         return account;
     }
+
     public class LoginModel
     {
         [Required]
         [StringLength(254, ErrorMessage = "The email address cannot exceed 254 characters.")]
-        public string Account { get; set; }
+        public string? Account { get; set; }
 
         [Required]
         [StringLength(128, MinimumLength = 8, ErrorMessage = "The password must be between 8 and 128 characters.")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
     }
 }
