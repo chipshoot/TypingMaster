@@ -1,0 +1,100 @@
+﻿@page "/login"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject TypingTrainerContext AppState
+@inject ILogger Logger
+@inject HttpClient Http
+@inject ICourseService CourseProvider
+
+<style>
+    .login-container {
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+</style>
+
+<div class="login-container">
+    <ValidateForm Model="@_loginModel" OnValidSubmit="@HandleLogin" >
+        <EditorForm Model="@_loginModel"  LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
+            <FieldItems>
+                <EditorItem @bind-Field="@context.UserName">
+                    <EditTemplate Context="value">
+                        <BootstrapInput TValue="string" PlaceHolder="Email" type="email" maxLength="254" @bind-value="@value.UserName" ShowLabel="true" DisplayText="Account" />
+                    </EditTemplate>
+                </EditorItem>
+                <EditorItem @bind-Field="@context.Password">
+                    <EditTemplate Context="value">
+                        <BootstrapInput TValue="string" PlaceHolder="Password" type="password" maxlength="128" @bind-value="@value.Password" ShowLabel="true" DisplayText="Password" />
+                    </EditTemplate>
+                </EditorItem>
+            </FieldItems>
+            <Buttons>
+                <Button ButtonType="ButtonType.Submit" class="btn btn-primary" disabled="@(isLoading)">Login</Button>
+                <Button ButtonType="ButtonType.Button" class="btn btn-primary" disabled="@(isLoading)">SignUp</Button>
+            </Buttons>
+        </EditorForm>
+    </ValidateForm>
+</div>
+
+@code {
+    private LoginModel _loginModel = new();
+    private bool isLoading = false;
+    private string errorMessage;
+
+    private async Task HandleLogin(EditContext context)
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        // Simulate a login process
+        await Task.Delay(1000);
+
+        if (_loginModel.UserName == "fang@yahoo.com" && _loginModel.Password == "password")
+        {
+
+            AppState.CurrentAccount = await GetAccount();
+            if (AppState.CurrentAccount != null)
+            {
+                AppState.CurrentCourse = await CourseProvider.GetCourse(AppState.CurrentAccount.CourseId);
+                AppState.IsLoggedIn = true;
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                Logger.Error("Cannot retrieve user information");
+            }
+
+        }
+        else
+        {
+            errorMessage = "Invalid username or password.";
+        }
+
+        isLoading = false;
+    }
+
+    private async Task<Account> GetAccount()
+    {
+        var data = await Http.GetStringAsync("Sample/Accounts.json");
+        var account = JsonSerializer.Deserialize<Account>(data);
+        return account;
+    }
+    public class LoginModel
+    {
+        [Required]
+        [StringLength(254, ErrorMessage = "The email address cannot exceed 254 characters.")]
+        public string UserName { get; set; }
+
+        [Required]
+        [StringLength(128, MinimumLength = 8, ErrorMessage = "The password must be between 8 and 128 characters.")]
+        public string Password { get; set; }
+    }
+}

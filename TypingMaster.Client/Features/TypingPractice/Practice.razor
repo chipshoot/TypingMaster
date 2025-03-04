@@ -1,5 +1,4 @@
 ﻿@page "/typing-practice"
-@using TypingMaster.Shared
 @inject ILogger Logger
 
 <style>
@@ -87,7 +86,7 @@
             <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
             @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
             class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-            style="color: transparent; caret-color: white; overflow:hidden" disabled="@_isCompleted"></textarea>
+            style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted"></textarea>
             <div class="pointer-events-none">
                 @for (var i = 0; i < Text.Length; i++)
                 {
@@ -133,13 +132,6 @@
 OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></TypingStatsCalculator>
 
 @code {
-
-
-
-
-
-
-
     [Parameter]
     public Lesson? CurrentLesson { get; set; }
 

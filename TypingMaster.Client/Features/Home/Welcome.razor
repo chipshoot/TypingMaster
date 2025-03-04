@@ -1,0 +1,26 @@
+﻿@inject HttpClient Http
+@inject ILogger Logger
+
+<MessageBox Header="@_header" Message="@_welcomeMessage" Type="@_messageBoxType" TextType="@_textType" FontFamily="'Bad Script', cursive" FontSize="22px"></MessageBox>
+@code {
+    private string _header = "Welcome";
+    private string _welcomeMessage = "";
+
+    private MessageBoxType _messageBoxType = MessageBoxType.Card;
+    private MessageTextType _textType = MessageTextType.Markdown;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var message = await Http.GetStringAsync("Sample/WelcomeMessage.md");
+            _welcomeMessage = message;
+
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e.Message);
+        }
+        await Task.CompletedTask;
+    }
+}

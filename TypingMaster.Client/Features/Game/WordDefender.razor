@@ -1,0 +1,492 @@
+﻿@* @page "/games/wordDefender"
+@using System.Timers
+@using Timer = System.Timers.Timer
+@implements IDisposable
+
+<div class="game-container">
+    <div class="game-stats">
+        <div>Score: @score</div>
+        <div>Level: @level</div>
+        <div>Lives: @lives</div>
+    </div>
+
+    @if (!isGameStarted)
+    {
+        <div class="start-screen">
+            <h1>Typing Defense</h1>
+            <p>Type the falling words to destroy them before they hit your city!</p>
+            <button class="start-button" @onclick="StartGame">Start Game</button>
+        </div>
+    }
+    else if (isGameOver)
+    {
+        <div class="game-over">
+            <h1>Game Over</h1>
+            <p>Final Score: @score</p>
+            <button class="start-button" @onclick="RestartGame">Play Again</button>
+        </div>
+    }
+    else
+    {
+        <div class="sky-container" @ref="gameAreaRef">
+            @foreach (var word in fallingWords)
+            {
+                <div class="falling-word @(currentInput == word.Text ? "highlight" : "")"
+                     style="left: @(word.X)px; top: @(word.Y)px;">
+                    @word.Text
+                </div>
+            }
+
+            @foreach (var explosion in explosions)
+            {
+                <div class="explosion" style="left: @(explosion.X)px; top: @(explosion.Y)px;">
+                    💥
+                </div>
+            }
+        </div>
+
+        <div class="city-container">
+            @for (int i = 0; i < buildings.Count; i++)
+            {
+                var building = buildings[i];
+                if (building.IsAlive)
+                {
+                    <div class="building" style="left: @(building.X)px; height: @(building.Height)px;">
+                        <div class="building-top"></div>
+                        <div class="building-body"></div>
+                    </div>
+                }
+                else
+                {
+                    <div class="building-destroyed" style="left: @(building.X)px;">
+                        💥
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="input-container">
+            <input @bind="currentInput" @bind:event="oninput" @onkeydown="HandleKeyDown"
+                   placeholder="Type here..." @ref="inputElement" />
+        </div>
+    }
+</div>
+
+<style>
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .game-stats {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .sky-container {
+        flex-grow: 1;
+        position: relative;
+    }
+
+    .falling-word {
+        position: absolute;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+        padding: 5px;
+        border-radius: 4px;
+        transition: top 0.1s linear;
+    }
+
+    .highlight {
+        color: yellow;
+        text-shadow: 0 0 10px yellow;
+    }
+
+    .explosion {
+        position: absolute;
+        font-size: 32px;
+        animation: explode 0.5s forwards;
+    }
+
+    @keyframes explode {
+        0%
+
+    {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+
+    }
+
+    .city-container {
+        height: 150px;
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        background-color: #3A3A3A;
+        position: relative;
+    }
+
+    .building {
+        position: absolute;
+        bottom: 0;
+        width: 60px;
+        background-color: #555;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .building-top {
+        width: 80%;
+        height: 15px;
+        background-color: #777;
+    }
+
+    .building-body {
+        width: 100%;
+        flex-grow: 1;
+        background: repeating-linear-gradient( to bottom, #555, #555 10px, #444 10px, #444 20px );
+    }
+
+    .building-destroyed {
+        position: absolute;
+        bottom: 0;
+        font-size: 40px;
+    }
+
+    .input-container {
+        padding: 10px;
+        background-color: #333;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        font-size: 18px;
+        border: none;
+        border-radius: 4px;
+    }
+
+    .start-screen, .game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 40px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .start-button {
+        padding: 10px 20px;
+        font-size: 18px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+
+        .start-button:hover {
+            background-color: #45a049;
+        }
+</style>
+
+@code {
+    private ElementReference gameAreaRef;
+    private ElementReference inputElement;
+    private Timer gameTimer;
+    private Timer wordGeneratorTimer;
+    private Random random = new Random();
+    private bool isGameStarted = false;
+    private bool isGameOver = false;
+    private string currentInput = "";
+    private int score = 0;
+    private int level = 1;
+    private int lives = 3;
+    private double speedMultiplier = 1.0;
+    private List<FallingWord> fallingWords = new List<FallingWord>();
+    private List<Building> buildings = new List<Building>();
+    private List<Explosion> explosions = new List<Explosion>();
+    private string[] wordBank = new string[] {
+        "code", "type", "fast", "game", "word", "blazor", "city", "building",
+        "defend", "attack", "sky", "fall", "practice", "typing", "speed", "level",
+        "score", "time", "player", "computer", "keyboard", "screen", "mouse", "input"
+    };
+    private int gameAreaWidth = 800;
+
+    protected override async Task OnInitializedAsync()
+    {
+        gameTimer = new Timer(16); // ~60 FPS
+        gameTimer.Elapsed += UpdateGame;
+
+        wordGeneratorTimer = new Timer(2000);
+        wordGeneratorTimer.Elapsed += GenerateWord;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeGameArea();
+        }
+
+        if (isGameStarted && !isGameOver)
+        {
+            await FocusInput();
+        }
+    }
+
+    private async Task InitializeGameArea()
+    {
+        try
+        {
+            // Get the width of the game area
+            var dimensions = await JSRuntime.InvokeAsync<object>("eval", "{ width: document.documentElement.clientWidth }");
+
+            if (dimensions is System.Text.Json.JsonElement json)
+            {
+                gameAreaWidth = json.GetProperty("width").GetInt32();
+            }
+
+            // Initialize buildings
+            InitializeBuildings();
+        }
+        catch
+        {
+            // Fallback to default width if JS interop fails
+            gameAreaWidth = 800;
+            InitializeBuildings();
+        }
+    }
+
+    private void InitializeBuildings()
+    {
+        buildings.Clear();
+        int buildingCount = 5;
+        int spacing = gameAreaWidth / (buildingCount + 1);
+
+        for (int i = 0; i < buildingCount; i++)
+        {
+            int x = spacing * (i + 1) - 30; // Center the building around the position
+            int height = random.Next(80, 130);
+            buildings.Add(new Building { X = x, Height = height, IsAlive = true });
+        }
+    }
+
+    private async Task FocusInput()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('input').focus()");
+        }
+        catch
+        {
+            // Ignore focus errors
+        }
+    }
+
+    private void StartGame()
+    {
+        isGameStarted = true;
+        isGameOver = false;
+        score = 0;
+        level = 1;
+        lives = 3;
+        speedMultiplier = 1.0;
+        fallingWords.Clear();
+        explosions.Clear();
+        InitializeBuildings();
+
+        gameTimer.Start();
+        wordGeneratorTimer.Start();
+
+        StateHasChanged();
+    }
+
+    private void RestartGame()
+    {
+        StartGame();
+    }
+
+    private void GenerateWord(object sender, ElapsedEventArgs e)
+    {
+        // Generate a random word from the word bank
+        string wordText = wordBank[random.Next(wordBank.Length)];
+        int maxWidth = gameAreaWidth - 100; // Ensure word stays within game area
+        int x = random.Next(50, maxWidth);
+
+        fallingWords.Add(new FallingWord
+            {
+                Text = wordText,
+                X = x,
+                Y = 0,
+                SpeedFactor = 0.8 + (random.NextDouble() * 0.4) // Vary speed slightly
+            });
+
+        // Increase difficulty over time
+        if (score > level * 100)
+        {
+            level++;
+            speedMultiplier += 0.2;
+            wordGeneratorTimer.Interval = Math.Max(500, 2000 - (level * 200));
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateGame(object sender, ElapsedEventArgs e)
+    {
+        // Update falling words positions
+        for (int i = fallingWords.Count - 1; i >= 0; i--)
+        {
+            var word = fallingWords[i];
+            word.Y += (2 + level) * word.SpeedFactor * speedMultiplier;
+
+            // Check if word hit the ground
+            if (word.Y > 500) // Approximate sky height
+            {
+                // Find the closest building and damage it
+                Building closestBuilding = FindClosestBuilding(word.X);
+                if (closestBuilding != null && closestBuilding.IsAlive)
+                {
+                    closestBuilding.IsAlive = false;
+                    explosions.Add(new Explosion { X = closestBuilding.X, Y = 500 });
+                    lives--;
+
+                    if (lives <= 0)
+                    {
+                        EndGame();
+                    }
+                }
+
+                fallingWords.RemoveAt(i);
+            }
+        }
+
+        // Remove old explosions
+        for (int i = explosions.Count - 1; i >= 0; i--)
+        {
+            explosions[i].Lifetime += 16;
+            if (explosions[i].Lifetime > 500)
+            {
+                explosions.RemoveAt(i);
+            }
+        }
+
+        // Check if all buildings are destroyed
+        if (buildings.All(b => !b.IsAlive) && lives > 0)
+        {
+            EndGame();
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private Building FindClosestBuilding(int x)
+    {
+        Building closest = null;
+        int minDistance = int.MaxValue;
+
+        foreach (var building in buildings)
+        {
+            if (building.IsAlive)
+            {
+                int distance = Math.Abs(building.X - x);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closest = building;
+                }
+            }
+        }
+
+        return closest;
+    }
+
+    private void EndGame()
+    {
+        isGameOver = true;
+        gameTimer.Stop();
+        wordGeneratorTimer.Stop();
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(currentInput))
+        {
+            CheckWordMatch();
+        }
+    }
+
+    private void CheckWordMatch()
+    {
+        // Find and remove matching word
+        FallingWord matchedWord = fallingWords.FirstOrDefault(w =>
+            w.Text.Equals(currentInput, StringComparison.OrdinalIgnoreCase));
+
+        if (matchedWord != null)
+        {
+            // Add explosion at word position
+            explosions.Add(new Explosion { X = matchedWord.X, Y = matchedWord.Y });
+
+            // Remove the word and update score
+            fallingWords.Remove(matchedWord);
+            score += 10 * level;
+
+            // Clear input
+            currentInput = "";
+        }
+    }
+
+    public void Dispose()
+    {
+        gameTimer?.Stop();
+        gameTimer?.Dispose();
+
+        wordGeneratorTimer?.Stop();
+        wordGeneratorTimer?.Dispose();
+    }
+
+    private class FallingWord
+    {
+        public string Text { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double SpeedFactor { get; set; } = 1.0;
+    }
+
+    private class Building
+    {
+        public int X { get; set; }
+        public int Height { get; set; }
+        public bool IsAlive { get; set; } = true;
+    }
+
+    private class Explosion
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public int Lifetime { get; set; } = 0;
+    }
+} *@

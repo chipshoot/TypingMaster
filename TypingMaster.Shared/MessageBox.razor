@@ -1,19 +1,53 @@
-﻿<style>
+﻿@using Markdig
+@inject HttpClient Http
+
+<style>
     .message-display {
         margin-top: 0rem;
         margin-bottom: 1rem;
     }
 </style>
-<div class="message-display">
-    <Collapse IsAccordion="true">
-        <CollapseItems>
-            <CollapseItem Text="@Header" IsCollapsed="@IsCollapse">
-                <div>
-                    <p>@Message</p>
-                </div>
-            </CollapseItem>
-        </CollapseItems>
-    </Collapse>
+<div class="message-display" style="font-family: @FontFamily; font-size: @FontSize;">
+    @switch (Type)
+    {
+        case MessageBoxType.Collapse:
+            <Collapse IsAccordion="true">
+                <CollapseItems>
+                    <CollapseItem Text="@Header" IsCollapsed="@IsCollapse">
+                        <div>
+                            @GetMessage()
+                        </div>
+                    </CollapseItem>
+                </CollapseItems>
+            </Collapse>
+            break;
+        case MessageBoxType.Card:
+        default:
+                @if (!string.IsNullOrEmpty(Header))
+                {
+                    <Card>
+                        <HeaderTemplate>
+                            @Header
+                        </HeaderTemplate>
+                        <BodyTemplate>
+                            <div>
+                                @GetMessage()
+                            </div>
+                        </BodyTemplate>
+                    </Card>
+                }
+                else
+                {
+                    <Card>
+                        <BodyTemplate>
+                            <div>
+                                @GetMessage()
+                            </div>
+                        </BodyTemplate>
+                    </Card>
+                }
+                break;
+    }
 </div>
 @code {
 
@@ -25,4 +59,28 @@
 
     [Parameter]
     public bool IsCollapse { get; set; } = true;
+
+    [Parameter]
+    public MessageBoxType Type { get; set; } = MessageBoxType.Collapse;
+
+    [Parameter]
+    public MessageTextType TextType { get; set; } = MessageTextType.PlainText;
+
+    [Parameter]
+    public string FontFamily { get; set; } = "Arial, sans-serif";
+
+    [Parameter]
+    public string FontSize { get; set; } = "16px";
+
+    private MarkupString GetMessage()
+    {
+        switch (TextType)
+        {
+            case MessageTextType.Markdown:
+                return new MarkupString(Markdown.ToHtml(Message));
+            case MessageTextType.PlainText:
+            default:
+                return new MarkupString(Message);
+        }
+    }
 }

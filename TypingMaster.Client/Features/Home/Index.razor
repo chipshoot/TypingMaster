@@ -1,3 +1,11 @@
 ﻿@page "/"
+@inject TypingTrainerContext Context
 
-<Trainer></Trainer>
+@if (Context.IsLoggedIn)
+{
+    <Trainer></Trainer>
+}
+else
+{
+    <Welcome></Welcome>
+}

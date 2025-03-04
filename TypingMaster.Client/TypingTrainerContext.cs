@@ -8,6 +8,8 @@ public class TypingTrainerContext
     private Account? _currentAccount;
     private ICourse? _currentCourse;
 
+    public bool IsLoggedIn { get; set; }
+
     public Account? CurrentAccount
     {
         get => _currentAccount;
