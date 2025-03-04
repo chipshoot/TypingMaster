@@ -25,7 +25,7 @@
     <ValidateForm Model="@_loginModel" OnValidSubmit="@HandleLogin" >
         <EditorForm Model="@_loginModel"  LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
             <FieldItems>
-                <EditorItem @bind-Field="@context.UserName">
+                <EditorItem @bind-Field="@context.Account">
                     <EditTemplate Context="value">
                         <BootstrapInput TValue="string" PlaceHolder="Email" type="email" maxLength="254" @bind-value="@value.UserName" ShowLabel="true" DisplayText="Account" />
                     </EditTemplate>
@@ -57,7 +57,7 @@
         // Simulate a login process
         await Task.Delay(1000);
 
-        if (_loginModel.UserName == "fang@yahoo.com" && _loginModel.Password == "password")
+        if (_loginModel.Account == "fang@yahoo.com" && _loginModel.Password == "password")
         {
 
             AppState.CurrentAccount = await GetAccount();
@@ -91,7 +91,7 @@
     {
         [Required]
         [StringLength(254, ErrorMessage = "The email address cannot exceed 254 characters.")]
-        public string UserName { get; set; }
+        public string Account { get; set; }
 
         [Required]
         [StringLength(128, MinimumLength = 8, ErrorMessage = "The password must be between 8 and 128 characters.")]
