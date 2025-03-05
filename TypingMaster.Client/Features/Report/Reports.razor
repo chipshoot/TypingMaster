@@ -6,9 +6,9 @@
 
 <style>
     .header-cell {
-    align-items: center;
-    text-align: center;
-    word-break: break-all;
+        align-items: center;
+        text-align: center;
+        word-break: break-all;
     }
 </style>
 @if (Context.IsLoggedIn)
@@ -24,9 +24,6 @@
                                IsBordered="true" IsStriped="true">
                             <MultiHeaderTemplate>
                                 <tr>
-                                    <th rowspan="2" style="vertical-align:bottom;">
-                                        <div class="header-cell">Type</div>
-                                    </th>
                                     <th rowspan="2" style="vertical-align:bottom;">
                                         <div class="header-cell header-multi-row">Name</div>
                                     </th>
@@ -62,7 +59,6 @@
                                 </tr>
                             </MultiHeaderTemplate>
                             <TableColumns>
-                                <TableColumn @bind-Field="@context.Type"></TableColumn>
                                 <TableColumn @bind-Field="@context.Name"></TableColumn>
                                 <TableColumn @bind-Field="@context.GoodWpmKeys"></TableColumn>
                                 <TableColumn @bind-Field="@context.Date"></TableColumn>
@@ -124,10 +120,10 @@ else
         }
 
         var data = new List<ChartDataset>
-{
-new() { Label = "Average Press Duration", Data = _keyStats["typeSpeed"].Select(v => Math.Round(v, 1)).Cast<object>() },
-new() { Label = "Average Latency", Data = _keyStats["latency"].Select(v => Math.Round(v, 1)).Cast<object>() }
-};
+        {
+            new() { Label = "Average Press Duration", Data = _keyStats["typeSpeed"].Select(v => Math.Round(v, 1)).Cast<object>() },
+            new() { Label = "Average Latency", Data = _keyStats["latency"].Select(v => Math.Round(v, 1)).Cast<object>() }
+        };
 
         return data;
     }
@@ -140,12 +136,12 @@ new() { Label = "Average Latency", Data = _keyStats["latency"].Select(v => Math.
         }
 
         var data = new List<ChartDataset>
-{
-new()
-{
-Label = "Overall Accuracy", Data = _keyStats["accuracy"].Select(v => Math.Round(v, 1)).Cast<object>()
-}
-};
+        {
+            new()
+            {
+                Label = "Overall Accuracy", Data = _keyStats["accuracy"].Select(v => Math.Round(v, 1)).Cast<object>()
+            }
+        };
 
         return data;
     }
@@ -161,7 +157,4 @@ Label = "Overall Accuracy", Data = _keyStats["accuracy"].Select(v => Math.Round(
 
         return progress.ToList();
     }
-
-
-
-   }
+}
