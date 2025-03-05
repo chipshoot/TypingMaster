@@ -8,6 +8,8 @@ public interface ICourse
 
     string Name { get; set; }
 
+    CourseType Type { get; }
+
     IEnumerable<Lesson> Lessons { get; set; }
 
     string CompleteText { get; }

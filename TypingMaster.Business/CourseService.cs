@@ -10,7 +10,7 @@ public class CourseService : ICourseService
 
     public CourseService()
     {
-        var course = new AdvancedLevelCourse()
+        var course = new AdvancedLevelCourse(CourseType.Practice)
         {
             Id = 1,
             Lessons =
@@ -63,7 +63,7 @@ public class CourseService : ICourseService
         _courses.Add(course);
 
 
-        course = new AdvancedLevelCourse()
+        course = new AdvancedLevelCourse(CourseType.AllKeysTest)
         {
             Id = 2,
             Lessons =
@@ -108,9 +108,16 @@ public class CourseService : ICourseService
         };
     }
 
-    public Task<ICourse> GetCourse(int id)
+    public Task<ICourse?> GetCourse(int id)
     {
         var course = _courses.FirstOrDefault(c => c.Id == id);
-        return Task.FromResult<ICourse>(course ?? null!);
+        return Task.FromResult<ICourse>(course);
+    }
+
+    public Task<ICourse?> GetAllKeysCourse(int? id)
+    {
+        var course = id == null ? _courses.FirstOrDefault(c => c.Type == CourseType.AllKeysTest) : _courses.FirstOrDefault(c => c.Type == CourseType.AllKeysTest && c.Id == id);
+
+        return Task.FromResult<ICourse>(course);
     }
 }

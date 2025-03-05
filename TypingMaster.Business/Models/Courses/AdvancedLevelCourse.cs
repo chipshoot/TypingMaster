@@ -6,7 +6,7 @@ namespace TypingMaster.Business.Models.Courses
     /// The course that increase the level of lesson based on the user's performance.
     /// If the user performs is better than advanced level, the lesson level will be increased.
     /// </summary>
-    public class AdvancedLevelCourse : ICourse
+    public class AdvancedLevelCourse(CourseType type) : ICourse
     {
         private const string CourseDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
 
@@ -16,7 +16,10 @@ namespace TypingMaster.Business.Models.Courses
 
         public string Name { get; set; } =  "Skill Level Charge Course";
 
+
         public string CompleteText => CourseCompleteText;
+
+        public CourseType Type { get; } = type;
 
         public IEnumerable<Lesson> Lessons { get; set; } = [];
 
