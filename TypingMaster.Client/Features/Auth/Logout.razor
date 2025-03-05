@@ -1,0 +1,29 @@
+@page "/logout"
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject TypingTrainerContext AppState
+@inject ILogger Logger
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await AuthService.LogoutAsync();
+
+            // Clear application state
+            AppState.CurrentAccount = null;
+            AppState.CurrentCourse = null;
+            AppState.IsLoggedIn = false;
+
+            // Navigate to login page
+            Navigation.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error during logout");
+            Navigation.NavigateTo("/");
+        }
+    }
+}
