@@ -53,34 +53,14 @@
 
     private string GetEventKey(KeyboardEventArgs e)
     {
-        // Generate consistent event key for both KeyDown and KeyUp
-        string keyPart;
-        if (e.Key.Length == 1)
-        {
-            keyPart = e.Key;
-        }
-        else if (e.Code.StartsWith("Key"))
-        {
-            var baseChar = e.Code[3].ToString().ToLower()[0];
-            keyPart = e.ShiftKey ? char.ToUpper(baseChar).ToString() : baseChar.ToString();
-        }
-        else if (e.Code == "Space")
-        {
-            keyPart = " ";
-        }
-        else if (e.Code.StartsWith("Digit"))
-        {
-            keyPart = e.ShiftKey ? GetShiftedDigit(e.Code[5]).ToString() : e.Code[5].ToString();
-        }
-        else
-        {
-            keyPart = e.Key;
-        }
-        return $"{keyPart}_{e.Code}";
+        // Generate consistent event key for both KeyDown and KeyUp using just the Code
+        // This ensures we match keyup/keydown pairs regardless of Shift state
+        return e.Code;
     }
 
     public void HandleKeyDown(KeyboardEventArgs e)
     {
+        Logger.Debug($"Raw KeyDown Event - Key: {e.Key}, Code: {e.Code}, ShiftKey: {e.ShiftKey}");
         float latency = 0;
 
         var keyDownTime = DateTime.Now;
@@ -152,6 +132,7 @@
 
     public void HandleKeyUp(KeyboardEventArgs e)
     {
+        Logger.Debug($"Raw KeyUp Event - Key: {e.Key}, Code: {e.Code}, ShiftKey: {e.ShiftKey}");
         var eventKey = GetEventKey(e);
         if (_pendingKeyEvents.TryGetValue(eventKey, out var pendingEvent))
         {
