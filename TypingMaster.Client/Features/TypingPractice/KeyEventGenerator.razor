@@ -1,9 +1,15 @@
-﻿@code {
+﻿@using System.Text.Json
+@inject ILogger Logger;
+
+@code {
+
+
 
     private KeyboardEventArgs? _previousKeyEventArgs;
     private Queue<KeyEvent> _keyEvents = new();
     public KeyEvent? KeyEvent { get; set; }
     private HashSet<string> _processedEventIds = [];
+    private Dictionary<string, KeyEvent> _pendingKeyEvents = new();
 
     [Parameter]
     public EventCallback<Queue<KeyEvent>> OnKeyEventGenerated { get; set; }
@@ -42,6 +48,35 @@
         KeyEvent = null;
         _keyEvents.Clear();
         _processedEventIds.Clear();
+        _pendingKeyEvents.Clear();
+    }
+
+    private string GetEventKey(KeyboardEventArgs e)
+    {
+        // Generate consistent event key for both KeyDown and KeyUp
+        string keyPart;
+        if (e.Key.Length == 1)
+        {
+            keyPart = e.Key;
+        }
+        else if (e.Code.StartsWith("Key"))
+        {
+            var baseChar = e.Code[3].ToString().ToLower()[0];
+            keyPart = e.ShiftKey ? char.ToUpper(baseChar).ToString() : baseChar.ToString();
+        }
+        else if (e.Code == "Space")
+        {
+            keyPart = " ";
+        }
+        else if (e.Code.StartsWith("Digit"))
+        {
+            keyPart = e.ShiftKey ? GetShiftedDigit(e.Code[5]).ToString() : e.Code[5].ToString();
+        }
+        else
+        {
+            keyPart = e.Key;
+        }
+        return $"{keyPart}_{e.Code}";
     }
 
     public void HandleKeyDown(KeyboardEventArgs e)
@@ -55,30 +90,84 @@
         }
 
         var charExpected = CharExpected;
+        var eventKey = GetEventKey(e);
+
+        // Handle the typed key correctly
+        char typedKey;
+        if (e.Key.Length == 1)
+        {
+            typedKey = e.Key[0];
+        }
+        else if (e.Code.StartsWith("Key"))
+        {
+            // Handle letter keys with shift key for capitals
+            var baseChar = e.Code[3].ToString().ToLower()[0];
+            typedKey = e.ShiftKey ? char.ToUpper(baseChar) : baseChar;
+        }
+        else if (e.Code == "Space")
+        {
+            typedKey = ' ';
+        }
+        else if (e.Code.StartsWith("Digit"))
+        {
+            // Handle number keys
+            typedKey = e.ShiftKey ? GetShiftedDigit(e.Code[5]) : e.Code[5];
+        }
+        else
+        {
+            // For other special keys, use the first character of the key if available
+            typedKey = e.Key.Length > 0 ? e.Key[0] : '\0';
+        }
 
         KeyEvent = new KeyEvent
         {
             Key = charExpected,
-            TypedKey = e.Key[0],
-            IsCorrect = e.Key[0] == charExpected,
+            TypedKey = typedKey,
+            IsCorrect = typedKey == charExpected,
             KeyDownTime = keyDownTime,
             Latency = latency
+        };
+
+        _pendingKeyEvents[eventKey] = KeyEvent;
+        Logger.Debug($"KeyDown: {JsonSerializer.Serialize(KeyEvent)}");
+    }
+
+    private char GetShiftedDigit(char digit)
+    {
+        return digit switch
+        {
+            '1' => '!',
+            '2' => '@',
+            '3' => '#',
+            '4' => '$',
+            '5' => '%',
+            '6' => '^',
+            '7' => '&',
+            '8' => '*',
+            '9' => '(',
+            '0' => ')',
+            _ => digit
         };
     }
 
     public void HandleKeyUp(KeyboardEventArgs e)
     {
-        if (KeyEvent != null)
+        var eventKey = GetEventKey(e);
+        if (_pendingKeyEvents.TryGetValue(eventKey, out var pendingEvent))
         {
-            // Generate a unique EventId
-            var eventId = $"{KeyEvent.Key}_{KeyEvent.TypedKey}_{KeyEvent.KeyDownTime}_{DateTime.Now}";
+            // Generate a unique EventId using event-specific data
+            var eventId = $"{Guid.NewGuid()}_{pendingEvent.Key}_{pendingEvent.KeyDownTime.Ticks}_{DateTime.Now.Ticks}";
             if (!_processedEventIds.Add(eventId))
             {
                 return;
             }
 
-            KeyEvent.KeyUpTime = DateTime.Now;
-            _keyEvents.Enqueue(KeyEvent);
+            pendingEvent.KeyUpTime = DateTime.Now;
+            _keyEvents.Enqueue(pendingEvent);
+            _pendingKeyEvents.Remove(eventKey);
+
+            Logger.Debug($"KeyUp: {JsonSerializer.Serialize(pendingEvent)}");
+            Logger.Debug($"KeyEventIds: {JsonSerializer.Serialize(_processedEventIds)}");
             OnKeyEventGenerated.InvokeAsync(_keyEvents);
         }
     }

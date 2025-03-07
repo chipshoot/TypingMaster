@@ -1,4 +1,5 @@
 ﻿@page "/typing-practice"
+@using System.Text.Json
 @inject ILogger Logger
 
 <style>
@@ -297,8 +298,8 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
     private void HandleKeyEventGenerated(Queue<KeyEvent> keyEvents)
     {
 
-        //var jsonString = JsonSerializer.Serialize(keyEvents);
-        //Logger.Debug(jsonString);
+        var jsonString = JsonSerializer.Serialize(keyEvents);
+        Logger.Debug($"KeyEvents: {jsonString}");
         _keyEvents = keyEvents;
     }
 }
