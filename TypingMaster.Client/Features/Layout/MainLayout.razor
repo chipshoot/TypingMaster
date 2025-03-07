@@ -12,31 +12,6 @@
 <div>
     <Layout ShowFooter="true" AdditionalAssemblies="[typeof(MainLayout).Assembly]">
         <Header>
-@*             <Nav IsVertical="false" class="w-100">
-                <NavLink class="btn btn-link nav-link-white" href="trainer" Match="NavLinkMatch.All">Typing Master</NavLink>
-                @if (AppState.IsLoggedIn)
-                {
-                    <NavLink class="btn btn-link nav-link-white" href="trainer" Match="NavLinkMatch.All">Lessons</NavLink>
-                }
-                <NavLink class="btn btn-link nav-link-white" href="#">Test</NavLink>
-                <NavLink class="btn btn-link nav-link-white" href="reports">Reports</NavLink>
-                <NavLink class="btn btn-link nav-link-white" href="leaderboard">Options</NavLink>
-                <NavLink class="btn btn-link nav-link-white" href="leaderboard">Game</NavLink>
-                <NavLink class="btn btn-link nav-link-white" href="leaderboard">Help</NavLink>
-                @if (AppState.IsLoggedIn)
-                {
-                    <NavLink class="btn btn-link nav-link-white auth-link" href="leaderboard">Logout</NavLink>
-                }
-                else
-                {
-                    <div class="auth-link">
-                        <NavLink class="btn btn-link nav-link-white" href="login">Login</NavLink>
-                        <NavLink class="btn btn-link nav-link-white" href="signup">SignUp</NavLink>
-                    </div>
-                }
-
-            </Nav>
-*@
             <nav class="navbar navbar-expand-lg w-100" data-bs-theme="dark">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="#">Typing Master</a>
@@ -63,12 +38,13 @@
                                     {
                                         <li><a class="dropdown-item" href="#">Practice Test</a></li>
                                     }
-                                    <li><a class="dropdown-item" href="#">All Key Test</a></li>
+                                    <li><a class="dropdown-item" href="allkeytest">All Key Test</a></li>
+                                    <li><a class="dropdown-item" href="#">Speed Tests</a></li>
                                     <li><a class="dropdown-item" href="#">Number Pad</a></li>
                                 </ul>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Report</a>
+                                <a class="nav-link" href="reports">Report</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#">Game</a>
@@ -86,12 +62,12 @@
                                         @AppState.CurrentAccount?.AccountName
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                                        <li><a class="dropdown-item" href="profile">Profile</a></li>
                                         <li><a class="dropdown-item" href="#">Settings</a></li>
                                         <li>
                                             <hr class="dropdown-divider">
                                         </li>
-                                        <li><a class="dropdown-item" href="#">Logout</a></li>
+                                        <li><a class="dropdown-item" href="logout">Logout</a></li>
                                     </ul>
                                 </li>
                             }
@@ -99,9 +75,6 @@
                             {
                                 <li class="nav-item">
                                     <a class="nav-link" href="login">Login</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="signup">SignUp</a>
                                 </li>
                             }
                         </ul>
