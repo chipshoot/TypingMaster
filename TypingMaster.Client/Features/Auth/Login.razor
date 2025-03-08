@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Forms
+@using Console = System.Console
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
 @inject TypingTrainerContext AppState
@@ -54,9 +55,6 @@
         _isLoading = true;
         _errorMessage = null;
 
-        // Simulate a login process
-        await Task.Delay(1000);
-
         if (_loginModel is { Account: "fang@yahoo.com", Password: "password" })
         {
 
@@ -83,9 +81,18 @@
 
     private async Task<Account?> GetAccount()
     {
-        var data = await Http.GetStringAsync("Sample/Accounts.json");
-        var account = JsonSerializer.Deserialize<Account>(data);
-        return account;
+        var data = string.Empty;
+        try
+        {
+            data = await Http.GetStringAsync("Sample/Accounts.json");
+            var account = JsonSerializer.Deserialize<Account>(data);
+            return account;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, $"Cannot deserialize: {data}");
+            throw;
+        }
     }
 
     public class LoginModel

@@ -2,9 +2,11 @@
 
 public class DrillStats : StatsBase
 {
-    public int CourseId { get; set; }
+    public Guid CourseId { get; set; }
 
     public int LessonId { get; set; }
+
+    public string? PracticeText { get; set; }
 
     public string TypedText { get; set; } = null!;
 

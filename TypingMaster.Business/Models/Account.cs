@@ -18,6 +18,6 @@ namespace TypingMaster.Business.Models
 
         public PracticeLog History { get; set; } = null!;
 
-        public int CourseId { get; set; }
+        public Guid CourseId { get; set; }
     }
 }

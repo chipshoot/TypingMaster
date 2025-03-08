@@ -7,9 +7,10 @@ namespace TypingMaster.Tests
     public class LevelIncCourseTests
     {
         private const string ExpectDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
-        private readonly AdvancedLevelCourse _course = new()
+        private static readonly Guid CourseId = new Guid("1C7B4C4F-3114-43E4-B5E5-265BCDB6C5EE");
+        private readonly AdvancedLevelCourse _course = new(CourseType.Practice)
         {
-            Id = 1,
+            Id = CourseId,
             Lessons =
             [
                 new Lesson
@@ -64,7 +65,7 @@ namespace TypingMaster.Tests
             // Arrange
             var stats = new DrillStats
             {
-                CourseId = 1,
+                CourseId = CourseId,
                 LessonId = 1,
                 Wpm = 20,
                 Accuracy = 70
@@ -83,7 +84,7 @@ namespace TypingMaster.Tests
             // Arrange
             var stats = new DrillStats
             {
-                CourseId = 1,
+                CourseId = CourseId,
                 LessonId = 6,
                 Wpm = 74,
                 Accuracy = 90
@@ -104,7 +105,7 @@ namespace TypingMaster.Tests
             // Arrange
             var stats = new DrillStats
             {
-                CourseId = 1,
+                CourseId = CourseId,
                 LessonId = 5,
                 Wpm = 74,
                 Accuracy = 90
@@ -118,10 +119,10 @@ namespace TypingMaster.Tests
         }
 
         [Theory]
-        [InlineData(1, 5, 74, 90, true)]
-        [InlineData(1, 5, 24, 20, false)]
-        [InlineData(1, 1, 74, 90, false)]
-        public void CanCheckCourseIsCompleted(int courseId, int lessonId, int wpm, int accuracy, bool expectResult)
+        [InlineData("30223A0A-6E6E-4EF9-BCDC-7F8222281F76", 5, 74, 90, true)]
+        [InlineData("A20FDB11-9F17-4645-BEB8-1F2A6CD46C0F", 5, 24, 20, false)]
+        [InlineData("434DC236-B204-4339-87A7-5118CB8DE084", 1, 74, 90, false)]
+        public void CanCheckCourseIsCompleted(Guid courseId, int lessonId, int wpm, int accuracy, bool expectResult)
         {
             // Arrange
             var stats = new DrillStats
@@ -143,7 +144,7 @@ namespace TypingMaster.Tests
         public void CanGetDescription()
         {
             // Arrange
-            var course = new AdvancedLevelCourse();
+            var course = new AdvancedLevelCourse(CourseType.Practice);
 
             // Act
             var description = course.Description;

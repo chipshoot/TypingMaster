@@ -12,7 +12,7 @@ namespace TypingMaster.Business.Models.Courses
 
         private const string CourseCompleteText = "Congratulation, You have completed all lessons in this course.";
 
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Name { get; set; } =  "Skill Level Charge Course";
 
@@ -78,7 +78,7 @@ namespace TypingMaster.Business.Models.Courses
         {
             return new DrillStats
             {
-                CourseId = Id,
+                CourseId = CourseService.CourseId1,
                 LessonId = 1,
                 Wpm = 0,
                 Accuracy = 0,

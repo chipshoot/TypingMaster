@@ -4,7 +4,7 @@ namespace TypingMaster.Business.Contract;
 
 public interface ICourse
 {
-    int Id { get; set; }
+    Guid Id { get; set; }
 
     string Name { get; set; }
 

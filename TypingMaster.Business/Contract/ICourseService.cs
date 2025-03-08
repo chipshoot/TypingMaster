@@ -2,8 +2,8 @@
 {
     public interface ICourseService
     {
-        Task<ICourse?> GetCourse(int id);
+        Task<ICourse?> GetCourse(Guid id);
 
-        Task<ICourse?> GetAllKeysCourse(int? id);
+        Task<ICourse?> GetAllKeysCourse(Guid? id);
     }
 }
