@@ -11,6 +11,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .WriteTo.BrowserConsole()
+    .WriteTo.Seq("http://localhost:8081")
     .CreateLogger();
 
 builder.Logging.AddSerilog(Log.Logger);
