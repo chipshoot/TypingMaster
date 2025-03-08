@@ -57,6 +57,19 @@ public class AccountService(ILogger logger) : ServiceBase(logger), IAccountServi
         return Task.FromResult(true);
     }
 
+    public Account GetGuestAccount()
+    {
+        var guest = new Account
+        {
+            AccountEmail = "guest@test.com",
+            AccountName = Guid.NewGuid().ToString(),
+            History = new PracticeLog(),
+            User = new UserProfile()
+        };
+
+        return guest;
+    }
+
     private async Task SaveAccount(Account account)
     {
     }
