@@ -12,11 +12,11 @@
     "Accuracy": 98.5
   },
   "History": {
-    "CurrentCourseId": 1,
+    "CurrentCourseId": "AB7E8988-4E54-435F-9DC3-25D3193EC378",
     "CurrentLessonId": 1,
     "PracticeStats": [
       {
-        "CourseId": 1,
+        "CourseId": "AB7E8988-4E54-435F-9DC3-25D3193EC378",
         "LessonId": 1,
         "TypedText": "The quick brown fox jumps over the lazy dog.",
         "KeyEvents": [
@@ -43,7 +43,7 @@
         "Accuracy": 98.5
       },
       {
-        "CourseId": 1,
+        "CourseId": "AB7E8988-4E54-435F-9DC3-25D3193EC378",
         "LessonId": 1,
         "TypedText": "A quick movement of the enemy will jeopardize six gunboats.",
         "KeyEvents": [
@@ -90,5 +90,6 @@
     },
     "PracticeDuration": 0
   },
-  "CourseId": 1
+  "CourseId": "AB7E8988-4E54-435F-9DC3-25D3193EC378"
+
 }
