@@ -1,0 +1,176 @@
+@page "/profile"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+@inject TypingTrainerContext AppState
+@inject ILogger Logger
+@inject HttpClient Http
+@inject IAccountService AccountService
+
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+
+    .profile-header {
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .profile-stats {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .stat-label {
+        font-weight: bold;
+        color: #666;
+    }
+
+    .stat-value {
+        color: #333;
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-header">
+        <h2>Profile Settings</h2>
+    </div>
+
+    @if (AppState.CurrentAccount == null)
+    {
+        <MessageBox Type="MessageBoxType.Card" Message="Please log in to view and edit your profile"></MessageBox>
+    }
+    else
+    {
+        <ValidateForm Model="@_profileModel" OnValidSubmit="@HandleProfileUpdate">
+            <EditorForm Model="@_profileModel" LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
+                <FieldItems>
+                    <EditorItem @bind-Field="@context.FirstName">
+                        <EditTemplate Context="value">
+                            <BootstrapInput TValue="string" PlaceHolder="First Name" @bind-value="@value.FirstName"
+                                ShowLabel="true" DisplayText="First Name" />
+                        </EditTemplate>
+                    </EditorItem>
+                    <EditorItem @bind-Field="@context.LastName">
+                        <EditTemplate Context="value">
+                            <BootstrapInput TValue="string" PlaceHolder="Last Name" @bind-value="@value.LastName"
+                                ShowLabel="true" DisplayText="Last Name" />
+                        </EditTemplate>
+                    </EditorItem>
+                    <EditorItem @bind-Field="@context.Title">
+                        <EditTemplate Context="value">
+                            <BootstrapInput TValue="string" PlaceHolder="Title (e.g., Mr., Mrs., Dr.)"
+                                @bind-value="@value.Title" ShowLabel="true" DisplayText="Title" />
+                        </EditTemplate>
+                    </EditorItem>
+                </FieldItems>
+                <Buttons>
+                    <Button ButtonType="ButtonType.Submit" class="btn btn-primary" disabled="@(_isLoading)">Save
+                        Changes</Button>
+                </Buttons>
+            </EditorForm>
+        </ValidateForm>
+
+        <div class="profile-stats">
+            <h3>Typing Statistics</h3>
+            @if (AppState.CurrentAccount.GoalStats != null)
+            {
+                <div class="stat-item">
+                    <span class="stat-label">Target WPM:</span>
+                    <span class="stat-value">@AppState.CurrentAccount.GoalStats.Wpm</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Target Accuracy:</span>
+                    <span class="stat-value">@AppState.CurrentAccount.GoalStats.Accuracy%</span>
+                </div>
+            }
+            @if (AppState.CurrentAccount.History?.PracticeStats != null &&
+                    AppState.CurrentAccount.History.PracticeStats.Any())
+            {
+                var lastPractice = AppState.CurrentAccount.History.PracticeStats.Last();
+                <div class="stat-item">
+                    <span class="stat-label">Last Practice WPM:</span>
+                    <span class="stat-value">@lastPractice.Wpm</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Last Practice Accuracy:</span>
+                    <span class="stat-value">@lastPractice.Accuracy%</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private ProfileModel _profileModel = new();
+    private bool _isLoading = false;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        if (AppState.CurrentAccount?.User != null)
+        {
+            _profileModel = new ProfileModel
+            {
+                FirstName = AppState.CurrentAccount.User.FirstName,
+                LastName = AppState.CurrentAccount.User.LastName,
+                Title = AppState.CurrentAccount.User.Title
+            };
+        }
+    }
+
+    private async Task HandleProfileUpdate(EditContext context)
+    {
+        if (AppState.CurrentAccount == null) return;
+
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            AppState.CurrentAccount.User.FirstName = _profileModel.FirstName;
+            AppState.CurrentAccount.User.LastName = _profileModel.LastName;
+            AppState.CurrentAccount.User.Title = _profileModel.Title;
+
+            await AccountService.UpdateAccount(AppState.CurrentAccount);
+            Navigation.NavigateTo("/", true);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "Failed to update profile. Please try again.";
+            Logger.Error(ex, "Error updating profile");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    public class ProfileModel
+    {
+        public string? FirstName { get; set; }
+
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters")]
+        public string LastName { get; set; } = null!;
+
+        public string? Title { get; set; }
+    }
+}
