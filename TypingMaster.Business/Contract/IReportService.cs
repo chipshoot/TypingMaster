@@ -8,5 +8,5 @@ public interface IReportService
 
     Dictionary<string, IEnumerable<double>> GetKeyStats(PracticeLog history, bool includeLastSession);
 
-    IEnumerable<ProgressRecord> GetProgressRecords(PracticeLog history, ICourse course);
+    IEnumerable<ProgressRecord> GetProgressRecords(PracticeLog history, ICourse course, TrainingType type);
 }

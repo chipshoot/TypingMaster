@@ -12,11 +12,13 @@ public class TypingTrainer(ICourseService courseService, ILogger logger) : ITypi
     private const string NoPracticeLog = "Cannot find practice log.";
     private const string CourseNotMatch = "Course of History does not match Account's current course";
     private const string NoLesson = "Cannot find lesson.";
+    private const string NotSupportedType = "Not supported training type found";
 
     private readonly ICourseService _courseService = courseService ?? throw new AbandonedMutexException(nameof(courseService));
     private readonly ILogger _logger = logger ?? throw new ArgumentException(nameof(logger));
     private Account? _account;
     private ICourse? _course;
+    private readonly TrainingType _trainingType = TrainingType.Course;
     private PracticeLog? _practiceLog;
 
     public Account? Account
@@ -26,6 +28,18 @@ public class TypingTrainer(ICourseService courseService, ILogger logger) : ITypi
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
             SetupAccount(value).GetAwaiter().GetResult();
+        }
+    }
+
+    public TrainingType TrainingType
+    {
+        get => _trainingType;
+        set
+        {
+            if (value != _trainingType)
+            {
+                SetupCourse(value).GetAwaiter().GetResult();
+            }
         }
     }
 
@@ -120,19 +134,57 @@ public class TypingTrainer(ICourseService courseService, ILogger logger) : ITypi
     private async Task SetupAccount(Account account)
     {
         _account = account;
-        _course = await _courseService.GetCourse(_account.CourseId);
-        _practiceLog = _account.History;
 
-        if (_course == null)
+        switch (TrainingType)
         {
-            ProcessResult.AddError(NoCourse);
-            throw new InvalidOperationException(NoCourse);
+            case TrainingType.Course:
+                _course = await _courseService.GetCourse(_account.CourseId);
+                break;
+
+            case TrainingType.Test:
+                _course = await _courseService.GetCourse(_account.TestCourseId);
+                break;
+            case TrainingType.Game:
+            default:
+                ProcessResult.AddError(NotSupportedType);
+                throw new Exception(NotSupportedType);
         }
+
+        _practiceLog = _account.History;
 
         if (_practiceLog == null)
         {
             ProcessResult.AddError(NoPracticeLog);
             throw new InvalidOperationException(NoPracticeLog);
+        }
+    }
+
+    private async Task SetupCourse(TrainingType type)
+    {
+        if (_account == null)
+        {
+            return;
+        }
+
+        switch (type)
+        {
+            case TrainingType.Course:
+                _course = await _courseService.GetCourse(_account.CourseId);
+                break;
+
+            case TrainingType.Test:
+                _course = await _courseService.GetCourse(_account.TestCourseId);
+                break;
+            case TrainingType.Game:
+            default:
+                ProcessResult.AddError(NotSupportedType);
+                throw new Exception(NotSupportedType);
+        }
+
+        if (_course == null)
+        {
+            ProcessResult.AddError(NoCourse);
+            throw new InvalidOperationException(NoCourse);
         }
     }
 }

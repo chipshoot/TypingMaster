@@ -7,6 +7,8 @@ namespace TypingMaster.Business.Contract
     {
         Account? Account { get; set; }
 
+        TrainingType TrainingType { get; set; }
+
         void CheckPracticeResult(DrillStats stats);
 
         void ConvertKeyEventToKeyStats(Queue<KeyEvent> keyEvents);
