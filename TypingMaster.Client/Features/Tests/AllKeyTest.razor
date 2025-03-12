@@ -1,0 +1,112 @@
+﻿@page "/allkeytest"
+
+@inject ILogger Logger
+@inject ITypingTrainer TypingTrainer
+@inject ICourseService CourseService
+@inject ApplicationContext AppState
+@inject IAccountService AccountService
+@inject NavigationManager NavigationManager
+
+@if (!_isCompleted)
+{
+    <Card class="mt-3">
+        <HeaderTemplate>
+            <div class="d-flex justify-content-between align-items-center" style="width:100%">
+                <div>
+                    Typing Trainer
+                </div>
+                <div class="d-flex">
+                    <div class="me-2">
+                        <PracticeHistory StatsList="@StatsList"></PracticeHistory>
+                    </div>
+                    <div>
+                        <Button Color="Color.Primary" OnClick="ResetPractice">RePractise</Button>
+                    </div>
+                </div>
+            </div>
+        </HeaderTemplate>
+        <BodyTemplate>
+            <Practice CurrentLesson="@_curLesson"
+            TrainingType="@TrainingType.Test"
+            OnTypingCompleted="OnPracticeFinished"
+            @ref="@_practice">
+            </Practice>
+        </BodyTemplate>
+    </Card>
+}
+else
+{
+    <TestResult></TestResult>
+}
+
+@code {
+    private const string NullAccountFound = "Null account found in AllKeyTest component Initialized method";
+    private Practice? _practice;
+    private bool _isCompleted;
+    private Lesson? _curLesson;
+
+    private IList<DrillStats> StatsList => [];
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.InitializeAccount();
+        if (!AppState.IsLoggedIn && AppState.CurrentAccount == null)
+        {
+            AppState.CurrentAccount = AccountService.GetGuestAccount();
+        }
+        else if(AppState.CurrentAccount == null)
+        {
+            await AppState.GetCourse(CourseService);
+            if (AppState.CurrentCourse == null)
+            {
+                Logger.Error(NullAccountFound);
+                throw new Exception(NullAccountFound);
+            }
+        }
+
+        // setup testing course to be used
+        var course = await CourseService.GetAllKeysCourse(null);
+        if (course == null)
+        {
+            Logger.Error("Null course found in AllKeyTest component Initialized method");
+        }
+
+        _curLesson = course?.Lessons.FirstOrDefault();
+        AppState.CurrentCourse = course;
+        AppState.CurrentAccount.TestCourseId = course?.Id ?? Guid.Empty;
+        TypingTrainer.Account = AppState.CurrentAccount;
+        TypingTrainer.TrainingType = TrainingType.Test;
+    }
+
+    private async Task OnPracticeFinished(DrillStats stats)
+    {
+        if (AppState.CurrentAccount == null || AppState.CurrentCourse == null)
+        {
+            return;
+        }
+
+        stats.CourseId = AppState.CurrentAccount.TestCourseId;
+        TypingTrainer?.CheckPracticeResult(stats);
+        _practice?.HandleReset(_isCompleted);
+        if (AppState.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("/reports");
+        }
+        else
+        {
+            _isCompleted = true;
+        }
+    }
+
+    private void ResetPractice()
+    {
+        if (AppState.CurrentAccount != null && AppState.CurrentAccount.History.PracticeStats.Any())
+        {
+            var stats = AppState.CurrentAccount.History.PracticeStats.Last();
+            _curLesson = AppState.CurrentCourse?.GetPracticeLesson(stats);
+        }
+        _practice?.HandleReset();
+        StateHasChanged();
+    }
+}

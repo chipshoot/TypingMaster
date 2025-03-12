@@ -1,0 +1,148 @@
+﻿@inject IReportService ReportService
+@inject ApplicationContext Context
+@inject ILogger Logger
+
+<style>
+    .cta-btn {
+        background-color: #007bff;
+        color: white;
+        font-size: 18px;
+        padding: 10px 20px;
+        border-radius: 8px;
+    }
+
+        .cta-btn:hover {
+            background-color: #0056b3;
+        }
+</style>
+
+<div style="height:85vh;">
+    <DockView Name="Resut" IsLock="true">
+        <DockContent Type="DockContentType.Row">
+            <DockContent Type="DockContentType.Column">
+                <DockComponent ShowClose="false" Title="Test Text">
+                    <Card>
+                        <HeaderTemplate>
+                            <div class="d-flex justify-content-between align-items-center" style="width:100%">
+                                <div class="me-2">
+                                    <PracticeHistory StatsList="@_statsList"></PracticeHistory>
+                                </div>
+                            </div>
+                        </HeaderTemplate>
+                        <BodyTemplate>
+                            <p>Target Text</p>
+                            <div id="TargetText" class="mb-4 p-4 bg-body-secondary rounded relative">
+                                @_curStats.PracticeText
+                            </div>
+                            <p>Typed Text</p>
+                            <div id="InputedText" class="mb-4 p-4 bg-body-secondary rounded relative">
+                                @_curStats.TypedText
+                            </div>
+                        </BodyTemplate>
+                    </Card>
+                </DockComponent>
+                <DockComponent ShowClose="false" Title="Test Result">
+                    <Card>
+                        <BodyTemplate>
+                            <div class="result-card bg-white p-3">
+                                <h4>You're Doing Great! 🚀</h4>
+                                <p>Keep up the good work! Here’s your latest typing performance:</p>
+                                <p><strong>WPM:</strong> @_curStats.Wpm</p>
+                                <p><strong>Accuracy:</strong> @_curStats.Accuracy</p>
+                                <p><strong>Skill Level:</strong> @Level.ToString()</p>
+                                <p>Want to type even faster and more accurately? Unlock personalized training now! 🔥</p>
+                            </div>
+                        </BodyTemplate>
+                        <FooterTemplate>
+                            <button class="cta-btn w-100">Join Now & Improve 🚀</button>
+                        </FooterTemplate>
+                    </Card>
+                </DockComponent>
+            </DockContent>
+            <DockContent Type="DockContentType.Column">
+                <DockComponent ShowClose="false" Title="Speed Diagram">
+                    <ReportChart IsSetTitle="true" IsStacked="false" Title="Speed" XTitle="Keys" YTitle="Speed (WPM)"
+                                 Xlabels="@_keys" Data="@GetSpeedData()"></ReportChart>
+                </DockComponent>
+                <DockComponent ShowClose="false" Title="Accucary Diagram">
+                    <ReportChart IsSetTitle="true" IsStacked="false" Title="Accuracy" XTitle="Keys" YTitle="Accuracy"
+                                 Xlabels="@_keys" Data="@GetAccuracyData()"></ReportChart>
+                    <div>component 2</div>
+                </DockComponent>
+            </DockContent>
+        </DockContent>
+    </DockView>
+</div>
+
+@code {
+
+    private IEnumerable<string>? _keys;
+    private IList<DrillStats> _statsList;
+    private DrillStats _curStats;
+    private SkillLevel Level => (_curStats.Wpm, _curStats.Accuracy).GetSkillLevel();
+
+    protected override void OnInitialized()
+    {
+        if (Context.CurrentAccount == null)
+        {
+            var errMessage = "Null account found in AllKeyTest component Initialized method";
+            Logger.Error(errMessage);
+            throw new Exception(errMessage);
+
+        }
+
+        _statsList = Context.CurrentAccount.History.PracticeStats.ToList();
+        _keys ??= ReportService.GetKeyLabels(Context.CurrentAccount.History);
+
+        SetResultContext();
+    }
+
+    private void SetResultContext()
+    {
+        _curStats = _statsList.FirstOrDefault();
+        if (_curStats == null)
+        {
+            var errMessage = "Null stats found in AllKeyTest component SetResultContext method";
+            Logger.Error(errMessage);
+            throw new Exception(errMessage);
+        }
+    }
+
+    private List<ChartDataset> GetSpeedData()
+    {
+        var keyStats = ReportService.GetKeyStats(Context.CurrentAccount.History, false);
+        if (keyStats == null)
+        {
+            Logger.Error("Empty or Null key stats found in GetSpeedData");
+            return [];
+        }
+
+        var data = new List<ChartDataset>
+        {
+            new() { Label = "Average Press Duration", Data = keyStats["typeSpeed"].Select(v => Math.Round(v, 1)).Cast<object>() },
+            new() { Label = "Average Latency", Data = keyStats["latency"].Select(v => Math.Round(v, 1)).Cast<object>() }
+        };
+
+        return data;
+    }
+
+    private List<ChartDataset> GetAccuracyData()
+    {
+        var keyStats = ReportService.GetKeyStats(Context.CurrentAccount.History, false);
+        if (keyStats == null)
+        {
+            Logger.Error("Empty or Null key stats found in GetAccuracyData");
+            return [];
+        }
+
+        var data = new List<ChartDataset>
+        {
+            new()
+            {
+                Label = "Overall Accuracy", Data = keyStats["accuracy"].Select(v => Math.Round(v, 1)).Cast<object>()
+            }
+        };
+
+        return data;
+    }
+}
