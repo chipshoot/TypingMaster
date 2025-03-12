@@ -3,7 +3,7 @@
 
 @inject ILogger Logger
 @inject ITypingTrainer TypingTrainer
-@inject TypingTrainerContext Context
+@inject ApplicationContext Context
 
 <Card class="mt-3">
     <HeaderTemplate>
@@ -22,7 +22,11 @@
         </div>
     </HeaderTemplate>
     <BodyTemplate>
-        <Practice CurrentLesson="@_curLesson" OnTypingCompleted="OnPracticeFinished" @ref="@_practice"></Practice>
+        <Practice CurrentLesson="@_curLesson"
+                  TrainingType="@TrainingType.Course"
+                  OnTypingCompleted="OnPracticeFinished"
+                  @ref="@_practice">
+        </Practice>
     </BodyTemplate>
 </Card>
 @code {
@@ -44,6 +48,7 @@
         var stats = Context.CurrentAccount.History.PracticeStats.LastOrDefault() ?? Context.CurrentCourse?.GenerateStartStats();
         _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats);
         TypingTrainer.Account = Context.CurrentAccount;
+        TypingTrainer.TrainingType = TrainingType.Course;
     }
 
     private async Task OnPracticeFinished(DrillStats stats)

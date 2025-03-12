@@ -1,84 +1,83 @@
 ﻿@page "/typing-practice"
 @using System.Text.Json
 @inject ILogger Logger
-
 <style>
-    .w-full {
-        width: 100%;
-    }
+.w-full {
+width: 100%;
+}
 
-    .h-full {
-        height: 100%;
-    }
+.h-full {
+height: 100%;
+}
 
-    .space-y-2> :not([hidden])~ :not([hidden]) {
-        --tw-space-y-reverse: 0;
-        margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
-        margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
-    }
+.space-y-2 > :not([hidden]) ~ :not([hidden]) {
+--tw-space-y-reverse: 0;
+margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
+}
 
-    .justify-between {
-        justify-content: space-between;
-    }
+.justify-between {
+justify-content: space-between;
+}
 
-    .items-center {
-        align-items: center;
-    }
+.items-center {
+align-items: center;
+}
 
-    .bg-transparent {
-        background-color: transparent;
-    }
+.bg-transparent {
+background-color: transparent;
+}
 
-    .resize-none {
-        resize: none;
-    }
+.resize-none {
+resize: none;
+}
 
-    .outline-none {
-        outline: 2px solid transparent;
-        outline-offset: 2px
-    }
+.outline-none {
+outline: 2px solid transparent;
+outline-offset: 2px
+}
 
-    .top-0 {
-        top: 0;
-    }
+.top-0 {
+top: 0;
+}
 
-    .left-0 {
-        left: 0;
-    }
+.left-0 {
+left: 0;
+}
 
-    .p-4 {
-        padding: 1rem;
-    }
+.p-4 {
+padding: 1rem;
+}
 
-    .point-events-none {
-        pointer-events: none;
-    }
+.point-events-none {
+pointer-events: none;
+}
 
-    .absolute {
-        position: absolute;
-    }
+.absolute {
+position: absolute;
+}
 
-    .relative {
-        position: relative;
-    }
+.relative {
+position: relative;
+}
 
-    .monospace-font {
-        font-family: 'Courier New', Courier, monospace;
-    }
+.monospace-font {
+font-family: 'Courier New', Courier, monospace;
+}
 
-    .arrowUp {
-        display: inline-block;
-        width: 0;
-        height: 0;
-        border-left: 0.5ch solid transparent;
-        border-right: 0.5ch solid transparent;
-        border-bottom: 1ch solid black;
-        margin-left: calc(var(--arrow-position, 0) * 1ch);
-    }
+.arrowUp {
+display: inline-block;
+width: 0;
+height: 0;
+border-left: 0.5ch solid transparent;
+border-right: 0.5ch solid transparent;
+border-bottom: 1ch solid black;
+margin-left: calc(var(--arrow-position, 0) * 1ch);
+}
 
-    .arrow.hidden {
-        visibility: hidden;
-    }
+.arrow.hidden {
+visibility: hidden;
+}
 </style>
 <Card class="mt-3">
     <BodyTemplate>
@@ -135,6 +134,9 @@
 @code {
     [Parameter]
     public Lesson? CurrentLesson { get; set; }
+
+    [Parameter]
+    public TrainingType TrainingType { get; set; }
 
     [Parameter]
     public string Description { get; set; } = TypingMasterConstants.DefaultPracticePrompt;
@@ -198,6 +200,7 @@
                     Wpm = _wpm,
                     Accuracy = _accuracy,
                     KeyEvents = _keyEvents.Copy(),
+                    Type = TrainingType,
                     StartTime = _keyEvents.FirstOrDefault()?.KeyDownTime,
                     FinishTime = DateTime.Now
                 });
@@ -262,7 +265,13 @@
         {
             return string.Empty;
         }
-        return _textInput[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
+
+        if (index < _textInput.Length)
+        {
+            return _textInput[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
+        }
+
+        return "";
     }
 
     private void UpdateEchoChars()
