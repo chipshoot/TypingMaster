@@ -13,6 +13,8 @@ public class DrillStats : StatsBase
     // hold the stats for each key in the lesson
     public Queue<KeyEvent> KeyEvents { get; set; } = null!;
 
+    public TrainingType Type { get; set; }
+
     // time stamp when the lesson starts
     public DateTime? StartTime { get; set; }
 

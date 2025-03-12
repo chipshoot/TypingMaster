@@ -3,5 +3,6 @@
 public enum CourseType
 {
     Practice,
-    AllKeysTest
+    AllKeysTest,
+    SpeedTest,
 }

@@ -19,5 +19,9 @@ namespace TypingMaster.Business.Models
         public PracticeLog History { get; set; } = null!;
 
         public Guid CourseId { get; set; }
+
+        public Guid TestCourseId { get; set; }
+
+        public Guid GameCourseId { get; set; }
     }
 }
