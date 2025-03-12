@@ -1,0 +1,64 @@
+﻿@namespace TypingMaster.Client.Features.Report
+
+<style>
+    .header-cell {
+        align-items: center;
+        text-align: center;
+        word-break: break-all;
+    }
+</style>
+
+<Table TItem="ProgressRecord" Items="@Items" HeaderStyle="TableHeaderStyle.Light"
+       IsBordered="true" IsStriped="true">
+    <MultiHeaderTemplate>
+        <tr>
+            <th rowspan="2" style="vertical-align:bottom;">
+                <div class="header-cell header-multi-row">Name</div>
+            </th>
+            <th rowspan="2" style="vertical-align:bottom;">
+                <div class="header-cell header-multi-row">Keys above 20 WPM</div>
+            </th>
+            <th rowspan="2" style="vertical-align:bottom;">
+                <div class="header-cell header-multi-row">Date</div>
+            </th>
+            <th colspan="2">
+                <div class="header-cell">Overall</div>
+            </th>
+            <th colspan="3">
+                <div class="header-cell">Speed Breakdown</div>
+            </th>
+        </tr>
+        <tr>
+            <th>
+                <div class="header-cell">Accuracy</div>
+            </th>
+            <th>
+                <div class="header-cell">Speed</div>
+            </th>
+            <th>
+                <div class="header-cell">Letter</div>
+            </th>
+            <th>
+                <div class="header-cell">Number</div>
+            </th>
+            <th>
+                <div class="header-cell">Symbol</div>
+            </th>
+        </tr>
+    </MultiHeaderTemplate>
+    <TableColumns>
+        <TableColumn @bind-Field="@context.Name"></TableColumn>
+        <TableColumn @bind-Field="@context.GoodWpmKeys"></TableColumn>
+        <TableColumn @bind-Field="@context.Date"></TableColumn>
+        <TableColumn @bind-Field="@context.OverallAccuracy"></TableColumn>
+        <TableColumn @bind-Field="@context.OverallSpeed"></TableColumn>
+        <TableColumn @bind-Field="@context.BreakdownLetter"></TableColumn>
+        <TableColumn @bind-Field="@context.BreakdownNumber"></TableColumn>
+        <TableColumn @bind-Field="@context.BreakdownSymbol"></TableColumn>
+    </TableColumns>
+</Table>
+
+@code {
+    [Parameter]
+    public List<ProgressRecord> Items { get; set; } = [];
+}
