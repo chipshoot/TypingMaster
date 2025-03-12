@@ -1,0 +1,35 @@
+﻿@inject ApplicationContext AuthContext
+@inject NavigationManager Navigation
+
+@if (_isAuthenticated)
+{
+    @ChildContent
+}
+else
+{
+    @if (ShowMessage)
+    {
+        <div class="alert alert-warning" role="alert">
+            Please <a href="/login">log in</a> to access this content.
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = null!;
+    
+    [Parameter]
+    public bool ShowMessage { get; set; } = true;
+    
+    [Parameter]
+    public string? ReturnUrl { get; set; }
+    
+    private bool _isAuthenticated = false;
+    
+    protected override void OnInitialized()
+    {
+        var currentUrl = ReturnUrl ?? Navigation.Uri;
+        _isAuthenticated = AuthContext.EnsureAuthenticated(currentUrl);
+    }
+}

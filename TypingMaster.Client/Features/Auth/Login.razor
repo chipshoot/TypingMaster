@@ -1,12 +1,8 @@
 ﻿@page "/login"
 
-@using System.ComponentModel.DataAnnotations
-@using System.Text.Json
-@using Microsoft.AspNetCore.Components.Forms
-@using Console = System.Console
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
-@inject TypingTrainerContext AppState
+@inject ApplicationContext AppState
 @inject ILogger Logger
 @inject HttpClient Http
 @inject ICourseService CourseProvider
@@ -49,7 +45,16 @@
     private readonly LoginModel _loginModel = new();
     private bool _isLoading = false;
     private string? _errorMessage;
+    private string? _returnUrl;
 
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrl))
+        {
+            _returnUrl = returnUrl;
+        }
+    }
     private async Task HandleLogin(EditContext context)
     {
         _isLoading = true;
@@ -63,7 +68,17 @@
             {
                 AppState.CurrentCourse = await CourseProvider.GetCourse(AppState.CurrentAccount.CourseId);
                 AppState.IsLoggedIn = true;
-                Navigation.NavigateTo("/");
+
+                if (!string.IsNullOrEmpty(_returnUrl))
+                {
+                Navigation.NavigateTo(_returnUrl);
+
+                }
+                else
+                {
+
+                    Navigation.NavigateTo("/");
+                }
             }
             else
             {
