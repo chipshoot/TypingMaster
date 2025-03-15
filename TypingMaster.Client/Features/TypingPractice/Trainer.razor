@@ -1,5 +1,4 @@
 ﻿@page "/trainer"
-@using System.Text.Json
 
 @inject ILogger Logger
 @inject ITypingTrainer TypingTrainer
@@ -46,7 +45,7 @@
         }
 
         var stats = Context.CurrentAccount.History.PracticeStats.LastOrDefault() ?? Context.CurrentCourse?.GenerateStartStats();
-        _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats);
+        _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats.LessonId, stats);
         TypingTrainer.Account = Context.CurrentAccount;
         TypingTrainer.TrainingType = TrainingType.Course;
     }
@@ -62,7 +61,7 @@
         TypingTrainer?.CheckPracticeResult(stats);
         if (!Context.CurrentCourse.IsCompleted(stats))
         {
-            _curLesson = Context.CurrentCourse.GetPracticeLesson(stats);
+            _curLesson = Context.CurrentCourse.GetPracticeLesson(stats.LessonId, stats);
             _isCompleted = false;
         }
         else
@@ -81,7 +80,7 @@
         {
             var stats = Context.CurrentAccount.History.PracticeStats.Last();
             _practice?.HandleReset();
-            _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats);
+            _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats.LessonId, stats);
             StateHasChanged();
         }
     }
