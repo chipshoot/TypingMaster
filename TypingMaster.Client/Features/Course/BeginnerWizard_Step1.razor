@@ -1,0 +1,178 @@
+﻿<style>
+    .step-card {
+        width: 500px;
+        margin: 0 auto;
+    }
+
+    .goal-section {
+        margin: 1.5rem 0;
+    }
+
+    .selection-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        align-items: center;
+    }
+
+    .selection-label {
+        min-width: 100px;
+        font-weight: 500;
+    }
+
+    .skill-display {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        text-align: center;
+    }
+
+    .skill-level {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0d6efd;
+    }
+
+    .selected-values {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+    }
+
+    .value-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .speed-badge {
+        background-color: #e9f5ff;
+        color: #0d6efd;
+    }
+
+    .accuracy-badge {
+        background-color: #e9fff0;
+        color: #198754;
+    }
+</style>
+<div class="step-card">
+    <Card>
+        <HeaderTemplate>
+            <h4>Set Your Typing Goals</h4>
+        </HeaderTemplate>
+        <BodyTemplate>
+            <p class="text-muted">Choose the speed and accuracy you aim to achieve. We recommend at least 25 WPM with 80% accuracy for beginners.</p>
+
+            <div class="goal-section">
+                <div class="selection-row">
+                    <span class="selection-label">Speed:</span>
+                    <Dropdown TValue="string"
+                              Items="@_speedItems"
+                              OnSelectedItemChanged="HandleSpeedChanged"
+                              Color="Color.Primary"
+                              SelectedValue="@_speedItems[1].Value">
+                        <ButtonTemplate>
+                            <i class="fa-solid fa-tachometer-alt"></i>
+                            <span>Speed Range (WPM)</span>
+                        </ButtonTemplate>
+                    </Dropdown>
+                </div>
+
+                <div class="selection-row">
+                    <span class="selection-label">Accuracy:</span>
+                    <Dropdown TValue="string"
+                              Items="@_accuracyItems"
+                              OnSelectedItemChanged="HandleAccuracyChanged"
+                              Color="Color.Success"
+                              SelectedValue="@_accuracyItems[2].Value">
+                        <ButtonTemplate>
+                            <i class="fa-solid fa-bullseye"></i>
+                            <span>Accuracy (%)</span>
+                        </ButtonTemplate>
+                    </Dropdown>
+                </div>
+            </div>
+
+            <div class="skill-display">
+                <h5>Your Target Skill Level</h5>
+                <div class="skill-level">@(_skillLevel ?? "Select speed and accuracy")</div>
+
+                <div class="selected-values">
+                    <span class="value-badge speed-badge">
+                        <i class="fa-solid fa-tachometer-alt me-1"></i>
+                        @_selectedSpeed WPM
+                    </span>
+                    <span class="value-badge accuracy-badge">
+                        <i class="fa-solid fa-bullseye me-1"></i>
+                        @_selectedAccuracy%
+                    </span>
+                </div>
+            </div>
+        </BodyTemplate>
+     </Card>
+</div>
+@code {
+    [Parameter]
+    public EventCallback<StatsBase> OnTargetStatsChanged { get; set; }
+
+    private List<SelectedItem> _speedItems = [];
+    private List<SelectedItem> _accuracyItems = [];
+    private int _selectedSpeed;
+    private int _selectedAccuracy;
+    private StatsBase _targetStats = new();
+    private string _skillLevel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _speedItems =
+        [
+            new SelectedItem { Text = "10-19", Value = "15" },
+            new SelectedItem { Text = "20-29", Value = "25" },
+            new SelectedItem { Text = "30-39", Value = "35" },
+            new SelectedItem { Text = "40-49", Value = "45" },
+            new SelectedItem { Text = "50-59", Value = "55" },
+            new SelectedItem { Text = "60-69", Value = "65" },
+            new SelectedItem { Text = "70-79", Value = "75" },
+            new SelectedItem { Text = "80+", Value = "80" },
+        ];
+        _accuracyItems =
+        [
+            new SelectedItem { Text = "90", Value = "90" },
+            new SelectedItem { Text = "85", Value = "85" },
+            new SelectedItem { Text = "80", Value = "80" },
+            new SelectedItem { Text = "70", Value = "70" },
+            new SelectedItem { Text = "65", Value = "65" },
+            new SelectedItem { Text = "60", Value = "60" },
+            new SelectedItem { Text = "50", Value = "50" },
+            new SelectedItem { Text = "80+", Value = "80" },
+        ];
+
+        _selectedSpeed = int.Parse(_speedItems[1].Value); // Default to "20-29" range (value: 25)
+        _selectedAccuracy = int.Parse(_accuracyItems[2].Value); // Default to "80%" (value: 80)
+        await UpdateTargetStats(); 
+    }
+
+    private async Task HandleSpeedChanged(SelectedItem selectedItem)
+    {
+        _selectedSpeed = int.Parse(selectedItem.Value);
+        await UpdateTargetStats(); 
+        StateHasChanged();
+
+    }
+
+    private async Task HandleAccuracyChanged(SelectedItem selectedItem)
+    {
+        _selectedAccuracy = int.Parse(selectedItem.Value);
+        await UpdateTargetStats(); 
+        StateHasChanged();
+    }
+
+    private async Task UpdateTargetStats()
+    {
+        _targetStats.Wpm = _selectedSpeed;
+        _targetStats.Accuracy = _selectedAccuracy;
+        _skillLevel = _targetStats.GetSkillLevel().ToString();
+        await OnTargetStatsChanged.InvokeAsync(_targetStats);
+    }
+}

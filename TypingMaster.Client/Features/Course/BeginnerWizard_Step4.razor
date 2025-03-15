@@ -1,0 +1,113 @@
+﻿@inject ApplicationContext AppState
+@inject ICourseService CourseService
+@inject NavigationManager Navigation
+
+<style>
+    .step-card {
+        width: 450px;
+        margin: 0 auto;
+    }
+
+    .summary-content {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding: 5px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+    .confirm-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        width: 100%;
+        margin-top: 15px;
+    }
+
+        .confirm-btn:hover {
+            background-color: #218838;
+        }
+
+    h4 {
+        color: #495057;
+        margin-bottom: 15px;
+    }
+</style>
+<div class="step-card">
+    <Card>
+        <HeaderTemplate>
+            <h4>Your Course is Ready!</h4>
+        </HeaderTemplate>
+        <BodyTemplate>
+            <div>
+                <p>We've prepared your custom typing course based on your selections. Review your course details below:</p>
+
+                <div class="summary-content">
+                    <div class="summary-item">
+                        <span><strong>Practice Time:</strong></span>
+                        <span>@SettingResult.Minutes minutes per week</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span><strong>Target Speed:</strong></span>
+                        <span>@(SettingResult.TargetStats?.Wpm ?? 0) WPM</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span><strong>Target Accuracy:</strong></span>
+                        <span>@(SettingResult.TargetStats?.Accuracy.ToString("F1") ?? "0")%</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span><strong>Learning Pace:</strong></span>
+                        <span>@SettingResult.NewKeysPerStep new keys per lesson</span>
+                    </div>
+                </div>
+
+                <p>Click the button below to save your course settings and start practicing!</p>
+
+                <button class="confirm-btn" @onclick="ConfirmSetup">
+                    Confirm and Start Practice
+                </button>
+            </div>
+        </BodyTemplate>
+    </Card>
+</div>
+
+@code {
+
+    [Parameter]
+    public CourseSetting SettingResult { get; set; }
+
+    private string _trainerUrl = "/trainer";
+    protected override void OnInitialized()
+    {
+    }
+
+    private async Task ConfirmSetup()
+    {
+        var course = await CourseService.GenerateBeginnerCourse(SettingResult);
+        AppState.CurrentCourse = course;
+        AppState.CurrentAccount.CourseId = course.Id;
+        AppState.CurrentAccount.History.CurrentCourseId = course.Id;
+        AppState.CurrentAccount.History.CurrentLessonId = 1; 
+        Navigation.NavigateTo("/Trainer");
+    }
+
+}

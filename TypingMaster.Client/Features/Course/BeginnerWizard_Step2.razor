@@ -1,0 +1,165 @@
+﻿<style>
+    .step-card {
+        width: 500px;
+        margin: 0 auto;
+    }
+
+    .selection-section {
+        margin: 1.5rem 0;
+    }
+
+    .selection-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        align-items: center;
+    }
+
+    .selection-label {
+        min-width: 120px;
+        font-weight: 500;
+    }
+
+    .time-display {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        text-align: center;
+    }
+
+    .time-level {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #fd7e14;
+        margin-bottom: 1rem;
+    }
+
+    .time-description {
+        color: #495057;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .time-badge {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 0.5rem 1.5rem;
+        border-radius: 20px;
+        font-weight: 500;
+        background-color: #fff3e6;
+        color: #fd7e14;
+    }
+
+    .info-icon {
+        color: #fd7e14;
+        margin-right: 0.5rem;
+    }
+</style>
+<div class="step-card">
+    <Card IsCenter="true">
+        <HeaderTemplate>
+            <h4>Set Your Weekly Practice Time Goal</h4>
+        </HeaderTemplate>
+        <BodyTemplate>
+            <p class="text-muted">Choose how many hours per week you can dedicate to improving your typing skills. We recommend 3-4 hours per week for consistent improvement.</p>
+
+            <div class="selection-section">
+                <div class="selection-row">
+                    <span class="selection-label">Hours per week:</span>
+                    <Dropdown TValue="string" 
+                              Items="@_items" 
+                              Color="Color.Warning"
+                              OnSelectedItemChanged="HandleTimeChanged"
+                              SelectedValue="@_items[1].Value">
+                        <ButtonTemplate>
+                            <i class="fa-solid fa-clock"></i>
+                            <span>Select practice hours</span>
+                        </ButtonTemplate>
+                    </Dropdown>
+                </div>
+            </div>
+
+            <div class="time-display">
+                <h5>Your Practice Commitment</h5>
+                <div class="time-level">
+                    <i class="fa-solid fa-hourglass-half info-icon"></i>
+                    @GetCommitmentLevel(_minutes)
+                </div>
+
+                <p class="time-description">
+                    @GetEvaluationMessage(_minutes)
+                </p>
+
+                <div class="time-badge">
+                    <i class="fa-solid fa-calendar-check me-1"></i>
+                    @(_minutes / 60) hours per week
+                </div>
+            </div>
+        </BodyTemplate>
+    </Card>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<int> OnTargetTimeChanged { get; set; }
+
+    private List<SelectedItem> _items = [];
+    private int _minutes = 210;
+
+    protected override void OnInitialized()
+    {
+        _items =
+            [
+            new SelectedItem { Text = "1-2", Value = "90" },
+            new SelectedItem { Text = "3-4", Value = "210" },
+            new SelectedItem { Text = "5-6", Value = "330" },
+            new SelectedItem { Text = "7-9", Value = "480" },
+            new SelectedItem { Text = "10-14", Value = "720" },
+            new SelectedItem { Text = "15-19", Value = "1020" },
+            new SelectedItem { Text = "20+", Value = "1200" },
+            ];
+    }
+
+    private async Task HandleTimeChanged(SelectedItem selectedItem)
+    {
+        _minutes = int.Parse(selectedItem.Value);
+        StateHasChanged();
+        await OnTargetTimeChanged.InvokeAsync(_minutes);
+    }
+
+    private string GetEvaluationMessage(int minutes)
+    {
+        if (minutes < 210)
+        {
+            return "Even with limited practice time, consistent sessions will help build your skills. Focus on quality practice over quantity.";
+        }
+        else if (minutes < 330)
+        {
+            return "This is a balanced commitment that will lead to steady improvement over time. Perfect for most learners.";
+        }
+        else if (minutes < 720)
+        {
+            return "Your dedication will accelerate your progress. With this amount of practice, you'll see significant improvements in a shorter period.";
+        }
+        else
+        {
+            return "Your exceptional commitment will lead to rapid skill development. Make sure to take breaks and avoid fatigue for optimal learning.";
+        }
+    }
+
+    private string GetCommitmentLevel(int minutes)
+    {
+        switch (minutes)
+        {
+            case < 210:
+                return "Starter Commitment";
+            case < 330:
+                return "Balanced Commitment";
+            case < 720:
+                return "Dedicated Commitment";
+            default:
+                return "Intensive Commitment";
+        }
+    }
+}

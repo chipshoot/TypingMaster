@@ -1,0 +1,88 @@
+﻿<style>
+    .center-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; /* Adjust as needed */
+    }
+</style>
+<Card>
+    <HeaderTemplate>
+        <div>Beginner's Typing Training Schedule Setup Wizard</div>
+    </HeaderTemplate>
+    <BodyTemplate>
+        <Step @ref="@_step1">
+            <StepItem Title="Select your typing speed">
+                <div class="center-content">
+                    <BeginnerWizard_Step1 OnTargetStatsChanged="HandleTargetStatsChanged"></BeginnerWizard_Step1>
+                </div>
+            </StepItem>
+            <StepItem Title="Select your typing duration Pre Week">
+                <div class="center-content">
+                    <BeginnerWizard_Step2 OnTargetTimeChanged="HandleTargetTimeChanged"></BeginnerWizard_Step2>
+                </div>
+            </StepItem>
+            <StepItem Title="Your are done!">
+                <div class="center-content">
+                    <BeginnerWizard_Step4 SettingResult="@_courseSetting"></BeginnerWizard_Step4>
+                </div>
+            </StepItem>
+        </Step>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="Color.Primary" OnClick="()=>PrevStep(_step1)">Back</Button>
+        <Button Color="Color.Primary" OnClick="()=>NextStep(_step1)">Next</Button>
+        <Button Color="Color.Primary" OnClick="()=>Reset(_step1)">Reset</Button>
+    </FooterTemplate>
+</Card>
+@code
+{
+    private Step? _step1;
+
+    private CourseSetting _courseSetting = new()
+    {
+        Minutes = 210,
+        NewKeysPerStep = 1,
+        TargetStats = new StatsBase
+        {
+            Accuracy = 85,
+            Wpm = 25
+        },
+        PracticeTextLength = 30
+    };
+
+
+    protected override void OnInitialized()
+    {
+        _step1 = new Step();
+    }
+
+    private void PrevStep(Step step)
+    {
+        step?.Prev();
+    }
+
+    private void NextStep(Step step)
+    {
+        step?.Next();
+    }
+
+    private void Reset(Step step)
+    {
+        step?.Reset();
+    }
+    private void HandleTargetStatsChanged(StatsBase targetStats)
+    {
+        _courseSetting.TargetStats = targetStats;
+    }
+
+    private void HandleTargetTimeChanged(int minutes)
+    {
+        _courseSetting.Minutes = minutes;
+    }
+
+    private void HandleNewKeysChanged(int newKeys)
+    {
+        _courseSetting.NewKeysPerStep = newKeys;
+    } 
+}
