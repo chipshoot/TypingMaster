@@ -27,7 +27,7 @@
         </HeaderTemplate>
         <BodyTemplate>
             <Practice CurrentLesson="@_curLesson"
-            TrainingType="@TrainingType.Test"
+            TrainingType="@TrainingType.AllKeysTest"
             OnTypingCompleted="OnPracticeFinished"
             @ref="@_practice">
             </Practice>
@@ -76,7 +76,7 @@ else
         AppState.CurrentCourse = course;
         AppState.CurrentAccount.TestCourseId = course?.Id ?? Guid.Empty;
         TypingTrainer.Account = AppState.CurrentAccount;
-        TypingTrainer.TrainingType = TrainingType.Test;
+        TypingTrainer.TrainingType = TrainingType.AllKeysTest;
     }
 
     private async Task OnPracticeFinished(DrillStats stats)
@@ -104,7 +104,7 @@ else
         if (AppState.CurrentAccount != null && AppState.CurrentAccount.History.PracticeStats.Any())
         {
             var stats = AppState.CurrentAccount.History.PracticeStats.Last();
-            _curLesson = AppState.CurrentCourse?.GetPracticeLesson(stats);
+            _curLesson = AppState.CurrentCourse?.GetPracticeLesson(stats.LessonId, stats);
         }
         _practice?.HandleReset();
         StateHasChanged();
