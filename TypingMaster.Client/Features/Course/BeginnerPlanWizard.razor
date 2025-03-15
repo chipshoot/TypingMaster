@@ -12,17 +12,17 @@
     </HeaderTemplate>
     <BodyTemplate>
         <Step @ref="@_step1">
-            <StepItem Title="Select your typing speed">
+            <StepItem Title="Set Your Typing Goals">
                 <div class="center-content">
                     <BeginnerWizard_Step1 OnTargetStatsChanged="HandleTargetStatsChanged"></BeginnerWizard_Step1>
                 </div>
             </StepItem>
-            <StepItem Title="Select your typing duration Pre Week">
+            <StepItem Title="Set Your Weekly Practice Time Goal">
                 <div class="center-content">
                     <BeginnerWizard_Step2 OnTargetTimeChanged="HandleTargetTimeChanged"></BeginnerWizard_Step2>
                 </div>
             </StepItem>
-            <StepItem Title="Your are done!">
+            <StepItem Title="Your Course is Ready!">
                 <div class="center-content">
                     <BeginnerWizard_Step4 SettingResult="@_courseSetting"></BeginnerWizard_Step4>
                 </div>
