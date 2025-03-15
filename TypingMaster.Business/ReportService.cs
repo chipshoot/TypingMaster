@@ -65,22 +65,50 @@ public class ReportService(ILogger logger) : ServiceBase(logger), IReportService
         var dataList = new List<ProgressRecord>();
         foreach (var item in history.PracticeStats)
         {
-            if (item.Type == type)
+            switch (type)
             {
-                var record = new ProgressRecord
-                {
-                    Type = TrainingType.Course.ToString(),
-                    Name = course.Name,
-                    Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(CultureInfo.InvariantCulture),
-                    GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
-                    OverallAccuracy = item.Accuracy, // Implement this method
-                    OverallSpeed = item.Wpm, // Implement this method
-                    BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
-                    BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
-                    BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
-                };
+                case TrainingType.Course:
+                    if (item.Type == TrainingType.Course)
+                    {
+                        var record = new ProgressRecord
+                        {
+                            Type = TrainingType.Course.ToString(),
+                            Name = course.Name,
+                            Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(CultureInfo.InvariantCulture),
+                            GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
+                            OverallAccuracy = item.Accuracy, // Implement this method
+                            OverallSpeed = item.Wpm, // Implement this method
+                            BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
+                            BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
+                            BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
+                        };
 
-                dataList.Add(record);
+                        dataList.Add(record);
+                    }
+
+                    break;
+                case TrainingType.AllKeysTest:
+                case TrainingType.SpeedTest:
+
+                    if (item.Type is TrainingType.AllKeysTest or TrainingType.SpeedTest )
+                    {
+                        var record = new ProgressRecord
+                        {
+                            Type = TrainingType.Course.ToString(),
+                            Name = course.Name,
+                            Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(CultureInfo.InvariantCulture),
+                            GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
+                            OverallAccuracy = item.Accuracy, // Implement this method
+                            OverallSpeed = item.Wpm, // Implement this method
+                            BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
+                            BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
+                            BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
+                        };
+
+                        dataList.Add(record);
+                    }
+
+                    break;
             }
         }
 
