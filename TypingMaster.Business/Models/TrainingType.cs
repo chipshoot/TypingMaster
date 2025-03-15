@@ -4,7 +4,9 @@ public enum TrainingType
 {
     Course,
 
-    Test,
+    AllKeysTest,
+
+    SpeedTest,
 
     Game
 }

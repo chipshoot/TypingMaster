@@ -8,13 +8,13 @@ public interface ICourse
 
     string Name { get; set; }
 
-    CourseType Type { get; }
+    TrainingType Type { get; }
 
     IEnumerable<Lesson> Lessons { get; set; }
 
     string CompleteText { get; }
 
-    Lesson? GetPracticeLesson(DrillStats stats);
+    Lesson? GetPracticeLesson(int curLessonId, StatsBase stats);
 
     bool IsCompleted(DrillStats stats);
 

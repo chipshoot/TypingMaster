@@ -141,7 +141,8 @@ public class TypingTrainer(ICourseService courseService, ILogger logger) : ITypi
                 _course = await _courseService.GetCourse(_account.CourseId);
                 break;
 
-            case TrainingType.Test:
+            case TrainingType.AllKeysTest:
+            case TrainingType.SpeedTest:
                 _course = await _courseService.GetCourse(_account.TestCourseId);
                 break;
             case TrainingType.Game:
@@ -172,7 +173,8 @@ public class TypingTrainer(ICourseService courseService, ILogger logger) : ITypi
                 _course = await _courseService.GetCourse(_account.CourseId);
                 break;
 
-            case TrainingType.Test:
+            case TrainingType.AllKeysTest:
+            case TrainingType.SpeedTest:
                 _course = await _courseService.GetCourse(_account.TestCourseId);
                 break;
             case TrainingType.Game:

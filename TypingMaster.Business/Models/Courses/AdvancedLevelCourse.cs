@@ -6,8 +6,9 @@ namespace TypingMaster.Business.Models.Courses
     /// The course that increase the level of lesson based on the user's performance.
     /// If the user performs is better than advanced level, the lesson level will be increased.
     /// </summary>
-    public class AdvancedLevelCourse(CourseType type) : ICourse
+    public class AdvancedLevelCourse(TrainingType type) : ICourse
     {
+        private TrainingType _type;
         private const string CourseDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
 
         private const string CourseCompleteText = "Congratulation, You have completed all lessons in this course.";
@@ -19,20 +20,21 @@ namespace TypingMaster.Business.Models.Courses
 
         public string CompleteText => CourseCompleteText;
 
-        public CourseType Type { get; } = type;
+        public TrainingType Type { get; } = type;
+
+        TrainingType ICourse.Type => _type;
 
         public IEnumerable<Lesson> Lessons { get; set; } = [];
 
-        public Lesson? GetPracticeLesson(DrillStats stats)
+        public Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
         {
             Lesson? nextLesson;
-            if (stats.LessonId == 0)
+            if (curLessonId == 0)
             {
                 nextLesson = Lessons.FirstOrDefault(l => l.Id == 1);
             }
             else
             {
-                var curLessonId = stats.LessonId;
                 var curLessonPoint = Lessons.FirstOrDefault(x => x.Id == curLessonId)?.Point ?? 1;
                 var curSkill = stats.GetSkillLevel();
 
