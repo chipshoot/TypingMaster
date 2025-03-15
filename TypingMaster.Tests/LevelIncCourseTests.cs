@@ -8,7 +8,7 @@ namespace TypingMaster.Tests
     {
         private const string ExpectDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
         private static readonly Guid CourseId = new Guid("1C7B4C4F-3114-43E4-B5E5-265BCDB6C5EE");
-        private readonly AdvancedLevelCourse _course = new(CourseType.Practice)
+        private readonly AdvancedLevelCourse _course = new(TrainingType.Course)
         {
             Id = CourseId,
             Lessons =
@@ -53,7 +53,7 @@ namespace TypingMaster.Tests
             var stats = new DrillStats { Wpm = 0, Accuracy = 0 };
 
             // Act
-            var text = _course.GetPracticeLesson(stats)?.PracticeText;
+            var text = _course.GetPracticeLesson(stats.LessonId, stats)?.PracticeText;
 
             // Assert
             Assert.Equal("Beginner Course.", text);
@@ -72,7 +72,7 @@ namespace TypingMaster.Tests
             };
 
             // Act
-            var text = _course.GetPracticeLesson(stats)?.PracticeText;
+            var text = _course.GetPracticeLesson(stats.LessonId, stats)?.PracticeText;
 
             // Assert
             Assert.Equal("Beginner Course2.", text);
@@ -91,7 +91,7 @@ namespace TypingMaster.Tests
             };
 
             // Act
-            var text = _course.GetPracticeLesson(stats)?.PracticeText;
+            var text = _course.GetPracticeLesson(stats.LessonId, stats)?.PracticeText;
 
             // Assert
             Assert.Equal("Novice Course.", text);
@@ -112,7 +112,7 @@ namespace TypingMaster.Tests
             };
 
             // Act
-            var actualText = _course.GetPracticeLesson(stats)?.PracticeText ?? _course.CompleteText;
+            var actualText = _course.GetPracticeLesson(stats.LessonId, stats)?.PracticeText ?? _course.CompleteText;
 
             // Assert
             Assert.Equal(expectedText, actualText);
@@ -144,7 +144,7 @@ namespace TypingMaster.Tests
         public void CanGetDescription()
         {
             // Arrange
-            var course = new AdvancedLevelCourse(CourseType.Practice);
+            var course = new AdvancedLevelCourse(TrainingType.Course);
 
             // Act
             var description = course.Description;

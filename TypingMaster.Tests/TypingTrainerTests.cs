@@ -21,17 +21,17 @@
 //                Lessons =
 //                [
 //                    new Lesson
-//                        { Id = 1, PracticeText = "Beginner Course.", Point = 1 },
+//                        { Id = 1, PracticeTexts = "Beginner Course.", Point = 1 },
 //                    new Lesson
-//                        { Id = 2, PracticeText = "Novice Course.", Point = 2 },
+//                        { Id = 2, PracticeTexts = "Novice Course.", Point = 2 },
 //                    new Lesson
-//                        { Id = 3, PracticeText = "Intermediate Course.", Point = 3 },
+//                        { Id = 3, PracticeTexts = "Intermediate Course.", Point = 3 },
 //                    new Lesson
-//                        { Id = 4, PracticeText = "Advanced Course.", Point = 4 },
+//                        { Id = 4, PracticeTexts = "Advanced Course.", Point = 4 },
 //                    new Lesson
-//                        { Id = 5, PracticeText = "Expert Course.", Point = 5 },
+//                        { Id = 5, PracticeTexts = "Expert Course.", Point = 5 },
 //                    new Lesson
-//                        { Id = 6, PracticeText = "Beginner Course2.", Point = 1 }
+//                        { Id = 6, PracticeTexts = "Beginner Course2.", Point = 1 }
 //                ]
 //            };
 //            mockCourseService.Setup(x => x.GetCourse(1)).Returns(course);
