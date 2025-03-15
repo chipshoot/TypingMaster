@@ -59,7 +59,7 @@
 
         stats.CourseId = Context.CurrentAccount.CourseId;
         TypingTrainer?.CheckPracticeResult(stats);
-        if (!Context.CurrentCourse.IsCompleted(stats))
+        if (!Context.CurrentCourse.IsCompleted(stats.LessonId, stats))
         {
             _curLesson = Context.CurrentCourse.GetPracticeLesson(stats.LessonId, stats);
             _isCompleted = false;

@@ -113,9 +113,9 @@ visibility: hidden;
                 <p>WPM: @_wpm, Accuracy: @_accuracy%, @Level.ToString()</p>
             </div>
         </div>
-        @if (!string.IsNullOrEmpty(CurrentLesson?.Description))
+        @if (!string.IsNullOrEmpty(CurrentLesson?.Instruction))
         {
-            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Description" IsCollapse="false" />
+            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false" />
         }
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
             RightShiftPressed="@_rightShiftPressed" />

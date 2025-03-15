@@ -16,7 +16,9 @@ public interface ICourse
 
     Lesson? GetPracticeLesson(int curLessonId, StatsBase stats);
 
-    bool IsCompleted(DrillStats stats);
+    public CourseSetting Settings { get; set; }
+
+    bool IsCompleted(int curLessonId, StatsBase stats);
 
     DrillStats GenerateStartStats();
 

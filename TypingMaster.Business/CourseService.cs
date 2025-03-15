@@ -11,7 +11,8 @@ public class CourseService : ServiceBase, ICourseService
     public static Guid CourseId1 = new("AB7E8988-4E54-435F-9DC3-25D3193EC378");
     public static Guid AllKeyTestCourseId = new("B326B0D9-F44C-4206-BE3B-301824817EEA");
 
-    private static Dictionary<string, (string Instruction, string Description)> LessonInstructions = new()
+    // todo: redesign the lesson instructions to HTML format
+    private static readonly Dictionary<string, (string Instruction, string Description)> LessonInstructions = new()
     {
         {
             "asdf",
@@ -22,7 +23,7 @@ public class CourseService : ServiceBase, ICourseService
         { "k", ("Use the middle finger of the right hand to strike the 'K' key. ", "") },
         { "l", ("Use the ring finger of the right hand to strike the 'L' key. ", "") },
         { ";", ("Use the little finger of the right hand to strike the ';' key. ", "") },
-        { "rightHomeKeyBegin", ("The next lesson introduces a new home key {0}.", "") },
+        { "rightHomeKeyBegin", ("The next lesson introduces a new home key '{0}'.", "") },
         {
             "rightHomeKeysEnd",
             ("Remember to position your fingers over the home keys and reach from there to all other parts of the keyboard",
@@ -37,9 +38,11 @@ public class CourseService : ServiceBase, ICourseService
         { "i", ("Use your right middle finger to strike both the 'k' and 'i' keys.", "") },
     };
 
+    // todo: create a new way to get all key test course
+    // todo: move the text to a JSON data file
     public CourseService(ILogger logger) : base(logger)
     {
-        var course = new AdvancedLevelCourse(TrainingType.Course)
+        var course = new AdvancedLevelCourse()
         {
             Id = CourseId1,
             Lessons =
@@ -91,7 +94,9 @@ public class CourseService : ServiceBase, ICourseService
         };
         _courses.Add(course);
 
-        course = new AdvancedLevelCourse(TrainingType.AllKeysTest)
+        // todo: create a new way to get speed test course
+        // todo: move the text to a JSON data file
+        course = new AdvancedLevelCourse()
         {
             Id = AllKeyTestCourseId,
             Lessons =
@@ -173,6 +178,7 @@ public class CourseService : ServiceBase, ICourseService
         return Task.FromResult<ICourse>(course);
     }
 
+    // todo: move the text to a JSON data file
     private IEnumerable<Lesson> GenerateBeginnerCourseLessons(CourseSetting settings)
     {
         try
@@ -192,7 +198,7 @@ public class CourseService : ServiceBase, ICourseService
                     Id = 2,
                     Target = ["a", "s", "d", "f", "j"],
                     Instruction =
-                        $"{LessonInstructions["rightHomeKeyBegin"].Instruction} {LessonInstructions["j"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
+                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, "J")} {LessonInstructions["j"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
                     Description = "",
                     Point = 2
                 },
@@ -201,7 +207,7 @@ public class CourseService : ServiceBase, ICourseService
                     Id = 3,
                     Target = ["a", "s", "d", "f", "j", "k"],
                     Instruction =
-                        $"{LessonInstructions["rightHomeKeyBegin"].Instruction} {LessonInstructions["k"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
+                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, "K")} {LessonInstructions["k"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
                     Description = "",
                     Point = 3
                 },
@@ -210,7 +216,7 @@ public class CourseService : ServiceBase, ICourseService
                     Id = 4,
                     Target = ["a", "s", "d", "f", "j", "k", "l"],
                     Instruction =
-                        $"{LessonInstructions["rightHomeKeyBegin"].Instruction} {LessonInstructions["l"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
+                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, "L")} {LessonInstructions["l"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
                     Description = "",
                     Point = 4
                 },
@@ -219,7 +225,7 @@ public class CourseService : ServiceBase, ICourseService
                     Id = 5,
                     Target = ["a", "s", "d", "f", "j", "k", "l", ";"],
                     Instruction =
-                        $"{LessonInstructions["rightHomeKeyBegin"].Instruction} {LessonInstructions[";"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
+                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, ";")} {LessonInstructions[";"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
                     Description = "",
                     Point = 5
                 },

@@ -6,9 +6,8 @@ namespace TypingMaster.Business.Models.Courses
     /// The course that increase the level of lesson based on the user's performance.
     /// If the user performs is better than advanced level, the lesson level will be increased.
     /// </summary>
-    public class AdvancedLevelCourse(TrainingType type) : ICourse
+    public class AdvancedLevelCourse : ICourse
     {
-        private TrainingType _type;
         private const string CourseDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
 
         private const string CourseCompleteText = "Congratulation, You have completed all lessons in this course.";
@@ -20,9 +19,7 @@ namespace TypingMaster.Business.Models.Courses
 
         public string CompleteText => CourseCompleteText;
 
-        public TrainingType Type { get; } = type;
-
-        TrainingType ICourse.Type => _type;
+        public TrainingType Type { get; init; } = TrainingType.Course;
 
         public IEnumerable<Lesson> Lessons { get; set; } = [];
 
@@ -54,16 +51,27 @@ namespace TypingMaster.Business.Models.Courses
             return nextLesson;
         }
 
-        public bool IsCompleted(DrillStats stats)
+        public CourseSetting Settings { get; set; } = new CourseSetting
+        {
+            Minutes = 210,
+            TargetStats = new StatsBase
+            {
+                Wpm = 70,
+                Accuracy = 95
+            },
+            NewKeysPerStep = 2,
+            PracticeTextLength = 74
+        };
+
+        public bool IsCompleted(int curLessonId, StatsBase stats)
         {
             ArgumentNullException.ThrowIfNull(stats);
 
-            var curLesson = Lessons.FirstOrDefault(l => l.Id == stats.LessonId) ??
-                            throw new InvalidOperationException("Lesson not found.");
+            var curLesson = Lessons.FirstOrDefault(l => l.Id == curLessonId) ?? throw new InvalidOperationException("Lesson not found.");
+            var targetStats = Settings.TargetStats ?? throw new ArgumentNullException(nameof(Settings.TargetStats));
 
             Lesson? nextLesson;
-            var curSkill = stats.GetSkillLevel();
-            if (curSkill >= SkillLevel.Advanced)
+            if (stats >= targetStats)
             {
                 nextLesson = Lessons.FirstOrDefault(l => l.Point > curLesson.Point);
             }
@@ -73,8 +81,7 @@ namespace TypingMaster.Business.Models.Courses
                              ?? Lessons.FirstOrDefault(l => l.Point == curLesson.Point && l.Id == curLesson.Id);
             }
 
-            return nextLesson == null;
-        }
+            return nextLesson == null;        }
 
         public DrillStats GenerateStartStats()
         {

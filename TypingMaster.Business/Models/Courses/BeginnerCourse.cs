@@ -1,5 +1,7 @@
 ﻿using System.Text;
+using Serilog.Core;
 using TypingMaster.Business.Contract;
+using TypingMaster.Business.Utility;
 
 namespace TypingMaster.Business.Models.Courses;
 
@@ -25,7 +27,7 @@ public class BeginnerCourse : ICourse
 
     public string Name { get; set; }
 
-    public TrainingType Type { get; init; }
+    public TrainingType Type { get; init; } 
 
     public CourseSetting Settings { get; set; }
 
@@ -33,16 +35,27 @@ public class BeginnerCourse : ICourse
 
     public IEnumerable<Lesson> Lessons { get; set; }
 
-    //    public string CompleteText { get; }
+    public string CompleteText { get; }
 
-    //    public string? GetLessonText(int lessonId, DrillStats stats)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-
-    public bool IsCompleted(DrillStats stats)
+    public bool IsCompleted(int curLessonId, StatsBase stats)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(stats);
+
+        var curLesson = Lessons.FirstOrDefault(l => l.Id == curLessonId) ?? throw new InvalidOperationException("Lesson not found.");
+        var targetStats = Settings.TargetStats ?? throw new ArgumentNullException(nameof(Settings.TargetStats));
+
+        Lesson? nextLesson;
+        if (stats >= targetStats)
+        {
+            nextLesson = Lessons.FirstOrDefault(l => l.Point > curLesson.Point);
+        }
+        else
+        {
+            nextLesson = Lessons.FirstOrDefault(l => l.Point == curLesson.Point && l.Id > curLesson.Id)
+                         ?? Lessons.FirstOrDefault(l => l.Point == curLesson.Point && l.Id == curLesson.Id);
+        }
+
+        return nextLesson == null;
     }
 
     public Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
@@ -88,7 +101,29 @@ public class BeginnerCourse : ICourse
         }
 
         var practiceText = new StringBuilder();
+        var targetKeysList = targetKeys.ToList();
+    
+        // Generate 1-5 random strings from target keys
+        var randomKeyStringsCount = _random.Next(1, 6); // Random number between 1 and 5
+        for (var i = 0; i < randomKeyStringsCount; i++)
+        {
+            if (practiceText.Length > 0)
+            {
+                practiceText.Append(' ');
+            }
+        
+            // Create a random string from target keys
+            var keyStringLength = _random.Next(2, 5); // Random length between 2 and 4
+            var keyString = new StringBuilder();
+            for (var j = 0; j < keyStringLength; j++)
+            {
+                keyString.Append(targetKeysList[_random.Next(targetKeysList.Count)]);
+            }
+        
+            practiceText.Append(keyString);
+        }
 
+        // Add random words from the dictionary
         while (practiceText.Length < Settings.PracticeTextLength)
         {
             var word = words[_random.Next(words.Length)];
@@ -122,6 +157,4 @@ public class BeginnerCourse : ICourse
             FinishTime = DateTime.UtcNow
         };
     }
-
-    public string CompleteText { get; }
 }

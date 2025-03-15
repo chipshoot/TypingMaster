@@ -8,7 +8,7 @@ namespace TypingMaster.Tests
     {
         private const string ExpectDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
         private static readonly Guid CourseId = new Guid("1C7B4C4F-3114-43E4-B5E5-265BCDB6C5EE");
-        private readonly AdvancedLevelCourse _course = new(TrainingType.Course)
+        private readonly AdvancedLevelCourse _course = new()
         {
             Id = CourseId,
             Lessons =
@@ -134,7 +134,7 @@ namespace TypingMaster.Tests
             };
 
             // Act
-            var isCompleted = _course.IsCompleted(stats);
+            var isCompleted = _course.IsCompleted(stats.LessonId, stats);
 
             // Assert
             Assert.Equal(expectResult, isCompleted);
@@ -144,7 +144,7 @@ namespace TypingMaster.Tests
         public void CanGetDescription()
         {
             // Arrange
-            var course = new AdvancedLevelCourse(TrainingType.Course);
+            var course = new AdvancedLevelCourse();
 
             // Act
             var description = course.Description;
