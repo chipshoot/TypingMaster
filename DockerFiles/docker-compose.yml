@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16.2
+    container_name: typingmaster-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: TypingMaster
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password1!
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - typingmaster-network
+
+  # Seq for log visualization (since you're using Serilog.Sinks.Seq)
+  seq:
+    image: datalust/seq:2024.1
+    container_name: typingmaster-seq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "8081:80"
+      - "5341:5341"
+    volumes:
+      - seq-data:/data
+    networks:
+      - typingmaster-network
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:8.3
+    container_name: typingmaster-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: fchy@outlook.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8082:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - typingmaster-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres-data:
+    name: typingmaster-postgres-data
+  seq-data:
+    name: typingmaster-seq-data
+  pgadmin-data:
+    name: typingmaster-pgadmin-data
+
+networks:
+  typingmaster-network:
+    name: typingmaster-network
+
