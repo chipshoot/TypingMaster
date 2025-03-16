@@ -1,4 +1,4 @@
-Based on the provided screenshot and the original text, here's an updated application description focused on the core functionality and user experience of the typing tutor:
+Based on the provided screen shot and the original text, here's an updated application description focused on the core functionality and user experience of the typing tutor:
 
 **Welcome to Typing Master!**
 
@@ -16,7 +16,7 @@ Typing Master is designed to help you improve your typing skills through structu
 **Getting Started:**
 
 1.  **Navigate the Menus:** Use the top navigation bar to access different sections of the application.
-2.  **Login or Signup:** Create an account to save your progress and access personalized features.
+2.  **Login or Sign up:** Create an account to save your progress and access personalized features.
 3.  **Explore the Features:** Familiarize yourself with the available options, including lessons, tests, reports, and games.
 4.  **Start Practicing:** Begin with the lessons to learn the fundamentals or jump right into the tests to assess your current skills.
 
@@ -26,4 +26,4 @@ Typing Master is designed to help you improve your typing skills through structu
 * The application is designed to adapt to your progress, offering personalized feedback and challenges.
 * "Developing mode" is active.
 
-**Note:** The original text referenced "Typing Tutor IV," but the screenshot clearly shows "Typing Master." The description has been updated to reflect the correct application name.
+**Note:** The original text referenced "Typing Tutor IV," but the screen shot clearly shows "Typing Master." The description has been updated to reflect the correct application name.

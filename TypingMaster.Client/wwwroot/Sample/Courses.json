@@ -1,0 +1,50 @@
+{
+  "Id": "B326B0D9-F44C-4206-BE3B-301824817EEA",
+  "Name": "All Key Test",
+  "Type": 0,
+  "Description": "This course focuses on improving typing speed and accuracy through progressive lessons.",
+  "Lessons": [
+    {
+      "Id": 1,
+      "Target": [ "home row", "speed", "accuracy" ],
+      "PracticeText": "This is the introductory material for typing.",
+      "Point": 1,
+      "Description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
+    },
+    {
+      "Id": 2,
+      "Target": [ "beginner", "fundamentals" ],
+      "PracticeText": "This is the introductory beginner material for typing.",
+      "Point": 1,
+      "Description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
+    },
+    {
+      "Id": 3,
+      "Target": [ "novice", "practice" ],
+      "PracticeText": "This is the introductory Novice material for typing.",
+      "Point": 2,
+      "Description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
+    },
+    {
+      "Id": 4,
+      "Target": [ "intermediate", "skill-building" ],
+      "PracticeText": "This is the introductory Intermediate material for typing.",
+      "Point": 3,
+      "Description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
+    },
+    {
+      "Id": 5,
+      "Target": [ "advanced", "fluency" ],
+      "PracticeText": "This is the introductory Advanced material for typing.",
+      "Point": 4,
+      "Description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
+    },
+    {
+      "Id": 6,
+      "Target": [ "expert", "mastery" ],
+      "PracticeText": "This is the introductory Expert material for typing.",
+      "Point": 5,
+      "Description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 ﻿@inherits LayoutComponentBase
-@inject TypingTrainerContext AppState
+@inject ApplicationContext AppState
 <style>
     .nav-link-white {
         color: white !important;
@@ -10,7 +10,7 @@
     }
 </style>
 <div>
-    <Layout ShowFooter="true" AdditionalAssemblies="[typeof(MainLayout).Assembly]">
+    <Layout ShowFooter="true" AdditionalAssemblies="[typeof(MainLayout).Assembly]" IsPage="true">
         <Header>
             <nav class="navbar navbar-expand-lg w-100" data-bs-theme="dark">
                 <div class="container-fluid">
@@ -25,22 +25,16 @@
                             @if (AppState.IsLoggedIn)
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link active" aria-current="trainer" href="#">Lessons</a>
+                                    <a class="nav-link active" aria-current="page" href="trainer">Lessons</a>
                                 </li>
-                            }
+                            } 
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                    Test
+                                   aria-expanded="false">
+                                    Tests
                                 </a>
-                                <ul class="dropdown-menu">
-                                    @if (AppState.IsLoggedIn)
-                                    {
-                                        <li><a class="dropdown-item" href="#">Practice Test</a></li>
-                                    }
-                                    <li><a class="dropdown-item" href="allkeytest">All Key Test</a></li>
-                                    <li><a class="dropdown-item" href="#">Speed Tests</a></li>
-                                    <li><a class="dropdown-item" href="#">Number Pad</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                   <li><a class="dropdown-item" href="allkeytest">All Key</a></li>
                                 </ul>
                             </li>
                             <li class="nav-item">
@@ -88,3 +82,14 @@
         <Footer>Developing mode</Footer>
     </Layout>
 </div>
+
+@code
+{
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // if (firstRender)
+        // {
+        //     _ = JsRuntime.InvokeVoidAsync("initializeSubmenu");
+        // }
+    }
+}

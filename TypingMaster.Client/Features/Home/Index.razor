@@ -1,9 +1,12 @@
 ﻿@page "/"
-@inject TypingTrainerContext Context
+@using TypingMaster.Client.Features.Course
+
+@inject ApplicationContext Context
 
 @if (Context.IsLoggedIn)
 {
-    <Trainer></Trainer>
+    @* todo: only show this if the user has not completed the beginner plan *@
+    <BeginnerPlanWizard></BeginnerPlanWizard>
 }
 else
 {

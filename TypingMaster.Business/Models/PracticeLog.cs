@@ -2,6 +2,8 @@
 
 public class PracticeLog
 {
+    public int Id { get; set; }
+
     public Guid CurrentCourseId { get; set; }
 
     public int CurrentLessonId { get; set; }

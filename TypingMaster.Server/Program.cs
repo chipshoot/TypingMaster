@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using TypingMaster.Server.Data;
+using TypingMaster.Server.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,8 @@ Log.Logger = new LoggerConfiguration()
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddAutoMapper(typeof(AccountMapProfile));
 
 // Register Serilog logger
 builder.Services.AddSingleton(Log.Logger);

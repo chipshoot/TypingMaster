@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="BootstrapBlazor.Chart" Version="9.0.0" />
     <PackageReference Include="bunit" Version="1.38.5" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
@@ -27,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TypingMaster.Business\TypingMaster.Business.csproj" />
     <ProjectReference Include="..\TypingMaster.Client\TypingMaster.Client.csproj" />
+    <ProjectReference Include="..\TypingMaster.Server\TypingMaster.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

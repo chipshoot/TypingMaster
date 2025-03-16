@@ -3,6 +3,7 @@
 public class StatsBase
 {
     public int Wpm { get; set; }
+
     public double Accuracy { get; set; }
 
     public static bool operator >=(StatsBase left, StatsBase right)

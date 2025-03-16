@@ -2,6 +2,10 @@
 
 public class DrillStats : StatsBase
 {
+    public int Id { get; set; }
+
+    public int PracticeLogId { get; set; }
+
     public Guid CourseId { get; set; }
 
     public int LessonId { get; set; }
