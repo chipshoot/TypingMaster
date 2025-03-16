@@ -1,11 +1,27 @@
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using TypingMaster.Server.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Configure logging
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
 
+// Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddDbContext<ApplicationDbContext>(opt =>
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register Serilog logger
+builder.Services.AddSingleton(Log.Logger);
+
+// Register repositories
+//builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
