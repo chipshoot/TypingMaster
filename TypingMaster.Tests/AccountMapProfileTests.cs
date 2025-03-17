@@ -20,7 +20,7 @@ namespace TypingMaster.Tests
             {
                 cfg.AddProfile<AccountMapProfile>();
             });
-            
+
             _mapper = config.CreateMapper();
         }
 
@@ -75,12 +75,12 @@ namespace TypingMaster.Tests
             Assert.Equal(accountDao.Id, account.Id);
             Assert.Equal(accountDao.AccountName, account.AccountName);
             Assert.Equal(accountDao.AccountEmail, account.AccountEmail);
-            
+
             // Test GoalStats
             Assert.NotNull(account.GoalStats);
             Assert.Equal(accountDao.GoalStats.Wpm, account.GoalStats.Wpm);
             Assert.Equal(accountDao.GoalStats.Accuracy, account.GoalStats.Accuracy);
-            
+
             // Test User
             Assert.NotNull(account.User);
             Assert.Equal(accountDao.User.Id, account.User.Id);
@@ -89,14 +89,14 @@ namespace TypingMaster.Tests
             Assert.Equal(accountDao.User.Title, account.User.Title);
             Assert.Equal(accountDao.User.PhoneNumber, account.User.PhoneNumber);
             Assert.Equal(accountDao.User.AvatarUrl, account.User.AvatarUrl);
-            
+
             // Test History
             Assert.NotNull(account.History);
             Assert.Equal(accountDao.History.Id, account.History.Id);
             Assert.Equal(accountDao.History.CurrentCourseId, account.History.CurrentCourseId);
             Assert.Equal(accountDao.History.CurrentLessonId, account.History.CurrentLessonId);
             Assert.Equal(accountDao.History.PracticeDuration, account.History.PracticeDuration);
-            
+
             // CourseId, TestCourseId, and GameCourseId should be default values as they're ignored in the mapping
             Assert.Equal(default, account.CourseId);
             Assert.Equal(default, account.TestCourseId);
@@ -144,12 +144,12 @@ namespace TypingMaster.Tests
             Assert.Equal(account.Id, accountDao.Id);
             Assert.Equal(account.AccountName, accountDao.AccountName);
             Assert.Equal(account.AccountEmail, accountDao.AccountEmail);
-            
+
             // Test GoalStats
             Assert.NotNull(accountDao.GoalStats);
             Assert.Equal(account.GoalStats.Wpm, accountDao.GoalStats.Wpm);
             Assert.Equal(account.GoalStats.Accuracy, accountDao.GoalStats.Accuracy);
-            
+
             // Test User
             Assert.NotNull(accountDao.User);
             Assert.Equal(account.User.Id, accountDao.User.Id);
@@ -158,14 +158,14 @@ namespace TypingMaster.Tests
             Assert.Equal(account.User.Title, accountDao.User.Title);
             Assert.Equal(account.User.PhoneNumber, accountDao.User.PhoneNumber);
             Assert.Equal(account.User.AvatarUrl, accountDao.User.AvatarUrl);
-            
+
             // Test History
             Assert.NotNull(accountDao.History);
             Assert.Equal(account.History.Id, accountDao.History.Id);
             Assert.Equal(account.History.CurrentCourseId, accountDao.History.CurrentCourseId);
             Assert.Equal(account.History.CurrentLessonId, accountDao.History.CurrentLessonId);
             Assert.Equal(account.History.PracticeDuration, accountDao.History.PracticeDuration);
-            
+
             // Courses should be initialized but empty as they're ignored in the mapping
             Assert.NotNull(accountDao.Courses);
             Assert.Empty(accountDao.Courses);
@@ -204,10 +204,10 @@ namespace TypingMaster.Tests
             Assert.Equal(drillStatsDao.TypedText, drillStats.TypedText);
             Assert.Equal(drillStatsDao.Wpm, drillStats.Wpm);
             Assert.Equal(drillStatsDao.Accuracy, drillStats.Accuracy);
-            
+
             // Test that TrainingType enum maps correctly
             Assert.Equal(TrainingType.SpeedTest, drillStats.Type);
-            
+
             Assert.Equal(drillStatsDao.StartTime, drillStats.StartTime);
             Assert.Equal(drillStatsDao.FinishTime, drillStats.FinishTime);
         }
@@ -245,10 +245,10 @@ namespace TypingMaster.Tests
             Assert.Equal(drillStats.TypedText, drillStatsDao.TypedText);
             Assert.Equal(drillStats.Wpm, drillStatsDao.Wpm);
             Assert.Equal(drillStats.Accuracy, drillStatsDao.Accuracy);
-            
+
             // Test that TrainingType int maps correctly
             Assert.Equal(3, drillStatsDao.TrainingType); // TrainingType.Game is 3
-            
+
             Assert.Equal(drillStats.StartTime, drillStatsDao.StartTime);
             Assert.Equal(drillStats.FinishTime, drillStatsDao.FinishTime);
         }
