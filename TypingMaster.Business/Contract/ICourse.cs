@@ -10,6 +10,8 @@ public interface ICourse
 
     TrainingType Type { get; }
 
+    string LessonDataUrl { get; }
+
     IEnumerable<Lesson> Lessons { get; set; }
 
     string CompleteText { get; }

@@ -2,11 +2,11 @@
 
 public enum TrainingType
 {
-    Course,
+    Course = 0,
 
-    AllKeysTest,
+    AllKeysTest = 1,
 
-    SpeedTest,
+    SpeedTest = 2,
 
-    Game
+    Game = 3
 }

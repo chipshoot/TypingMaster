@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TypingMaster.Business.Models;
+using TypingMaster.Server.Dao;
 
 namespace TypingMaster.Server.Data;
 
@@ -10,11 +11,11 @@ public class AccountRepository(ApplicationDbContext context, IMapper mapper, Ser
     {
         try
         {
-            var accountDao= await context.Accounts
+            var accountDaos= await context.Accounts
                 .Include(a => a.User)
                 .Include(a => a.History)
                 .ToListAsync();
-            var account = mapper.Map<IEnumerable<Account>>(accountDao);
+            var account = mapper.Map<IEnumerable<Account>>(accountDaos);
             return account;
         }
         catch (Exception e)
@@ -24,112 +25,93 @@ public class AccountRepository(ApplicationDbContext context, IMapper mapper, Ser
         }
     }
 
-    ////    public async Task<Account> GetAccountByIdAsync(int id)
-    ////    {
-    ////        try
-    ////        {
-    ////            return await context.Accounts
-    ////                .Include(a => a.User)
-    ////                .Include(a => a.History)
-    ////                .FirstOrDefaultAsync(a => a.Id == id);
+    public async Task<Account?> GetAccountByIdAsync(int id)
+    {
+        try
+        {
+            var accountDao = await context.Accounts
+                .Include(a => a.User)
+                .Include(a => a.History)
+                .FirstOrDefaultAsync(a => a.Id == id);
+            var account = mapper.Map<Account>(accountDao);
+            return account;
 
-    ////        }
-    ////        catch (Exception e)
-    ////        {
-    ////            ProcessResult.AddException(e);
-    ////            return null;
-    ////        }
-    ////    }
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return null;
+        }
+    }
 
-    ////    public async Task<Account> GetAccountByEmailAsync(string email)
-    ////    {
-    ////        try
-    ////        {
-    ////            return await context.Accounts
-    ////                .Include(a => a.User)
-    ////                .Include(a => a.History)
-    ////                .FirstOrDefaultAsync(a => a.AccountEmail == email);
+    public async Task<Account?> GetAccountByEmailAsync(string email)
+    {
+        try
+        {
+            var accountDao = await context.Accounts
+                .Include(a => a.User)
+                .Include(a => a.History)
+                .FirstOrDefaultAsync(a => a.AccountEmail == email);
+            var account = mapper.Map<Account>(accountDao);
+            return account;
 
-    ////        }
-    ////        catch (Exception e)
-    ////        {
-    ////            ProcessResult.AddException(e);
-    ////            return null;
-    ////        }
-    ////    }
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return null;
+        }
+    }
 
-    ////    public async Task<Account> CreateAccountAsync(Account account)
-    ////    {
-    ////        try
-    ////        {
-    ////            context.Accounts.Add(account);
-    ////            await context.SaveChangesAsync();
-    ////            return account;
+    public async Task<Account?> CreateAccountAsync(Account account)
+    {
+        try
+        {
+            var accountDao = mapper.Map<AccountDao>(account);
+            context.Accounts.Add(accountDao);
+            await context.SaveChangesAsync();
+            return account;
 
-    ////        }
-    ////        catch (Exception e)
-    ////        {
-    ////            ProcessResult.AddException(e);
-    ////            return null;
-    ////        }
-    ////    }
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return null;
+        }
+    }
 
-    ////    public async Task<Account> UpdateAccountAsync(Account account)
-    ////    {
-    ////        try
-    ////        {
-    ////            context.Entry(account).State = EntityState.Modified;
-    ////            await context.SaveChangesAsync();
-    ////            return account;
-    ////        }
-    ////        catch (Exception e)
-    ////        {
-    ////            ProcessResult.AddException(e);
-    ////            return null;
-    ////        }
-    ////    }
+    public async Task<Account?> UpdateAccountAsync(Account account)
+    {
+        try
+        {
+            var accountDao = mapper.Map<AccountDao>(account);
+            context.Entry(accountDao).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return account;
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return null;
+        }
+    }
 
-    ////    public async Task<bool> DeleteAccountAsync(int id)
-    ////    {
-    ////        try
-    ////        {
-    ////            var account = await context.Accounts.FindAsync(id);
-    ////            if (account == null)
-    ////                return false;
+    public async Task<bool> DeleteAccountAsync(int id)
+    {
+        try
+        {
+            var accountDao = await context.Accounts.FindAsync(id);
+            if (accountDao == null)
+                return false;
 
-    ////            context.Accounts.Remove(account);
-    ////            await context.SaveChangesAsync();
-    ////            return true;
-    ////        }
-    ////        catch(Exception e)
-    ////        {
-    ////            ProcessResult.AddException(e);
-    ////            return false;
-    ////        }
-    ////    }
-
-public Task<Account> GetAccountByIdAsync(int id)
-{
-    throw new NotImplementedException();
-}
-
-public Task<Account> GetAccountByEmailAsync(string email)
-{
-    throw new NotImplementedException();
-}
-
-public Task<Account> CreateAccountAsync(Account account)
-{
-    throw new NotImplementedException();
-}
-
-public Task<Account> UpdateAccountAsync(Account account)
-{
-    throw new NotImplementedException();
-}
-
-public Task<bool> DeleteAccountAsync(int id)
-{
-    throw new NotImplementedException();
-}
+            context.Accounts.Remove(accountDao);
+            await context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return false;
+        }
+    }
 }

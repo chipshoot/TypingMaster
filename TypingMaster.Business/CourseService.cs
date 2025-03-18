@@ -1,7 +1,9 @@
 ﻿using Serilog;
+using System.Text.Json;
 using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
 using TypingMaster.Business.Models.Courses;
+using TypingMaster.Business.Models.LessonData;
 
 namespace TypingMaster.Business;
 
@@ -10,36 +12,8 @@ public class CourseService : ServiceBase, ICourseService
     private readonly List<ICourse> _courses = [];
     public static Guid CourseId1 = new("AB7E8988-4E54-435F-9DC3-25D3193EC378");
     public static Guid AllKeyTestCourseId = new("B326B0D9-F44C-4206-BE3B-301824817EEA");
+    private BeginnerCourseLessonData? _beginnerCourseLessonData;
 
-    // todo: redesign the lesson instructions to HTML format
-    private static readonly Dictionary<string, (string Instruction, string Description)> LessonInstructions = new()
-    {
-        {
-            "asdf",
-            ("Lessons begin with the home keys for the left hands: 'ASDF' Place your left hand fingers over the 'A' key; ring finger over 'S'; middle finger over 'D'; and index finger over 'F'. Keep the fingers curved, relaxed and poised just over the home keys.",
-                "")
-        },
-        { "j", ("Use the index finger of the right hand to strike the 'J' key. ", "") },
-        { "k", ("Use the middle finger of the right hand to strike the 'K' key. ", "") },
-        { "l", ("Use the ring finger of the right hand to strike the 'L' key. ", "") },
-        { ";", ("Use the little finger of the right hand to strike the ';' key. ", "") },
-        { "rightHomeKeyBegin", ("The next lesson introduces a new home key '{0}'.", "") },
-        {
-            "rightHomeKeysEnd",
-            ("Remember to position your fingers over the home keys and reach from there to all other parts of the keyboard",
-                "")
-        },
-        {
-            "capitalKey",
-            ("So far, lessons have used lower case characters only. New lessons will use upper case letters as well. Upper case key letters are typed by holding down a Shift key at the same time the letter is pressed.\r\n\r\nThere are two Shift keys, one for each hand. Hold the Shift key down correct finger on the other hand.\r\n\r\nFor example, to type an upper case 'E', press the Shift key on the right side of the keyboard with the right little finger. While holding the Shift key down, press the 'E' key with the left middle finger.",
-                "")
-        },
-        { "e", ("Use your left middle finger to strike both the 'd' and 'e' keys.", "") },
-        { "i", ("Use your right middle finger to strike both the 'k' and 'i' keys.", "") },
-    };
-
-    // todo: create a new way to get all key test course
-    // todo: move the text to a JSON data file
     public CourseService(ILogger logger) : base(logger)
     {
         var course = new AdvancedLevelCourse()
@@ -148,6 +122,41 @@ public class CourseService : ServiceBase, ICourseService
         _courses.Add(course);
     }
 
+    private BeginnerCourseLessonData LoadLessonData(ICourse course)
+    {
+        if (_beginnerCourseLessonData != null)
+        {
+            return _beginnerCourseLessonData;
+        }
+
+        try
+        {
+            // Resolve the path relative to the executing assembly's location
+            var assemblyLocation = Path.GetDirectoryName(typeof(CourseService).Assembly.Location);
+            var fullPath = Path.Combine(assemblyLocation!, course.LessonDataUrl);
+
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException($"Lesson data file not found at: {fullPath}");
+            }
+
+            var jsonString = File.ReadAllText(fullPath);
+            _beginnerCourseLessonData = JsonSerializer.Deserialize<BeginnerCourseLessonData>(jsonString);
+
+            if (_beginnerCourseLessonData == null)
+            {
+                throw new InvalidOperationException("Failed to deserialize lesson data");
+            }
+
+            return _beginnerCourseLessonData;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            throw;
+        }
+    }
+
     public Task<ICourse?> GetCourse(Guid id)
     {
         var course = _courses.FirstOrDefault(c => c.Id == id);
@@ -167,299 +176,49 @@ public class CourseService : ServiceBase, ICourseService
         {
             Id = Guid.NewGuid(),
             Name = "Beginner Typing Course",
-            Type = TrainingType.Course,
             Settings = settings,
-            Lessons = GenerateBeginnerCourseLessons(settings),
 
             // Get complete text by combining all lesson texts
             //CompleteText = string.Join("\n\n", Lessons.Select(l => l.PracticeTexts));
         };
 
+        course.Lessons = GenerateBeginnerCourseLessons(course);
         return Task.FromResult<ICourse>(course);
     }
 
-    // todo: move the text to a JSON data file
-    private IEnumerable<Lesson> GenerateBeginnerCourseLessons(CourseSetting settings)
+    private IEnumerable<Lesson> GenerateBeginnerCourseLessons(ICourse course)
     {
         try
         {
-            var lessons = new List<Lesson>
+            var lessonData = LoadLessonData(course);
+            var lessons = new List<Lesson>();
+
+            foreach (var lessonInfo in lessonData.Lessons)
             {
-                new()
+                var lesson = new Lesson
                 {
-                    Id = 1,
-                    Target = ["a", "s", "d", "f"],
-                    Instruction = LessonInstructions["asdf"].Instruction,
-                    Description = LessonInstructions["asdf"].Description,
-                    Point = 1
-                },
-                new()
+                    Id = lessonInfo.Id,
+                    Target = lessonInfo.Target.ToList(),
+                    Description = lessonInfo.Description,
+                    Point = lessonInfo.Point
+                };
+
+                // Build instruction from instruction keys and parameters
+                if (lessonInfo.InstructionKey != null)
                 {
-                    Id = 2,
-                    Target = ["a", "s", "d", "f", "j"],
-                    Instruction =
-                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, "J")} {LessonInstructions["j"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "",
-                    Point = 2
-                },
-                new()
-                {
-                    Id = 3,
-                    Target = ["a", "s", "d", "f", "j", "k"],
-                    Instruction =
-                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, "K")} {LessonInstructions["k"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "",
-                    Point = 3
-                },
-                new()
-                {
-                    Id = 4,
-                    Target = ["a", "s", "d", "f", "j", "k", "l"],
-                    Instruction =
-                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, "L")} {LessonInstructions["l"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "",
-                    Point = 4
-                },
-                new()
-                {
-                    Id = 5,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", ";"],
-                    Instruction =
-                        $"{string.Format(LessonInstructions["rightHomeKeyBegin"].Instruction, ";")} {LessonInstructions[";"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 6,
-                    Target = ["d", "e"],
-                    Instruction =
-                        $"{LessonInstructions["e"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "E",
-                    Point = 1
-                },
-                new()
-                {
-                    Id = 7,
-                    Target = ["k", "i"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "I",
-                    Point = 1
-                },
-                new()
-                {
-                    Id = 8,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", ";"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 9,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", ";"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "R",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 10,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", ";"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "U",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 11,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", ";"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "T",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 12,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", ";"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "Y",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 13,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", ";"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "W",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 14,
-                    Target = ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", ";"],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "O",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 15,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "Q",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 16,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "P",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 17,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "C",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 18,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "N",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 19,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", "v", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "V",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 20,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", "m", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "M",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 21,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", "m", "x", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "X",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 22,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", "m", "x", ",", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = ",",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 23,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", "m", "x", ",", "x", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = "Z",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 24,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", "m", "x", ",", "x", ".", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["i"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = ".",
-                    Point = 5
-                },
-                new()
-                {
-                    Id = 24,
-                    Target =
-                    [
-                        "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p",
-                        "c", "n", "m", "x", ",", "x", ".", ";"
-                    ],
-                    Instruction =
-                        $"{LessonInstructions["capitalKey"].Instruction} {LessonInstructions["rightHomeKeysEnd"].Instruction}",
-                    Description = ".",
-                    Point = 5
-                },
-            };
+                    var instruction = lessonData.LessonInstructions[lessonInfo.InstructionKey];
+                    lesson.Instruction = instruction.Instruction;
+                }
+
+                lessons.Add(lesson);
+            }
 
             return lessons;
         }
         catch (Exception ex)
         {
             ProcessResult.AddException(ex);
-            return null;
+            return new List<Lesson>();
         }
     }
 }

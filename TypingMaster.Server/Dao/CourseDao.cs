@@ -14,5 +14,5 @@ public class CourseDao
 
     public string Type { get; set; } = null!;
 
-    public string Settings { get; set; } = null!;
+    public CourseSettingDao SettingsJson { get; set; } = null!;
 }

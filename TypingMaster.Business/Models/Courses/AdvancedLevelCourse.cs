@@ -6,24 +6,34 @@ namespace TypingMaster.Business.Models.Courses
     /// The course that increase the level of lesson based on the user's performance.
     /// If the user performs is better than advanced level, the lesson level will be increased.
     /// </summary>
-    public class AdvancedLevelCourse : ICourse
+    public class AdvancedLevelCourse : CourseBase
     {
+        public AdvancedLevelCourse(string lessonDataFileUrl = "")
+        {
+            Type = TrainingType.Course;
+            LessonDataUrl = string.IsNullOrEmpty(lessonDataFileUrl)
+                ? "Resources/LessonData/beginner-course-lessons.json"
+                : lessonDataFileUrl;
+            CompleteText = CourseCompleteText;
+            Description = CourseDescription;
+            Settings = new CourseSetting
+            {
+                Minutes = 210,
+                TargetStats = new StatsBase
+                {
+                    Wpm = 70,
+                    Accuracy = 95
+                },
+                NewKeysPerStep = 2,
+                PracticeTextLength = 74
+            };
+        }
+
         private const string CourseDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
 
         private const string CourseCompleteText = "Congratulation, You have completed all lessons in this course.";
 
-        public Guid Id { get; set; }
-
-        public string Name { get; set; } =  "Skill Level Charge Course";
-
-
-        public string CompleteText => CourseCompleteText;
-
-        public TrainingType Type { get; init; } = TrainingType.Course;
-
-        public IEnumerable<Lesson> Lessons { get; set; } = [];
-
-        public Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
+        public override Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
         {
             Lesson? nextLesson;
             if (curLessonId == 0)
@@ -51,19 +61,7 @@ namespace TypingMaster.Business.Models.Courses
             return nextLesson;
         }
 
-        public CourseSetting Settings { get; set; } = new CourseSetting
-        {
-            Minutes = 210,
-            TargetStats = new StatsBase
-            {
-                Wpm = 70,
-                Accuracy = 95
-            },
-            NewKeysPerStep = 2,
-            PracticeTextLength = 74
-        };
-
-        public bool IsCompleted(int curLessonId, StatsBase stats)
+        public override bool IsCompleted(int curLessonId, StatsBase stats)
         {
             ArgumentNullException.ThrowIfNull(stats);
 
@@ -81,7 +79,8 @@ namespace TypingMaster.Business.Models.Courses
                              ?? Lessons.FirstOrDefault(l => l.Point == curLesson.Point && l.Id == curLesson.Id);
             }
 
-            return nextLesson == null;        }
+            return nextLesson == null;
+        }
 
         public DrillStats GenerateStartStats()
         {

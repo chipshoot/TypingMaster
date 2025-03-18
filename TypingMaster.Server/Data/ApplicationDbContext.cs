@@ -87,6 +87,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .UseIdentityByDefaultColumn(); // PostgresSQL-specific identity column
         });
 
+        modelBuilder.Entity<CourseDao>(entity =>
+        {
+            entity.ToTable("courses");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.SettingsJson).HasColumnType("jsonb").HasJsonConversion();
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 }

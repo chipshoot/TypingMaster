@@ -1,12 +1,19 @@
 ﻿using System.Text;
-using Serilog.Core;
-using TypingMaster.Business.Contract;
-using TypingMaster.Business.Utility;
 
 namespace TypingMaster.Business.Models.Courses;
 
-public class BeginnerCourse : ICourse
+public class BeginnerCourse : CourseBase
 {
+    public BeginnerCourse(string lessonDataFileUrl = "")
+    {
+        Type = TrainingType.Course;
+        LessonDataUrl = string.IsNullOrEmpty(lessonDataFileUrl)
+            ? "Resources/LessonData/beginner-course-lessons.json"
+            : lessonDataFileUrl;
+        CompleteText = "";
+        Description = CourseDescription;
+    }
+
     private const string CourseDescription =
         "Master Touch Typing from Scratch: This structured beginner's course guides you from the home row keys (a, s, d, f, j, k, l, ;) to full keyboard proficiency. Starting with your finger placement on home keys, each lesson gradually introduces new keys while reinforcing previously learned ones. Progress at your own pace through interactive exercises designed to build muscle memory, improve accuracy, and increase typing speed. Perfect for new typists or anyone looking to develop proper touch typing technique without looking at the keyboard. Track your WPM and accuracy as you transform from hunt-and-peck to confident touch typing.";
 
@@ -21,23 +28,9 @@ public class BeginnerCourse : ICourse
         // Additional dictionaries will be populated dynamically as needed
     };
 
-    private static readonly Random _random = new Random();
+    private static readonly Random Random = new Random();
 
-    public Guid Id { get; set; }
-
-    public string Name { get; set; }
-
-    public TrainingType Type { get; init; } 
-
-    public CourseSetting Settings { get; set; }
-
-    public string Description { get; } = CourseDescription;
-
-    public IEnumerable<Lesson> Lessons { get; set; }
-
-    public string CompleteText { get; }
-
-    public bool IsCompleted(int curLessonId, StatsBase stats)
+    public override bool IsCompleted(int curLessonId, StatsBase stats)
     {
         ArgumentNullException.ThrowIfNull(stats);
 
@@ -58,7 +51,7 @@ public class BeginnerCourse : ICourse
         return nextLesson == null;
     }
 
-    public Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
+    public override Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
     {
         ArgumentException.ThrowIfNullOrEmpty(nameof(stats));
         if (Settings.TargetStats is null)
@@ -102,31 +95,31 @@ public class BeginnerCourse : ICourse
 
         var practiceText = new StringBuilder();
         var targetKeysList = targetKeys.ToList();
-    
+
         // Generate 1-5 random strings from target keys
-        var randomKeyStringsCount = _random.Next(1, 6); // Random number between 1 and 5
+        var randomKeyStringsCount = Random.Next(1, 6); // Random number between 1 and 5
         for (var i = 0; i < randomKeyStringsCount; i++)
         {
             if (practiceText.Length > 0)
             {
                 practiceText.Append(' ');
             }
-        
+
             // Create a random string from target keys
-            var keyStringLength = _random.Next(2, 5); // Random length between 2 and 4
+            var keyStringLength = Random.Next(2, 5); // Random length between 2 and 4
             var keyString = new StringBuilder();
             for (var j = 0; j < keyStringLength; j++)
             {
-                keyString.Append(targetKeysList[_random.Next(targetKeysList.Count)]);
+                keyString.Append(targetKeysList[Random.Next(targetKeysList.Count)]);
             }
-        
+
             practiceText.Append(keyString);
         }
 
         // Add random words from the dictionary
         while (practiceText.Length < Settings.PracticeTextLength)
         {
-            var word = words[_random.Next(words.Length)];
+            var word = words[Random.Next(words.Length)];
             if (practiceText.Length + word.Length + 1 > Settings.PracticeTextLength)
             {
                 break;
@@ -141,20 +134,5 @@ public class BeginnerCourse : ICourse
         }
 
         return practiceText.ToString();
-    }
-
-    public DrillStats GenerateStartStats()
-    {
-        return new DrillStats
-        {
-            CourseId = CourseService.CourseId1,
-            LessonId = 1,
-            Wpm = 0,
-            Accuracy = 0,
-            KeyEvents = [],
-            TypedText = string.Empty,
-            StartTime = DateTime.Now,
-            FinishTime = DateTime.UtcNow
-        };
     }
 }
