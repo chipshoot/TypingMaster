@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
-using TypingMaster.Server.Data;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace TypingMaster.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController(IAccountRepository accountRepository, ILogger<AccountController> logger)
+    public class AccountController(IAccountService accountService, ILogger<AccountController> logger)
         : ControllerBase
     {
         [HttpGet]
@@ -14,7 +15,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var accounts = await accountRepository.GetAllAccountsAsync();
+                var accounts = await accountService.GetAllAccounts();
                 return Ok(accounts);
             }
             catch (Exception ex)
@@ -29,7 +30,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var account = await accountRepository.GetAccountByIdAsync(id);
+                var account = await accountService.GetAccount(id);
                 if (account == null)
                     return NotFound($"Account with ID {id} not found");
 
@@ -42,43 +43,6 @@ namespace TypingMaster.Server.Controllers
             }
         }
 
-        //[HttpPost("register")]
-        //public async Task<IActionResult> Register([FromBody] AccountRegistrationDto registrationDto)
-        //{
-        //    try
-        //    {
-        //        // Check if email already exists
-        //        var existingAccount = await _accountRepository.GetAccountByEmailAsync(registrationDto.Email);
-        //        if (existingAccount != null)
-        //            return BadRequest("An account with this email already exists");
-
-        //        // Create new account from DTO
-        //        var account = new Account
-        //        {
-        //            AccountName = registrationDto.AccountNumber,
-        //            AccountEmail = registrationDto.Email,
-        //            User = new UserProfileDao
-        //            {
-        //                FirstName = registrationDto.UserProfile.FirstName,
-        //                LastName = registrationDto.UserProfile.LastName
-        //            },
-        //            History = new PracticeLogDao(),
-        //            CourseId = Guid.NewGuid(),
-        //            TestCourseId = Guid.NewGuid(),
-        //            GameCourseId = Guid.NewGuid()
-        //        };
-
-        //        // Save to database
-        //        var createdAccount = await _accountRepository.CreateAccountAsync(account);
-        //        return CreatedAtAction(nameof(GetAccount), new { id = createdAccount.Id }, createdAccount);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error registering new account");
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAccount(int id, [FromBody] Account account)
         {
@@ -87,11 +51,11 @@ namespace TypingMaster.Server.Controllers
                 if (id != account.Id)
                     return BadRequest("ID mismatch");
 
-                var existingAccount = await accountRepository.GetAccountByIdAsync(id);
+                var existingAccount = await accountService.GetAccount(id);
                 if (existingAccount == null)
                     return NotFound($"Account with ID {id} not found");
 
-                var updatedAccount = await accountRepository.UpdateAccountAsync(account);
+                var updatedAccount = await accountService.UpdateAccount(account);
                 return Ok(updatedAccount);
             }
             catch (Exception ex)
@@ -106,7 +70,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var result = await accountRepository.DeleteAccountAsync(id);
+                var result = await accountService.DeleteAccount(id);
                 if (!result)
                     return NotFound($"Account with ID {id} not found");
 
@@ -119,6 +83,75 @@ namespace TypingMaster.Server.Controllers
             }
         }
 
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchAccount(int id, [FromBody] JsonPatchDocument<Account> patchDoc)
+        {
+            try
+            {
+                if (patchDoc == null)
+                    return BadRequest("Patch document is required");
+
+                var existingAccount = await accountService.GetAccount(id);
+                if (existingAccount == null)
+                    return NotFound($"Account with ID {id} not found");
+
+                // Apply the patch document to the existing account
+                patchDoc.ApplyTo(existingAccount);
+
+                // Validate the patched model
+                if (!TryValidateModel(existingAccount))
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Update the account with the patched changes
+                var updatedAccount = await accountService.UpdateAccount(existingAccount);
+                return Ok(updatedAccount);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error patching account with ID {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        //[HttpGet("profile/{id}")]
+        //public async Task<IActionResult> GetProfile(int id)
+        //{
+        //    try
+        //    {
+        //        var userProfile = await accountService.GetUserProfile(id);
+        //        if (userProfile == null)
+        //            return NotFound($"Profile for account ID {id} not found");
+
+        //        return Ok(userProfile);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        logger.LogError(ex, "Error retrieving profile for account ID {Id}", id);
+        //        return StatusCode(500, "Internal server error");
+        //    }
+        //}
+
+        //[HttpPut("profile/{id}")]
+        //public async Task<IActionResult> UpdateProfile(int id, [FromBody] UserProfile profileDto)
+        //{
+        //    try
+        //    {
+        //        var updatedProfile = await accountService.UpdateUserProfile(id, profileDto);
+        //        if (updatedProfile == null)
+        //            return NotFound($"Profile for account ID {id} not found");
+
+        //        return Ok(updatedProfile);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        logger.LogError(ex, "Error updating profile for account ID {Id}", id);
+        //        return StatusCode(500, "Internal server error");
+        //    }
+        //}
+
+        //todo: add register method, login method, and other account related methods
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] Account loginDto)
         {
@@ -126,32 +159,6 @@ namespace TypingMaster.Server.Controllers
             // For example, validate account credentials and generate a token
 
             return Ok(new { Token = "GeneratedToken" });
-        }
-
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProfile()
-        {
-            // Implement logic to retrieve account profile information
-            // For example, get the account information from the database
-            var accountProfile = new UserProfile();
-            //{
-            //    Id = 1,
-            //    AccountNumberId = 1,
-            //    Email = "user@example.com",
-            //    FirstName = "Example User",
-            //    LastName = "Example User"
-            //};
-
-            return Ok(accountProfile);
-        }
-
-        [HttpPut("profile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] UserProfile profileDto)
-        {
-            // Implement logic to update account profile information
-            // For example, update the account information in the database
-
-            return Ok(new { Message = "Profile updated successfully" });
         }
     }
 }

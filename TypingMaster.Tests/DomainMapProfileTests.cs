@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using TypingMaster.Business.Models;
 using TypingMaster.Business.Models.Courses;
-using TypingMaster.Server.Dao;
-using TypingMaster.Server.Mapping;
+using TypingMaster.Business.Mapping;
+using TypingMaster.DataAccess.Dao;
 
 namespace TypingMaster.Tests
 {

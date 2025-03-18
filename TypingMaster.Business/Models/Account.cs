@@ -1,5 +1,4 @@
-﻿
-namespace TypingMaster.Business.Models
+﻿namespace TypingMaster.Business.Models
 {
     public class Account
     {
@@ -23,5 +22,14 @@ namespace TypingMaster.Business.Models
         public Guid TestCourseId { get; set; }
 
         public Guid GameCourseId { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedAt { get; set; }
+
+        /// <summary>
+        /// Version number for optimistic concurrency control
+        /// </summary>
+        public int Version { get; set; }
     }
 }

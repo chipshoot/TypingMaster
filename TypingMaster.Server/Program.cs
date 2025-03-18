@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using TypingMaster.Server.Data;
-using TypingMaster.Server.Mapping;
+using TypingMaster.Business.Mapping;
+using TypingMaster.DataAccess.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

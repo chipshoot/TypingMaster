@@ -4,11 +4,15 @@ namespace TypingMaster.Business.Contract
 {
     public interface IAccountService
     {
+        Task<IEnumerable<Account>> GetAllAccounts();
+
         Task<Account?> GetAccount(int id);
 
         Task<Account?> CreateAccount(Account? account);
 
-        Task UpdateAccount(Account account);
+        Task<Account?> UpdateAccount(Account account);
+
+        Task<bool> DeleteAccount(int id);
 
         Task<bool> IsAccountUpdated(int accountId, int version);
 
