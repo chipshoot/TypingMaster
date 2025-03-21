@@ -29,9 +29,16 @@ public class ProcessResult(ILogger? logger = null)
         logger?.Error(exception, exception.Message);
     }
 
-    public void AddSuccess()
+    public void AddSuccess(string message = "")
     {
         Status = ProcessResultStatus.Success;
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        InformationList.ToList().Add(message);
+        logger?.Information(message);
     }
 
     public void AddInformation(string message)
