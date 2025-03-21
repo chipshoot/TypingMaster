@@ -743,5 +743,63 @@ namespace TypingMaster.Tests
                 KeyEventsJson = new Queue<KeyEventDao>()
             };
         }
+
+        [Fact]
+        public void LoginLogDao_To_LoginLog_MapsCorrectly()
+        {
+            // Arrange
+            var loginLogDao = new LoginLogDao
+            {
+                Id = 100,
+                AccountId = 1,
+                IpAddress = "192.168.1.1",
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                LoginTime = DateTime.UtcNow,
+                IsSuccessful = true,
+                FailureReason = null
+            };
+
+            // Act
+            var loginLog = _mapper.Map<LoginLog>(loginLogDao);
+
+            // Assert
+            Assert.NotNull(loginLog);
+            Assert.Equal(loginLogDao.Id, loginLog.Id);
+            Assert.Equal(loginLogDao.AccountId, loginLog.AccountId);
+            Assert.Equal(loginLogDao.IpAddress, loginLog.IpAddress);
+            Assert.Equal(loginLogDao.UserAgent, loginLog.UserAgent);
+            Assert.Equal(loginLogDao.LoginTime, loginLog.LoginTime);
+            Assert.Equal(loginLogDao.IsSuccessful, loginLog.IsSuccessful);
+            Assert.Equal(loginLogDao.FailureReason, loginLog.FailureReason);
+        }
+
+        [Fact]
+        public void LoginLog_To_LoginLogDao_MapsCorrectly()
+        {
+            // Arrange
+            var loginLog = new LoginLog
+            {
+                Id = 200,
+                AccountId = 2,
+                IpAddress = "10.0.0.1",
+                UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+                LoginTime = DateTime.UtcNow,
+                IsSuccessful = false,
+                FailureReason = "Invalid credentials"
+            };
+
+            // Act
+            var loginLogDao = _mapper.Map<LoginLogDao>(loginLog);
+
+            // Assert
+            Assert.NotNull(loginLogDao);
+            Assert.Equal(loginLog.Id, loginLogDao.Id);
+            Assert.Equal(loginLog.AccountId, loginLogDao.AccountId);
+            Assert.Equal(loginLog.IpAddress, loginLogDao.IpAddress);
+            Assert.Equal(loginLog.UserAgent, loginLogDao.UserAgent);
+            Assert.Equal(loginLog.LoginTime, loginLogDao.LoginTime);
+            Assert.Equal(loginLog.IsSuccessful, loginLogDao.IsSuccessful);
+            Assert.Equal(loginLog.FailureReason, loginLogDao.FailureReason);
+        }
     }
 }
