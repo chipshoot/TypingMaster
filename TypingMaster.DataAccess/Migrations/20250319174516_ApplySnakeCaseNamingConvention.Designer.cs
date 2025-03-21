@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TypingMaster.DataAccess.Data;
@@ -11,9 +12,11 @@ using TypingMaster.DataAccess.Data;
 namespace TypingMaster.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250319174516_ApplySnakeCaseNamingConvention")]
+    partial class ApplySnakeCaseNamingConvention
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,145 +176,6 @@ namespace TypingMaster.DataAccess.Migrations
                     b.ToTable("drill_stats", (string)null);
                 });
 
-            modelBuilder.Entity("TypingMaster.DataAccess.Dao.LoginCredentialDao", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("integer")
-                        .HasColumnName("account_id");
-
-                    b.Property<string>("ConfirmationToken")
-                        .HasColumnType("text")
-                        .HasColumnName("confirmation_token");
-
-                    b.Property<DateTime?>("ConfirmationTokenExpiry")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("confirmation_token_expiry");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("email");
-
-                    b.Property<string>("ExternalIdpId")
-                        .HasColumnType("text")
-                        .HasColumnName("external_idp_id");
-
-                    b.Property<string>("ExternalIdpType")
-                        .HasColumnType("text")
-                        .HasColumnName("external_idp_type");
-
-                    b.Property<int>("FailedLoginAttempts")
-                        .HasColumnType("integer")
-                        .HasColumnName("failed_login_attempts");
-
-                    b.Property<bool>("IsEmailConfirmed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_email_confirmed");
-
-                    b.Property<bool>("IsLocked")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_locked");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_updated")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lockout_end");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("password_hash");
-
-                    b.Property<string>("PasswordSalt")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("password_salt");
-
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("text")
-                        .HasColumnName("refresh_token");
-
-                    b.Property<DateTime?>("RefreshTokenExpiry")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("refresh_token_expiry");
-
-                    b.Property<string>("ResetPasswordToken")
-                        .HasColumnType("text")
-                        .HasColumnName("reset_password_token");
-
-                    b.Property<DateTime?>("ResetPasswordTokenExpiry")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("reset_password_token_expiry");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.ToTable("login_credentials", (string)null);
-                });
-
-            modelBuilder.Entity("TypingMaster.DataAccess.Dao.LoginLogDao", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("integer")
-                        .HasColumnName("account_id");
-
-                    b.Property<string>("FailureReason")
-                        .HasColumnType("text")
-                        .HasColumnName("failure_reason");
-
-                    b.Property<string>("IpAddress")
-                        .HasColumnType("text")
-                        .HasColumnName("ip_address");
-
-                    b.Property<bool>("IsSuccessful")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_successful");
-
-                    b.Property<DateTime>("LoginTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("login_time");
-
-                    b.Property<string>("UserAgent")
-                        .HasColumnType("text")
-                        .HasColumnName("user_agent");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("login_logs", (string)null);
-                });
-
             modelBuilder.Entity("TypingMaster.DataAccess.Dao.PracticeLogDao", b =>
                 {
                     b.Property<int>("Id")
@@ -408,28 +272,6 @@ namespace TypingMaster.DataAccess.Migrations
                         .HasForeignKey("PracticeLogId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("TypingMaster.DataAccess.Dao.LoginCredentialDao", b =>
-                {
-                    b.HasOne("TypingMaster.DataAccess.Dao.AccountDao", "Account")
-                        .WithOne()
-                        .HasForeignKey("TypingMaster.DataAccess.Dao.LoginCredentialDao", "AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("TypingMaster.DataAccess.Dao.LoginLogDao", b =>
-                {
-                    b.HasOne("TypingMaster.DataAccess.Dao.AccountDao", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("TypingMaster.DataAccess.Dao.PracticeLogDao", b =>

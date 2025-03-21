@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TypingMaster.DataAccess.Dao;
+using System.Text.RegularExpressions;
 
 namespace TypingMaster.DataAccess.Data;
 
@@ -16,9 +17,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<CourseDao> Courses { get; set; }
 
+    public DbSet<LoginLogDao> LoginLogs { get; set; }
+
+    public DbSet<LoginCredentialDao> LoginCredentials { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-       // Configure entity relationships and constraints
+        // Configure entity relationships and constraints
         modelBuilder.Entity<AccountDao>(entity =>
         {
             entity.ToTable("accounts");
@@ -26,6 +31,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.Id)
                 .UseIdentityByDefaultColumn(); // PostgresSQL-specific identity column
             entity.HasIndex(e => e.AccountEmail).IsUnique();
+
+            // Map camelCase property names to snake_case column names
+            entity.Property(e => e.AccountEmail).HasColumnName("account_email");
 
             entity.HasOne(e => e.User)
                 .WithOne()
@@ -43,8 +51,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.Property(e => e.GoalStats).HasColumnType("jsonb").HasJsonConversion();
+            entity.Property(e => e.GoalStats).HasColumnName("goal_stats").HasColumnType("jsonb").HasJsonConversion();
             entity.Property(e => e.Version)
+                .HasColumnName("version")
                 .IsConcurrencyToken()
                 .ValueGeneratedOnAddOrUpdate();
         });
@@ -55,7 +64,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id)
                 .UseIdentityByDefaultColumn(); // PostgresSQL-specific identity column
-            entity.Property(e => e.KeyStatsJson).HasColumnType("jsonb").HasJsonConversion();
+            entity.Property(e => e.KeyStatsJson).HasColumnName("key_stats_json").HasColumnType("jsonb").HasJsonConversion();
 
             // Configure one-to-many relationship with DrillStatsDao
             entity.HasMany(p => p.PracticeStats)
@@ -73,10 +82,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.Id)
                 .UseIdentityByDefaultColumn(); // PostgresSQL-specific identity column
 
-            entity.Property(e => e.KeyEventsJson).HasColumnType("jsonb").HasJsonConversion();
+            entity.Property(e => e.KeyEventsJson).HasColumnName("key_events_json").HasColumnType("jsonb").HasJsonConversion();
+            entity.Property(e => e.PracticeLogId).HasColumnName("practice_log_id");
 
             entity.HasKey(e => e.Id);
-            
+
             entity.HasOne<PracticeLogDao>()
                 .WithMany(p => p.PracticeStats)
                 .HasForeignKey(e => e.PracticeLogId)
@@ -96,9 +106,75 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.ToTable("courses");
             entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.SettingsJson).HasColumnType("jsonb").HasJsonConversion();
+            entity.Property(e => e.SettingsJson).HasColumnName("settings_json").HasColumnType("jsonb").HasJsonConversion();
+            entity.Property(e => e.AccountId).HasColumnName("account_id");
         });
 
+        modelBuilder.Entity<LoginLogDao>(entity =>
+        {
+            entity.ToTable("login_logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .UseIdentityByDefaultColumn(); // PostgresSQL-specific identity column
+
+            // Configure relationship with AccountDao
+            entity.HasOne(e => e.Account)
+                .WithMany()
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<LoginCredentialDao>(entity =>
+        {
+            entity.ToTable("login_credentials");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .UseIdentityByDefaultColumn(); // PostgresSQL-specific identity column
+
+            // Create unique index on email
+            entity.HasIndex(e => e.Email).IsUnique();
+
+            // Configure relationship with AccountDao - one Account has one LoginCredential
+            entity.HasOne(e => e.Account)
+                .WithOne()
+                .HasForeignKey<LoginCredentialDao>(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure remaining properties
+            entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.PasswordSalt).IsRequired();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.LastUpdated).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        // Apply snake_case naming convention to all remaining properties
+        ApplySnakeCaseNamingConvention(modelBuilder);
+
         base.OnModelCreating(modelBuilder);
+    }
+
+    private void ApplySnakeCaseNamingConvention(ModelBuilder modelBuilder)
+    {
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            // Skip properties that already have a column name mapping
+            foreach (var property in entity.GetProperties()
+                     .Where(p => p.GetColumnName() == p.Name))
+            {
+                var columnName = ToSnakeCase(property.Name);
+                property.SetColumnName(columnName);
+            }
+        }
+    }
+
+    private string ToSnakeCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+
+        // Convert camelCase to snake_case
+        return Regex.Replace(
+            input,
+            @"([a-z0-9])([A-Z])",
+            "$1_$2").ToLower();
     }
 }
