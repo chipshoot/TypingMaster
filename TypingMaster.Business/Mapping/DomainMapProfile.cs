@@ -243,6 +243,70 @@ namespace TypingMaster.Business.Mapping
                         Type = ((int)TrainingType.Game).ToString()
                     }
                 }));
+
+            // LoginLog mappings
+            CreateMap<LoginLogDao, LoginLog>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.IpAddress, opt => opt.MapFrom(src => src.IpAddress))
+                .ForMember(dest => dest.UserAgent, opt => opt.MapFrom(src => src.UserAgent))
+                .ForMember(dest => dest.LoginTime, opt => opt.MapFrom(src => src.LoginTime))
+                .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful))
+                .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason));
+
+            CreateMap<LoginLog, LoginLogDao>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.IpAddress, opt => opt.MapFrom(src => src.IpAddress))
+                .ForMember(dest => dest.UserAgent, opt => opt.MapFrom(src => src.UserAgent))
+                .ForMember(dest => dest.LoginTime, opt => opt.MapFrom(src => src.LoginTime))
+                .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful))
+                .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason))
+                .ForMember(dest => dest.Account, opt => opt.Ignore());
+
+            // LoginCredential mappings
+            CreateMap<LoginCredentialDao, LoginCredential>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.PasswordHash))
+                .ForMember(dest => dest.PasswordSalt, opt => opt.MapFrom(src => src.PasswordSalt))
+                .ForMember(dest => dest.IsEmailConfirmed, opt => opt.MapFrom(src => src.IsEmailConfirmed))
+                .ForMember(dest => dest.ConfirmationToken, opt => opt.MapFrom(src => src.ConfirmationToken))
+                .ForMember(dest => dest.ConfirmationTokenExpiry, opt => opt.MapFrom(src => src.ConfirmationTokenExpiry))
+                .ForMember(dest => dest.RefreshToken, opt => opt.MapFrom(src => src.RefreshToken))
+                .ForMember(dest => dest.RefreshTokenExpiry, opt => opt.MapFrom(src => src.RefreshTokenExpiry))
+                .ForMember(dest => dest.ResetPasswordToken, opt => opt.MapFrom(src => src.ResetPasswordToken))
+                .ForMember(dest => dest.ResetPasswordTokenExpiry, opt => opt.MapFrom(src => src.ResetPasswordTokenExpiry))
+                .ForMember(dest => dest.IsLocked, opt => opt.MapFrom(src => src.IsLocked))
+                .ForMember(dest => dest.FailedLoginAttempts, opt => opt.MapFrom(src => src.FailedLoginAttempts))
+                .ForMember(dest => dest.LockoutEnd, opt => opt.MapFrom(src => src.LockoutEnd))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => src.LastUpdated))
+                .ForMember(dest => dest.ExternalIdpId, opt => opt.MapFrom(src => src.ExternalIdpId))
+                .ForMember(dest => dest.ExternalIdpType, opt => opt.MapFrom(src => src.ExternalIdpType));
+
+            CreateMap<LoginCredential, LoginCredentialDao>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.PasswordHash))
+                .ForMember(dest => dest.PasswordSalt, opt => opt.MapFrom(src => src.PasswordSalt))
+                .ForMember(dest => dest.IsEmailConfirmed, opt => opt.MapFrom(src => src.IsEmailConfirmed))
+                .ForMember(dest => dest.ConfirmationToken, opt => opt.MapFrom(src => src.ConfirmationToken))
+                .ForMember(dest => dest.ConfirmationTokenExpiry, opt => opt.MapFrom(src => src.ConfirmationTokenExpiry))
+                .ForMember(dest => dest.RefreshToken, opt => opt.MapFrom(src => src.RefreshToken))
+                .ForMember(dest => dest.RefreshTokenExpiry, opt => opt.MapFrom(src => src.RefreshTokenExpiry))
+                .ForMember(dest => dest.ResetPasswordToken, opt => opt.MapFrom(src => src.ResetPasswordToken))
+                .ForMember(dest => dest.ResetPasswordTokenExpiry, opt => opt.MapFrom(src => src.ResetPasswordTokenExpiry))
+                .ForMember(dest => dest.IsLocked, opt => opt.MapFrom(src => src.IsLocked))
+                .ForMember(dest => dest.FailedLoginAttempts, opt => opt.MapFrom(src => src.FailedLoginAttempts))
+                .ForMember(dest => dest.LockoutEnd, opt => opt.MapFrom(src => src.LockoutEnd))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => src.LastUpdated))
+                .ForMember(dest => dest.ExternalIdpId, opt => opt.MapFrom(src => src.ExternalIdpId))
+                .ForMember(dest => dest.ExternalIdpType, opt => opt.MapFrom(src => src.ExternalIdpType))
+                .ForMember(dest => dest.Account, opt => opt.Ignore());
         }
     }
 }
