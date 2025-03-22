@@ -226,6 +226,92 @@ namespace TypingMaster.Tests
         }
 
         [Fact]
+        public void Account_To_AccountDao_EmptyGuids_NotAddedToCourses()
+        {
+            // Arrange
+            var account = new Account
+            {
+                Id = 1,
+                AccountName = "TestAccount",
+                AccountEmail = "test@example.com",
+                User = new UserProfile
+                {
+                    Id = 1,
+                    FirstName = "Test",
+                    LastName = "User"
+                },
+                History = new PracticeLog
+                {
+                    Id = 1,
+                    PracticeDuration = 60
+                },
+                // Set some valid GUIDs and some empty ones
+                CourseId = Guid.NewGuid(),        // Valid GUID (should be added)
+                TestCourseId = Guid.Empty,        // Empty GUID (should NOT be added)
+                GameCourseId = Guid.NewGuid()     // Valid GUID (should be added)
+            };
+
+            // Act
+            var accountDao = _mapper.Map<AccountDao>(account);
+
+            // Assert
+            Assert.NotNull(accountDao);
+            Assert.NotNull(accountDao.Courses);
+
+            // Should only have 2 courses (CourseId and GameCourseId), TestCourseId should be excluded
+            Assert.Equal(2, accountDao.Courses.Count);
+
+            // Verify only the expected courses exist
+            Assert.Single(accountDao.Courses.Where(c => c.Type == "0")); // Regular course
+            Assert.Empty(accountDao.Courses.Where(c => c.Type == "1"));  // Test course should not be present
+            Assert.Single(accountDao.Courses.Where(c => c.Type == "3")); // Game course
+
+            // Verify the correct IDs were mapped
+            var regularCourse = accountDao.Courses.Single(c => c.Type == "0");
+            Assert.Equal(account.CourseId, regularCourse.Id);
+
+            var gameCourse = accountDao.Courses.Single(c => c.Type == "3");
+            Assert.Equal(account.GameCourseId, gameCourse.Id);
+        }
+
+        [Fact]
+        public void Account_To_AccountDao_AllEmptyGuids_ResultsInEmptyCourses()
+        {
+            // Arrange
+            var account = new Account
+            {
+                Id = 1,
+                AccountName = "TestAccount",
+                AccountEmail = "test@example.com",
+                User = new UserProfile
+                {
+                    Id = 1,
+                    FirstName = "Test",
+                    LastName = "User"
+                },
+                History = new PracticeLog
+                {
+                    Id = 1,
+                    PracticeDuration = 60
+                },
+                // Set all GUIDs to empty
+                CourseId = Guid.Empty,
+                TestCourseId = Guid.Empty,
+                GameCourseId = Guid.Empty
+            };
+
+            // Act
+            var accountDao = _mapper.Map<AccountDao>(account);
+
+            // Assert
+            Assert.NotNull(accountDao);
+            Assert.NotNull(accountDao.Courses);
+
+            // Courses collection should be empty when all GUIDs are empty
+            Assert.Empty(accountDao.Courses);
+        }
+
+        [Fact]
         public void DrillStatsDao_To_DrillStats_MapsTrainingTypeCorrectly()
         {
             // Arrange

@@ -2,6 +2,7 @@ using AutoMapper;
 using Moq;
 using Serilog;
 using TypingMaster.Business;
+using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
@@ -13,6 +14,7 @@ namespace TypingMaster.Tests
         private readonly Mock<IAccountRepository> _mockRepository;
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<ILogger> _mockLogger;
+        private readonly Mock<ICourseService> _mockCourseService;
         private readonly AccountService _accountService;
 
         public AccountServiceTests()
@@ -20,7 +22,8 @@ namespace TypingMaster.Tests
             _mockRepository = new Mock<IAccountRepository>();
             _mockMapper = new Mock<IMapper>();
             _mockLogger = new Mock<ILogger>();
-            _accountService = new AccountService(_mockRepository.Object, _mockMapper.Object, _mockLogger.Object);
+            _mockCourseService = new Mock<ICourseService>();
+            _accountService = new AccountService(_mockRepository.Object, _mockMapper.Object, _mockLogger.Object, _mockCourseService.Object);
         }
 
         [Fact]
@@ -248,6 +251,73 @@ namespace TypingMaster.Tests
         }
 
         [Fact]
+        public async Task CreateAccount_ResetsInvalidCourseId_WhenHistoryCourseIdIsInvalid()
+        {
+            // Arrange
+            var invalidCourseId = Guid.NewGuid();
+            var account = new Account
+            {
+                AccountName = "Test Account",
+                AccountEmail = "test@example.com",
+                History = new PracticeLog { CurrentCourseId = invalidCourseId }
+            };
+
+            var accountDaoWithResetCourseId = new AccountDao
+            {
+                Id = 1,
+                AccountName = "Test Account",
+                AccountEmail = "test@example.com",
+                History = new PracticeLogDao { CurrentCourseId = Guid.Empty }
+            };
+
+            var createdAccount = new Account
+            {
+                Id = 1,
+                AccountName = "Test Account",
+                AccountEmail = "test@example.com",
+                History = new PracticeLog { CurrentCourseId = Guid.Empty }
+            };
+
+            // Setup course service to return null for the invalid course ID
+            _mockCourseService.Setup(cs => cs.GetCourse(invalidCourseId))
+                .ReturnsAsync((ICourse)null);
+
+            // Capture the mapped AccountDao for verification
+            AccountDao capturedAccountDao = null;
+            _mockMapper.Setup(m => m.Map<AccountDao>(account))
+                .Returns<Account>(a =>
+                {
+                    capturedAccountDao = new AccountDao
+                    {
+                        AccountName = a.AccountName,
+                        AccountEmail = a.AccountEmail,
+                        History = new PracticeLogDao { CurrentCourseId = a.History.CurrentCourseId }
+                    };
+                    return capturedAccountDao;
+                });
+
+            _mockRepository.Setup(repo => repo.CreateAccountAsync(It.IsAny<AccountDao>()))
+                .ReturnsAsync(accountDaoWithResetCourseId);
+
+            _mockMapper.Setup(m => m.Map<Account>(accountDaoWithResetCourseId))
+                .Returns(createdAccount);
+
+            // Act
+            var result = await _accountService.CreateAccount(account);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(Guid.Empty, result.History.CurrentCourseId);
+
+            // Verify the course service was called to validate the course ID
+            _mockCourseService.Verify(cs => cs.GetCourse(invalidCourseId), Times.Once);
+
+            // Verify the course ID was reset before being sent to the repository
+            Assert.NotNull(capturedAccountDao);
+            Assert.Equal(Guid.Empty, capturedAccountDao.History.CurrentCourseId);
+        }
+
+        [Fact]
         public async Task UpdateAccount_ReturnsUpdatedAccount_WhenUpdateSucceeds()
         {
             // Arrange
@@ -357,6 +427,93 @@ namespace TypingMaster.Tests
             // Assert
             Assert.Null(result);
             _mockRepository.Verify(repo => repo.UpdateAccountAsync(It.IsAny<AccountDao>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAccount_ResetsInvalidCourseId_WhenHistoryCourseIdIsInvalid()
+        {
+            // Arrange
+            var invalidCourseId = Guid.NewGuid();
+            var accountId = 1;
+            
+            var existingAccountDao = new AccountDao
+            {
+                Id = accountId,
+                AccountName = "Test Account",
+                AccountEmail = "test@example.com",
+                Version = 1,
+                History = new PracticeLogDao { CurrentCourseId = Guid.Empty }
+            };
+
+            var accountToUpdate = new Account
+            {
+                Id = accountId,
+                AccountName = "Updated Account",
+                AccountEmail = "test@example.com",
+                Version = 1,
+                History = new PracticeLog { CurrentCourseId = invalidCourseId }
+            };
+
+            var updatedAccountDao = new AccountDao
+            {
+                Id = accountId,
+                AccountName = "Updated Account",
+                AccountEmail = "test@example.com",
+                Version = 2,
+                History = new PracticeLogDao { CurrentCourseId = Guid.Empty }
+            };
+
+            var updatedAccount = new Account
+            {
+                Id = accountId,
+                AccountName = "Updated Account",
+                AccountEmail = "test@example.com",
+                Version = 2,
+                History = new PracticeLog { CurrentCourseId = Guid.Empty }
+            };
+
+            // Setup course service to return null for the invalid course ID
+            _mockCourseService.Setup(cs => cs.GetCourse(invalidCourseId))
+                .ReturnsAsync((ICourse)null);
+
+            _mockRepository.Setup(repo => repo.GetAccountByIdAsync(accountId))
+                .ReturnsAsync(existingAccountDao);
+
+            // Capture the mapped AccountDao for verification
+            AccountDao capturedAccountDao = null;
+            _mockMapper.Setup(m => m.Map<AccountDao>(accountToUpdate))
+                .Returns<Account>(a => 
+                {
+                    capturedAccountDao = new AccountDao 
+                    { 
+                        Id = a.Id,
+                        AccountName = a.AccountName, 
+                        AccountEmail = a.AccountEmail,
+                        Version = a.Version,
+                        History = new PracticeLogDao { CurrentCourseId = a.History.CurrentCourseId }
+                    };
+                    return capturedAccountDao;
+                });
+
+            _mockRepository.Setup(repo => repo.UpdateAccountAsync(It.IsAny<AccountDao>()))
+                .ReturnsAsync(updatedAccountDao);
+
+            _mockMapper.Setup(m => m.Map<Account>(updatedAccountDao))
+                .Returns(updatedAccount);
+
+            // Act
+            var result = await _accountService.UpdateAccount(accountToUpdate);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(Guid.Empty, result.History.CurrentCourseId);
+            
+            // Verify the course service was called to validate the course ID
+            _mockCourseService.Verify(cs => cs.GetCourse(invalidCourseId), Times.Once);
+            
+            // Verify the course ID was reset before being sent to the repository
+            Assert.NotNull(capturedAccountDao);
+            Assert.Equal(Guid.Empty, capturedAccountDao.History.CurrentCourseId);
         }
 
         [Fact]

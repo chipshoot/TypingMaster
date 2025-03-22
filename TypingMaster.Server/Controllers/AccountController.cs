@@ -2,6 +2,9 @@
 using TypingMaster.Business.Contract;
 using TypingMaster.Business.Models;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.JsonPatch.Exceptions;
 
 namespace TypingMaster.Server.Controllers
 {
@@ -16,13 +19,51 @@ namespace TypingMaster.Server.Controllers
             try
             {
                 var accounts = await accountService.GetAllAccounts();
+
+                // Check if there's an error message in the ProcessResult
+                if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                {
+                    return BadRequest(accountService.ProcessResult.ErrorMessage);
+                }
+
                 return Ok(accounts);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error retrieving all accounts");
-                return StatusCode(500, "Internal server error");
+                string errorMessage = "An error occurred while retrieving accounts.";
+
+                if (ex is InvalidOperationException)
+                {
+                    errorMessage = "Unable to retrieve accounts due to invalid operation.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    errorMessage = "You don't have permission to access accounts.";
+                    return StatusCode(403, errorMessage);
+                }
+
+                return StatusCode(500, errorMessage);
             }
+        }
+
+        [HttpGet("test-auth")]
+        public IActionResult TestAuth()
+        {
+            // Get the current user's identity from claims
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+            return Ok(new
+            {
+                Message = "Authentication successful!",
+                UserId = userId,
+                UserName = userName,
+                Email = email,
+                Claims = User.Claims.Select(c => new { c.Type, c.Value })
+            });
         }
 
         [HttpGet("{id}")]
@@ -31,6 +72,13 @@ namespace TypingMaster.Server.Controllers
             try
             {
                 var account = await accountService.GetAccount(id);
+
+                // Check if there's an error message in the ProcessResult
+                if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                {
+                    return BadRequest(accountService.ProcessResult.ErrorMessage);
+                }
+
                 if (account == null)
                     return NotFound($"Account with ID {id} not found");
 
@@ -39,7 +87,68 @@ namespace TypingMaster.Server.Controllers
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error retrieving account with ID {Id}", id);
-                return StatusCode(500, "Internal server error");
+                string errorMessage = $"An error occurred while retrieving account with ID {id}.";
+
+                if (ex is InvalidOperationException)
+                {
+                    errorMessage = "Unable to retrieve account due to invalid operation.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    errorMessage = "You don't have permission to access this account.";
+                    return StatusCode(403, errorMessage);
+                }
+
+                return StatusCode(500, errorMessage);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAccount([FromBody] Account account)
+        {
+            try
+            {
+                var createdAccount = await accountService.CreateAccount(account);
+                if (createdAccount == null)
+                {
+                    // Check if there's an error message in the ProcessResult
+                    if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                    {
+                        return BadRequest(accountService.ProcessResult.ErrorMessage);
+                    }
+                    return BadRequest("Invalid account data or account creation failed");
+                }
+
+                return CreatedAtAction(nameof(GetAccount), new { id = createdAccount.Id }, createdAccount);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error creating account");
+                string errorMessage = "An error occurred while creating the account.";
+
+                if (ex is ArgumentException)
+                {
+                    errorMessage = "Invalid account data provided.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is InvalidOperationException)
+                {
+                    errorMessage = "Unable to create account due to invalid operation.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    errorMessage = "You don't have permission to create an account.";
+                    return StatusCode(403, errorMessage);
+                }
+                else if (ex is DbUpdateException)
+                {
+                    errorMessage = "Failed to create account due to a database error. The email might already be in use.";
+                    return BadRequest(errorMessage);
+                }
+
+                return StatusCode(500, errorMessage);
             }
         }
 
@@ -52,16 +161,66 @@ namespace TypingMaster.Server.Controllers
                     return BadRequest("ID mismatch");
 
                 var existingAccount = await accountService.GetAccount(id);
+
+                // Check if there's an error message in the ProcessResult after GetAccount
+                if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                {
+                    return BadRequest(accountService.ProcessResult.ErrorMessage);
+                }
+
                 if (existingAccount == null)
                     return NotFound($"Account with ID {id} not found");
 
                 var updatedAccount = await accountService.UpdateAccount(account);
+                if (updatedAccount == null)
+                {
+                    // Check if there's an error message in the ProcessResult
+                    if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                    {
+                        return BadRequest(accountService.ProcessResult.ErrorMessage);
+                    }
+                    return BadRequest("Failed to update account, but no specific error was provided");
+                }
+
                 return Ok(updatedAccount);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error updating account with ID {Id}", id);
-                return StatusCode(500, "Internal server error");
+                string errorMessage = "An error occurred while updating the account.";
+
+                // Adding more specific error messages based on exception type
+                if (ex is ArgumentException)
+                {
+                    errorMessage = "Invalid account data provided.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is InvalidOperationException)
+                {
+                    errorMessage = "Unable to update account due to invalid operation.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    errorMessage = "You don't have permission to update this account.";
+                    return StatusCode(403, errorMessage);
+                }
+                else if (ex is TimeoutException)
+                {
+                    errorMessage = "The request timed out while updating the account. Please try again.";
+                }
+                else if (ex is DbUpdateConcurrencyException)
+                {
+                    errorMessage = "The account has been modified by another user. Please refresh and try again.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is DbUpdateException)
+                {
+                    errorMessage = "Failed to update account due to a database error.";
+                    return BadRequest(errorMessage);
+                }
+
+                return StatusCode(500, errorMessage);
             }
         }
 
@@ -72,14 +231,44 @@ namespace TypingMaster.Server.Controllers
             {
                 var result = await accountService.DeleteAccount(id);
                 if (!result)
+                {
+                    // Check if there's an error message in the ProcessResult
+                    if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                    {
+                        return BadRequest(accountService.ProcessResult.ErrorMessage);
+                    }
                     return NotFound($"Account with ID {id} not found");
+                }
 
                 return NoContent();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error deleting account with ID {Id}", id);
-                return StatusCode(500, "Internal server error");
+                string errorMessage = $"An error occurred while deleting account with ID {id}.";
+
+                if (ex is ArgumentException)
+                {
+                    errorMessage = "Invalid account ID provided.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is InvalidOperationException)
+                {
+                    errorMessage = "Unable to delete account due to invalid operation.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    errorMessage = "You don't have permission to delete this account.";
+                    return StatusCode(403, errorMessage);
+                }
+                else if (ex is DbUpdateException)
+                {
+                    errorMessage = "Failed to delete account due to database constraints. The account may have associated records.";
+                    return BadRequest(errorMessage);
+                }
+
+                return StatusCode(500, errorMessage);
             }
         }
 
@@ -92,6 +281,13 @@ namespace TypingMaster.Server.Controllers
                     return BadRequest("Patch document is required");
 
                 var existingAccount = await accountService.GetAccount(id);
+
+                // Check if there's an error message in the ProcessResult after GetAccount
+                if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                {
+                    return BadRequest(accountService.ProcessResult.ErrorMessage);
+                }
+
                 if (existingAccount == null)
                     return NotFound($"Account with ID {id} not found");
 
@@ -106,59 +302,57 @@ namespace TypingMaster.Server.Controllers
 
                 // Update the account with the patched changes
                 var updatedAccount = await accountService.UpdateAccount(existingAccount);
+                if (updatedAccount == null)
+                {
+                    // Check if there's an error message in the ProcessResult
+                    if (accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                    {
+                        return BadRequest(accountService.ProcessResult.ErrorMessage);
+                    }
+                    return BadRequest("Failed to update account, but no specific error was provided");
+                }
+
                 return Ok(updatedAccount);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error patching account with ID {Id}", id);
-                return StatusCode(500, "Internal server error");
+                string errorMessage = "An error occurred while patching the account.";
+
+                // Adding more specific error messages based on exception type
+                if (ex is ArgumentException)
+                {
+                    errorMessage = "Invalid account data provided.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is InvalidOperationException)
+                {
+                    errorMessage = "Unable to update account due to invalid operation.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    errorMessage = "You don't have permission to update this account.";
+                    return StatusCode(403, errorMessage);
+                }
+                else if (ex is DbUpdateConcurrencyException)
+                {
+                    errorMessage = "The account has been modified by another user. Please refresh and try again.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is DbUpdateException)
+                {
+                    errorMessage = "Failed to update account due to a database error.";
+                    return BadRequest(errorMessage);
+                }
+                else if (ex is JsonPatchException)
+                {
+                    errorMessage = "Invalid patch document format.";
+                    return BadRequest(errorMessage);
+                }
+
+                return StatusCode(500, errorMessage);
             }
-        }
-
-        //[HttpGet("profile/{id}")]
-        //public async Task<IActionResult> GetProfile(int id)
-        //{
-        //    try
-        //    {
-        //        var userProfile = await accountService.GetUserProfile(id);
-        //        if (userProfile == null)
-        //            return NotFound($"Profile for account ID {id} not found");
-
-        //        return Ok(userProfile);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        logger.LogError(ex, "Error retrieving profile for account ID {Id}", id);
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
-
-        //[HttpPut("profile/{id}")]
-        //public async Task<IActionResult> UpdateProfile(int id, [FromBody] UserProfile profileDto)
-        //{
-        //    try
-        //    {
-        //        var updatedProfile = await accountService.UpdateUserProfile(id, profileDto);
-        //        if (updatedProfile == null)
-        //            return NotFound($"Profile for account ID {id} not found");
-
-        //        return Ok(updatedProfile);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        logger.LogError(ex, "Error updating profile for account ID {Id}", id);
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
-
-        //todo: add register method, login method, and other account related methods
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] Account loginDto)
-        {
-            // Implement account login logic here
-            // For example, validate account credentials and generate a token
-
-            return Ok(new { Token = "GeneratedToken" });
         }
     }
 }

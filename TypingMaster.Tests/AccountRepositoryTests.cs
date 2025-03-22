@@ -10,7 +10,6 @@ namespace TypingMaster.Tests
     {
         private readonly ApplicationDbContext _context;
         private readonly AccountRepository _repository;
-        private readonly Mock<ILogger> _mockLogger;
 
         public AccountRepositoryTests()
         {
@@ -26,10 +25,13 @@ namespace TypingMaster.Tests
             SeedTestData();
 
             // Create logger mock
-            _mockLogger = new Mock<ILogger>();
+            var mockLogger = new Mock<ILogger>();
+
+            // Create course service mock
+            var mockUserProfileRepository = new Mock<IUserProfileRepository>();
 
             // Create repository with real context and mock logger
-            _repository = new AccountRepository(_context, _mockLogger.Object);
+            _repository = new AccountRepository(_context, mockUserProfileRepository.Object, mockLogger.Object);
         }
 
         private void SeedTestData()

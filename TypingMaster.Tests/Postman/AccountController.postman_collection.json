@@ -1,0 +1,205 @@
+{
+  "info": {
+    "_postman_id": "bc9e9d3c-7f89-4e7a-9d5d-6a5ff76e12d5",
+    "name": "TypingMaster AccountController",
+    "description": "Collection for testing the AccountController endpoints in TypingMaster API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Accounts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/Account",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "Account"]
+        },
+        "description": "Retrieves all accounts"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"accountName\": \"New Test Account\",\r\n  \"accountEmail\": \"newtest@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"Jane\",\r\n    \"lastName\": \"Doe\"\r\n  },\r\n  \"goalStats\": {\r\n    \"Wpm\": 40,\r\n  \"Accuracy\": 60\r\n},\r\n  \"history\": {\r\n  },\r\n  \"courseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"testCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"gameCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"version\": 0\r\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Account",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "Account"]
+        },
+        "description": "Creates a new account"
+      },
+      "response": []
+    },
+    {
+      "name": "Test Auth",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/Account/test-auth",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "Account", "test-auth"]
+        },
+        "description": "Tests authentication and returns user claim information"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Account by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/Account/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "Account", "1"]
+        },
+        "description": "Retrieves an account by its ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Account",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"id\": 1,\r\n  \"accountName\": \"Updated Account\",\r\n  \"accountEmail\": \"updated@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\"\r\n  },\r\n  \"goalStats\": null,\r\n  \"history\": {\r\n  },\r\n  \"courseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"testCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"gameCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"isDeleted\": false,\r\n  \"deletedAt\": null,\r\n  \"version\": 1\r\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Account/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "Account", "1"]
+        },
+        "description": "Updates an existing account"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Account",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/Account/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "Account", "1"]
+        },
+        "description": "Deletes an account"
+      },
+      "response": []
+    },
+    {
+      "name": "Patch Account",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"/accountName\",\r\n    \"value\": \"Patched Account Name\"\r\n  },\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"/accountEmail\",\r\n    \"value\": \"patched@example.com\"\r\n  }\r\n]"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Account/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "Account", "1"]
+        },
+        "description": "Partially updates an account using JSON Patch"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    }
+  ]
+}

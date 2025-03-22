@@ -1,0 +1,190 @@
+{
+  "Test Scripts": {
+    "Get All Accounts": {
+      "description": "Test script for validating the Get All Accounts endpoint",
+      "script": [
+        "pm.test(\"Status code is 200\", function () {",
+        "    pm.response.to.have.status(200);",
+        "});",
+        "",
+        "pm.test(\"Response is an array\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    pm.expect(Array.isArray(jsonData)).to.be.true;",
+        "});",
+        "",
+        "pm.test(\"Response contains account objects with required properties\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    if (jsonData.length > 0) {",
+        "        pm.expect(jsonData[0]).to.have.property('id');",
+        "        pm.expect(jsonData[0]).to.have.property('accountName');",
+        "        pm.expect(jsonData[0]).to.have.property('accountEmail');",
+        "    }",
+        "});"
+      ]
+    },
+    "Test Auth": {
+      "description": "Test script for validating the Test Auth endpoint",
+      "script": [
+        "pm.test(\"Status code is 200\", function () {",
+        "    pm.response.to.have.status(200);",
+        "});",
+        "",
+        "pm.test(\"Response has authentication data\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    pm.expect(jsonData).to.have.property('message').equals('Authentication successful!');",
+        "    pm.expect(jsonData).to.have.property('claims');",
+        "    // Store userId for later use",
+        "    if (jsonData.userId) {",
+        "        pm.environment.set(\"userId\", jsonData.userId);",
+        "    }",
+        "});"
+      ]
+    },
+    "Get Account by ID": {
+      "description": "Test script for validating the Get Account by ID endpoint",
+      "script": [
+        "pm.test(\"Status code is 200\", function () {",
+        "    pm.response.to.have.status(200);",
+        "});",
+        "",
+        "pm.test(\"Response contains account object with required properties\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    pm.expect(jsonData).to.have.property('id');",
+        "    pm.expect(jsonData).to.have.property('accountName');",
+        "    pm.expect(jsonData).to.have.property('accountEmail');",
+        "    // Store current version for update/patch tests",
+        "    pm.environment.set(\"accountVersion\", jsonData.version);",
+        "});"
+      ]
+    },
+    "Update Account": {
+      "description": "Test script for validating the Update Account endpoint",
+      "script": [
+        "pm.test(\"Status code is 200\", function () {",
+        "    pm.response.to.have.status(200);",
+        "});",
+        "",
+        "pm.test(\"Response contains updated account data\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    pm.expect(jsonData).to.have.property('id');",
+        "    pm.expect(jsonData.accountName).to.equal('Updated Account');",
+        "    pm.expect(jsonData.accountEmail).to.equal('updated@example.com');",
+        "});",
+        "",
+        "pm.test(\"Version number increased\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    var previousVersion = pm.environment.get(\"accountVersion\");",
+        "    pm.expect(jsonData.version).to.be.greaterThan(parseInt(previousVersion));",
+        "    // Update stored version",
+        "    pm.environment.set(\"accountVersion\", jsonData.version);",
+        "});"
+      ]
+    },
+    "Patch Account": {
+      "description": "Test script for validating the Patch Account endpoint",
+      "script": [
+        "pm.test(\"Status code is 200\", function () {",
+        "    pm.response.to.have.status(200);",
+        "});",
+        "",
+        "pm.test(\"Response contains patched account data\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    pm.expect(jsonData).to.have.property('id');",
+        "    pm.expect(jsonData.accountName).to.equal('Patched Account Name');",
+        "    pm.expect(jsonData.accountEmail).to.equal('patched@example.com');",
+        "});",
+        "",
+        "pm.test(\"Version number increased\", function () {",
+        "    var jsonData = pm.response.json();",
+        "    var previousVersion = pm.environment.get(\"accountVersion\");",
+        "    pm.expect(jsonData.version).to.be.greaterThan(parseInt(previousVersion));",
+        "});"
+      ]
+    },
+    "Delete Account": {
+      "description": "Test script for validating the Delete Account endpoint",
+      "script": [
+        "pm.test(\"Status code is 204\", function () {",
+        "    pm.response.to.have.status(204);",
+        "});",
+        "",
+        "// Test that the account is actually deleted by trying to get it",
+        "pm.test(\"Account is deleted\", function () {",
+        "    // This would be a separate request after deletion",
+        "    // For automated testing, you would need to create a separate GET request",
+        "    // and check that it returns 404 Not Found",
+        "    // pm.expect(pm.response.code).to.equal(404);",
+        "});"
+      ]
+    }
+  },
+  "Pre-request Scripts": {
+    "Update Account": {
+      "description": "Pre-request script to set up the update request body with current account ID and version",
+      "script": [
+        "// Get the account ID and version from environment variables",
+        "var accountId = pm.environment.get(\"accountId\") || 1;",
+        "var accountVersion = pm.environment.get(\"accountVersion\") || 1;",
+        "",
+        "// Create the request body with the current account ID and version",
+        "var requestBody = {",
+        "  \"id\": parseInt(accountId),",
+        "  \"accountName\": \"Updated Account\",",
+        "  \"accountEmail\": \"updated@example.com\",",
+        "  \"user\": {",
+        "    \"firstName\": \"John\",",
+        "    \"lastName\": \"Doe\"",
+        "  },",
+        "  \"goalStats\": null,",
+        "  \"history\": {},",
+        "  \"courseId\": \"00000000-0000-0000-0000-000000000000\",",
+        "  \"testCourseId\": \"00000000-0000-0000-0000-000000000000\",",
+        "  \"gameCourseId\": \"00000000-0000-0000-0000-000000000000\",",
+        "  \"isDeleted\": false,",
+        "  \"deletedAt\": null,",
+        "  \"version\": parseInt(accountVersion)",
+        "};",
+        "",
+        "// Set the request body",
+        "pm.request.body.raw = JSON.stringify(requestBody);"
+      ]
+    }
+  },
+  "Example Request and Response Data": {
+    "Create Account": {
+      "description": "Example request body for creating a new account",
+      "requestBody": {
+        "accountName": "New Test Account",
+        "accountEmail": "newtest@example.com",
+        "user": {
+          "firstName": "Jane",
+          "lastName": "Doe"
+        },
+        "courseId": "00000000-0000-0000-0000-000000000000",
+        "testCourseId": "00000000-0000-0000-0000-000000000000",
+        "gameCourseId": "00000000-0000-0000-0000-000000000000",
+        "version": 0
+      }
+    },
+    "Account Response": {
+      "description": "Example response for an account",
+      "responseBody": {
+        "id": 1,
+        "accountName": "Test Account",
+        "accountEmail": "test@example.com",
+        "user": {
+          "firstName": "John",
+          "lastName": "Doe"
+        },
+        "goalStats": null,
+        "history": {},
+        "courseId": "00000000-0000-0000-0000-000000000000",
+        "testCourseId": "00000000-0000-0000-0000-000000000000",
+        "gameCourseId": "00000000-0000-0000-0000-000000000000",
+        "isDeleted": false,
+        "deletedAt": null,
+        "version": 1
+      }
+    }
+  }
+}

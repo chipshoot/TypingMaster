@@ -1,9 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using TypingMaster.Business;
+using TypingMaster.Business.Contract;
 using TypingMaster.Business.Mapping;
 using TypingMaster.DataAccess.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure specific URLs/ports
+// This will override settings in launchSettings.json when explicitly run
+builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
 
 // Configure logging
 Log.Logger = new LoggerConfiguration()
@@ -20,21 +29,79 @@ builder.Services.AddAutoMapper(typeof(DomainMapProfile));
 // Register Serilog logger
 builder.Services.AddSingleton(Log.Logger);
 
+// Register JWT token generator
+builder.Services.AddSingleton<JwtTokenGenerator>();
+
+// Configure JWT authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"] ??
+                throw new InvalidOperationException("JWT Secret key is not configured"))
+        )
+    };
+});
+
 // Register repositories
-//builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
+builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository>();
+
+// Register business services
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ILoginLogService, LoginLogService>();
+builder.Services.AddScoped<ILoginCredentialService, LoginCredentialService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<ITypingTrainer, TypingTrainer>();
+builder.Services.AddScoped<ITypingMaterialGenerator, TypingMaterialGenerator>();
+
+// Add HTTP client for external services
+builder.Services.AddHttpClient();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "TypingMaster API", Version = "v1" });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "api/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/api/v1/swagger.json", "TypingMaster API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
+// Add authentication middleware
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
