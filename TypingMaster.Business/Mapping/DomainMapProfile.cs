@@ -219,30 +219,48 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.GoalStats, opt => opt.MapFrom(src => src.GoalStats))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.History, opt => opt.MapFrom(src => src.History))
-                .ForMember(dest => dest.Courses, opt => opt.MapFrom(src => new List<CourseDao>
+                .ForMember(dest => dest.Courses, opt =>
                 {
-                    // Regular course
-                    new CourseDao
+                    opt.MapFrom((src, dest, destMember, context) =>
                     {
-                        Id = src.CourseId,
-                        AccountId = src.Id,
-                        Type = ((int)TrainingType.Course).ToString()
-                    },
-                    // Test course
-                    new CourseDao
-                    {
-                        Id = src.TestCourseId,
-                        AccountId = src.Id,
-                        Type = ((int)TrainingType.AllKeysTest).ToString()
-                    },
-                    // Game course
-                    new CourseDao
-                    {
-                        Id = src.GameCourseId,
-                        AccountId = src.Id,
-                        Type = ((int)TrainingType.Game).ToString()
-                    }
-                }));
+                        var courses = new List<CourseDao>();
+
+                        // Regular course - add only if CourseId is not empty
+                        if (src.CourseId != Guid.Empty)
+                        {
+                            courses.Add(new CourseDao
+                            {
+                                Id = src.CourseId,
+                                AccountId = src.Id,
+                                Type = ((int)TrainingType.Course).ToString()
+                            });
+                        }
+
+                        // Test course - add only if TestCourseId is not empty
+                        if (src.TestCourseId != Guid.Empty)
+                        {
+                            courses.Add(new CourseDao
+                            {
+                                Id = src.TestCourseId,
+                                AccountId = src.Id,
+                                Type = ((int)TrainingType.AllKeysTest).ToString()
+                            });
+                        }
+
+                        // Game course - add only if GameCourseId is not empty
+                        if (src.GameCourseId != Guid.Empty)
+                        {
+                            courses.Add(new CourseDao
+                            {
+                                Id = src.GameCourseId,
+                                AccountId = src.Id,
+                                Type = ((int)TrainingType.Game).ToString()
+                            });
+                        }
+
+                        return courses;
+                    });
+                });
 
             // LoginLog mappings
             CreateMap<LoginLogDao, LoginLog>()
@@ -261,8 +279,7 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.UserAgent, opt => opt.MapFrom(src => src.UserAgent))
                 .ForMember(dest => dest.LoginTime, opt => opt.MapFrom(src => src.LoginTime))
                 .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful))
-                .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason))
-                .ForMember(dest => dest.Account, opt => opt.Ignore());
+                .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason));
 
             // LoginCredential mappings
             CreateMap<LoginCredentialDao, LoginCredential>()

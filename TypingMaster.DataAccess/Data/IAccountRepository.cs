@@ -1,4 +1,5 @@
 ﻿using TypingMaster.DataAccess.Dao;
+using TypingMaster.DataAccess.Utility;
 
 namespace TypingMaster.DataAccess.Data;
 
@@ -15,4 +16,6 @@ public interface IAccountRepository
     Task<AccountDao?> UpdateAccountAsync(AccountDao account);
 
     Task<bool> DeleteAccountAsync(int id);
+
+    ProcessResult ProcessResult { get; protected set; }
 }

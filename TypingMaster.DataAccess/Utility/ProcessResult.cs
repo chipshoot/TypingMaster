@@ -1,5 +1,4 @@
-﻿
-using Serilog;
+﻿using Serilog;
 
 namespace TypingMaster.DataAccess.Utility;
 
@@ -25,7 +24,7 @@ public class ProcessResult(ILogger? logger = null)
     {
         Status = ProcessResultStatus.Failure;
         ErrorMessage = exception.Message;
-        CallStack =  exception.StackTrace?? "";
+        CallStack = exception.StackTrace ?? "";
         logger?.Error(exception, exception.Message);
     }
 
@@ -39,5 +38,31 @@ public class ProcessResult(ILogger? logger = null)
         Status = ProcessResultStatus.NotSet;
         InformationList.ToList().Add(message);
         logger?.Information(message);
+    }
+
+    public void PropagandaResult(ProcessResult innerResult)
+    {
+        if (innerResult == null)
+        {
+            return;
+        }
+
+        Status = innerResult.Status;
+        InformationList.ToList().AddRange(innerResult.InformationList);
+        ErrorMessage = $"{ErrorMessage}:{innerResult.ErrorMessage}";
+        if (InformationList.Any())
+        {
+            logger?.Information("{@InformationList}", InformationList);
+        }
+
+        if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            logger?.Error(ErrorMessage);
+        }
+    }
+
+    public bool HasErrors()
+    {
+        return Status == ProcessResultStatus.Failure || !string.IsNullOrEmpty(ErrorMessage);
     }
 }

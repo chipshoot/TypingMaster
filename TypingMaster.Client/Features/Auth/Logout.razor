@@ -10,7 +10,11 @@
     {
         try
         {
-            await AuthService.LogoutAsync();
+            // Get the accountId from the current account
+            int accountId = AppState.CurrentAccount?.Id ?? 0;
+            string refreshToken = string.Empty; // No refresh token handling in the current implementation
+
+            await AuthService.LogoutAsync(accountId, refreshToken);
 
             // Clear application state
             AppState.ClearContext();

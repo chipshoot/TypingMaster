@@ -1,11 +1,11 @@
 ﻿@page "/login"
 
 @inject NavigationManager Navigation
-@inject IAuthService AuthService
+@inject HttpClient HttpClient
 @inject ApplicationContext AppState
 @inject ILogger Logger
-@inject HttpClient Http
 @inject ICourseService CourseProvider
+@inject IApiConfiguration ApiConfig
 
 <style>
     .login-container {
@@ -19,26 +19,36 @@
 </style>
 
 <div class="login-container">
-    <ValidateForm Model="@_loginModel" OnValidSubmit="@HandleLogin" >
-        <EditorForm Model="@_loginModel"  LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
+    <ValidateForm Model="@_loginModel" OnValidSubmit="@HandleLogin">
+        <EditorForm Model="@_loginModel" LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
             <FieldItems>
                 <EditorItem @bind-Field="@context.Account">
                     <EditTemplate Context="value">
-                        <BootstrapInput TValue="string" PlaceHolder="Email" type="email" maxLength="254" @bind-value="@value.Account" ShowLabel="true" DisplayText="Account" />
+                        <BootstrapInput TValue="string" PlaceHolder="Email" type="email" maxLength="254"
+                            @bind-value="@value.Account" ShowLabel="true" DisplayText="Account" />
                     </EditTemplate>
                 </EditorItem>
                 <EditorItem @bind-Field="@context.Password">
                     <EditTemplate Context="value">
-                        <BootstrapInput TValue="string" PlaceHolder="Password" type="password" maxlength="128" @bind-value="@value.Password" ShowLabel="true" DisplayText="Password" />
+                        <BootstrapInput TValue="string" PlaceHolder="Password" type="password" maxlength="128"
+                            @bind-value="@value.Password" ShowLabel="true" DisplayText="Password" />
                     </EditTemplate>
                 </EditorItem>
             </FieldItems>
             <Buttons>
                 <Button ButtonType="ButtonType.Submit" class="btn btn-primary" disabled="@(_isLoading)">Login</Button>
-                <Button ButtonType="ButtonType.Button" class="btn btn-primary" disabled="@(_isLoading)">Sign Up</Button>
+                <Button ButtonType="ButtonType.Button" class="btn btn-primary" disabled="@(_isLoading)"
+                    OnClick="@NavigateToRegister">
+                    Sign Up
+                </Button>
             </Buttons>
         </EditorForm>
     </ValidateForm>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger mt-3">@_errorMessage</div>
+    }
 </div>
 
 @code {
@@ -55,68 +65,123 @@
             _returnUrl = returnUrl;
         }
     }
+
     private async Task HandleLogin(EditContext context)
     {
         _isLoading = true;
         _errorMessage = null;
 
-        if (_loginModel is { Account: "fang@yahoo.com", Password: "password" })
+        // Check if Account or Password is null or empty
+        if (string.IsNullOrEmpty(_loginModel.Account))
         {
+            _errorMessage = "Please enter your email address.";
+            _isLoading = false;
+            return;
+        }
 
-            AppState.CurrentAccount = await GetAccount();
-            if (AppState.CurrentAccount != null)
+        if (string.IsNullOrEmpty(_loginModel.Password))
+        {
+            _errorMessage = "Please enter your password.";
+            _isLoading = false;
+            return;
+        }
+
+        try
+        {
+            // Use HttpClient to call auth API endpoint
+            var loginRequest = new
             {
-                AppState.CurrentCourse = await CourseProvider.GetCourse(AppState.CurrentAccount.CourseId);
-                AppState.IsLoggedIn = true;
+                Email = _loginModel.Account,
+                Password = _loginModel.Password
+            };
 
-                if (!string.IsNullOrEmpty(_returnUrl))
+            var authUrl = ApiConfig.BuildApiUrl("api/auth/login");
+            var response = await HttpClient.PostAsJsonAsync(authUrl, loginRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+
+                if (authResponse != null && authResponse.Success)
                 {
-                Navigation.NavigateTo(_returnUrl);
+                    // Use HttpClient to get account information
+                    var accountUrl = ApiConfig.BuildApiUrl($"api/account/{authResponse.AccountId}");
+                    var accountResponse = await HttpClient.GetAsync(accountUrl);
 
+                    if (accountResponse.IsSuccessStatusCode)
+                    {
+                        var account = await accountResponse.Content.ReadFromJsonAsync<Account>();
+
+                        if (account == null)
+                        {
+                            Logger.Error($"Account not found for ID: {authResponse.AccountId}");
+                            _errorMessage = "Account not found. Please check your credentials.";
+                            _isLoading = false;
+                            return;
+                        }
+
+                        // Set the account in application state
+                        AppState.CurrentAccount = account;
+
+                        if (AppState.CurrentAccount != null)
+                        {
+                            // Load course information if available
+                            if (AppState.CurrentAccount.CourseId != Guid.Empty)
+                            {
+                                AppState.CurrentCourse = await CourseProvider.GetCourse(AppState.CurrentAccount.CourseId);
+                            }
+
+                            AppState.IsLoggedIn = true;
+
+                            Navigation.NavigateTo(!string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/");
+                        }
+                        else
+                        {
+                            Logger.Error("Cannot retrieve user information");
+                            _errorMessage = "Error retrieving user information";
+                        }
+                    }
+                    else
+                    {
+                        Logger.Error($"Failed to get account details: {await accountResponse.Content.ReadAsStringAsync()}");
+                        _errorMessage = "Error retrieving account information.";
+                    }
                 }
                 else
                 {
-
-                    Navigation.NavigateTo("/");
+                    _errorMessage = authResponse?.Message ?? "Invalid username or password.";
                 }
             }
             else
             {
-                Logger.Error("Cannot retrieve user information");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Logger.Error($"Auth API error: {errorContent}");
+                _errorMessage = "Login failed. Please check your credentials.";
             }
-
-        }
-        else
-        {
-            _errorMessage = "Invalid username or password.";
-        }
-
-        _isLoading = false;
-    }
-
-    private async Task<Account?> GetAccount()
-    {
-        var data = string.Empty;
-        try
-        {
-            data = await Http.GetStringAsync("Sample/Accounts.json");
-            var account = JsonSerializer.Deserialize<Account>(data);
-            return account;
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"Cannot deserialize: {data}");
-            throw;
+            Logger.Error(ex, "Error during login");
+            _errorMessage = "An error occurred during login.";
         }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
     }
 
     public class LoginModel
     {
-        [Required]
+        [Required(ErrorMessage = "Account email cannot be empty")]
         [StringLength(254, ErrorMessage = "The email address cannot exceed 254 characters.")]
         public string? Account { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Password cannot be empty")]
         [StringLength(128, MinimumLength = 8, ErrorMessage = "The password must be between 8 and 128 characters.")]
         public string? Password { get; set; }
     }

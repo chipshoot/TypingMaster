@@ -1,12 +1,17 @@
 ﻿using TypingMaster.Business.Models;
+using TypingMaster.Business.Utility;
 
 namespace TypingMaster.Business.Contract
 {
     public interface IAccountService
     {
+        ProcessResult ProcessResult { get; set; }
+
         Task<IEnumerable<Account>> GetAllAccounts();
 
         Task<Account?> GetAccount(int id);
+
+        Task<Account?> GetAccountByEmail(string email);
 
         Task<Account?> CreateAccount(Account? account);
 

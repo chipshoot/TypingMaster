@@ -8,7 +8,7 @@ using TypingMaster.DataAccess.Data;
 
 namespace TypingMaster.Business;
 
-public class AccountService(IAccountRepository accountRepository, IMapper mapper, ILogger logger) : ServiceBase(logger), IAccountService
+public class AccountService(IAccountRepository accountRepository, IMapper mapper, ILogger logger, ICourseService courseService) : ServiceBase(logger), IAccountService
 {
     public async Task<IEnumerable<Account>> GetAllAccounts()
     {
@@ -51,6 +51,18 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
         {
             ProcessResult.AddError(InvalidAccountData);
             return null;
+        } 
+        
+        // Validate course ID in history before saving to database
+        if (account.History != null && account.History.CurrentCourseId != Guid.Empty)
+        {
+            var course = await courseService.GetCourse(account.History.CurrentCourseId);
+            if (course == null)
+            {
+                // Invalid course ID found in history, set to empty GUID
+                account.History.CurrentCourseId = Guid.Empty;
+                logger.Warning("Invalid course ID {CourseId} found in account history. Setting to empty GUID.", account.History.CurrentCourseId);
+            }
         }
 
         try
@@ -89,6 +101,18 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
             {
                 ProcessResult.AddError("The account has been modified by another user. Please refresh and try again.");
                 return null;
+            }
+
+            // Validate course ID in history before updating
+            if (account.History != null && account.History.CurrentCourseId != Guid.Empty)
+            {
+                var course = await courseService.GetCourse(account.History.CurrentCourseId);
+                if (course == null)
+                {
+                    // Invalid course ID found in history, set to empty GUID
+                    account.History.CurrentCourseId = Guid.Empty;
+                    logger.Warning("Invalid course ID {CourseId} found in account history during update. Setting to empty GUID.", account.History.CurrentCourseId);
+                }
             }
 
             try
@@ -182,5 +206,25 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
         };
 
         return guest;
+    }
+
+    public async Task<Account?> GetAccountByEmail(string email)
+    {
+        try
+        {
+            var accountDao = await accountRepository.GetAccountByEmailAsync(email);
+            if (accountDao == null)
+            {
+                return null;
+            }
+
+            var account = mapper.Map<Account>(accountDao);
+            return account;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return null;
+        }
     }
 }
