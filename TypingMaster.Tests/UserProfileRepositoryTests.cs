@@ -102,7 +102,7 @@ namespace TypingMaster.Tests
 
             // Assert
             Assert.Null(result);
-            Assert.True(!_repository.ProcessResult.HasErrors());
+            Assert.True(!_repository.ProcessResult.HasErrors);
         }
 
         [Fact]
@@ -160,7 +160,7 @@ namespace TypingMaster.Tests
 
             // Assert
             Assert.Null(result);
-            Assert.True(errorRepository.ProcessResult.HasErrors());
+            Assert.True(errorRepository.ProcessResult.HasErrors);
             Assert.Contains("Database error", errorRepository.ProcessResult.ErrorMessage);
             _mockLogger.Verify(
                 logger => logger.Error(
@@ -217,7 +217,7 @@ namespace TypingMaster.Tests
 
             // Assert
             Assert.Null(result);
-            Assert.True(_repository.ProcessResult.HasErrors());
+            Assert.True(_repository.ProcessResult.HasErrors);
             Assert.Contains("999", _repository.ProcessResult.ErrorMessage);
         }
 
@@ -332,7 +332,7 @@ namespace TypingMaster.Tests
 
             // Assert
             Assert.False(result);
-            Assert.True(_repository.ProcessResult.HasErrors());
+            Assert.True(_repository.ProcessResult.HasErrors);
             Assert.Contains("linked to an active account", _repository.ProcessResult.ErrorMessage);
 
             // Verify that the profile wasn't deleted
@@ -372,7 +372,7 @@ namespace TypingMaster.Tests
 
             // Assert
             Assert.True(result);
-            Assert.False(_repository.ProcessResult.HasErrors());
+            Assert.False(_repository.ProcessResult.HasErrors);
 
             // Verify the profile was actually deleted
             var deletedProfile = await _context.UserProfiles.FindAsync(userProfile.Id);

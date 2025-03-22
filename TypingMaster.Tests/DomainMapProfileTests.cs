@@ -887,5 +887,137 @@ namespace TypingMaster.Tests
             Assert.Equal(loginLog.IsSuccessful, loginLogDao.IsSuccessful);
             Assert.Equal(loginLog.FailureReason, loginLogDao.FailureReason);
         }
+
+        [Fact]
+        public void PracticeLog_With_EmptyCourseId_FiltersInvalidCourseIds()
+        {
+            // Arrange
+            var practiceLog = new PracticeLog
+            {
+                Id = 1,
+                CurrentCourseId = Guid.Empty, // Empty GUID
+                CurrentLessonId = 5,
+                PracticeStats = new List<DrillStats>
+                {
+                    new DrillStats
+                    {
+                        Id = 1,
+                        PracticeLogId = 1,
+                        CourseId = Guid.Empty, // Invalid course ID
+                        Wpm = 70,
+                        Accuracy = 93.5,
+                        Type = TrainingType.Course,
+                        PracticeText = "test text",
+                        TypedText = "typed text"
+                    },
+                    new DrillStats
+                    {
+                        Id = 2,
+                        PracticeLogId = 1,
+                        CourseId = Guid.NewGuid(), // Valid course ID
+                        Wpm = 75,
+                        Accuracy = 95.0,
+                        Type = TrainingType.Course,
+                        PracticeText = "another test",
+                        TypedText = "another typed"
+                    }
+                },
+                PracticeDuration = 3600
+            };
+
+            // Act
+            var practiceLogDao = _mapper.Map<PracticeLogDao>(practiceLog);
+
+            // Assert
+            Assert.NotNull(practiceLogDao);
+
+            // The CurrentCourseId should not be mapped since it's empty
+            Assert.Equal(Guid.Empty, practiceLogDao.CurrentCourseId);
+
+            // Only one drill stat should be mapped (the one with valid course ID)
+            Assert.Single(practiceLogDao.PracticeStats);
+            Assert.NotEqual(Guid.Empty, practiceLogDao.PracticeStats.First().CourseId);
+        }
+
+        [Fact]
+        public void DrillStats_With_EmptyCourseId_IsNotMapped()
+        {
+            // Arrange
+            var drillStats = new DrillStats
+            {
+                Id = 1,
+                PracticeLogId = 1,
+                CourseId = Guid.Empty, // Empty GUID
+                Wpm = 70,
+                Accuracy = 93.5,
+                Type = TrainingType.Course,
+                PracticeText = "test text",
+                TypedText = "typed text"
+            };
+
+            // Act
+            var drillStatsDao = _mapper.Map<DrillStatsDao>(drillStats);
+
+            // Assert
+            Assert.NotNull(drillStatsDao);
+
+            // The CourseId property should default to empty GUID 
+            // since the PreCondition prevents mapping the source value
+            Assert.Equal(Guid.Empty, drillStatsDao.CourseId);
+        }
+
+        [Fact]
+        public void Account_With_InvalidCourseIdsInHistory_FiltersInvalidCourseIds()
+        {
+            // Arrange
+            var validCourseId = Guid.NewGuid();
+            var account = new Account
+            {
+                Id = 1,
+                AccountName = "Test Account",
+                AccountEmail = "test@example.com",
+                History = new PracticeLog
+                {
+                    Id = 1,
+                    CurrentCourseId = Guid.Empty, // Invalid course ID
+                    CurrentLessonId = 5,
+                    PracticeStats = new List<DrillStats>
+                    {
+                        new DrillStats
+                        {
+                            Id = 1,
+                            PracticeLogId = 1,
+                            CourseId = Guid.Empty, // Invalid course ID
+                            Wpm = 70,
+                            Accuracy = 93.5,
+                            Type = TrainingType.Course
+                        },
+                        new DrillStats
+                        {
+                            Id = 2,
+                            PracticeLogId = 1,
+                            CourseId = validCourseId, // Valid course ID
+                            Wpm = 75,
+                            Accuracy = 95.0,
+                            Type = TrainingType.Course
+                        }
+                    }
+                }
+            };
+
+            // Act
+            var accountDao = _mapper.Map<AccountDao>(account);
+
+            // Assert
+            Assert.NotNull(accountDao);
+            Assert.NotNull(accountDao.History);
+
+            // The history's current course ID should be empty
+            Assert.Equal(Guid.Empty, accountDao.History.CurrentCourseId);
+
+            // Only the drill stats with valid course ID should be mapped
+            Assert.Single(accountDao.History.PracticeStats);
+            Assert.Equal(validCourseId, accountDao.History.PracticeStats.First().CourseId);
+        }
     }
 }
