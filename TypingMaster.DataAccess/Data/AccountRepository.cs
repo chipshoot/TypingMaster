@@ -3,9 +3,11 @@ using TypingMaster.DataAccess.Dao;
 
 namespace TypingMaster.DataAccess.Data;
 
-public class AccountRepository(ApplicationDbContext context,
-    IUserProfileRepository userProfileRepository, 
-    Serilog.ILogger logger) 
+public class AccountRepository(
+    ApplicationDbContext context,
+    IUserProfileRepository userProfileRepository,
+    IPracticeLogRepository practiceLogRepository,
+    Serilog.ILogger logger)
     : RepositoryBase(logger), IAccountRepository
 {
     public async Task<IEnumerable<AccountDao>> GetAllAccountsAsync()
@@ -66,6 +68,24 @@ public class AccountRepository(ApplicationDbContext context,
     {
         try
         {
+            // Handle practice log history first if it exists
+            if (account.History != null)
+            {
+                // Create the practice log
+                var practiceLog = await practiceLogRepository.CreatePracticeLogAsync(account.History);
+                if (practiceLog == null)
+                {
+                    // Transfer any errors from the practice log repository
+                    if (practiceLogRepository.ProcessResult.HasErrors)
+                    {
+                        ProcessResult.PropagandaResult(practiceLogRepository.ProcessResult);
+                    }
+                    return null;
+                }
+                account.History = practiceLog;
+            }
+
+            // Create the account
             context.Accounts.Add(account);
             await context.SaveChangesAsync();
             return account;
@@ -106,7 +126,7 @@ public class AccountRepository(ApplicationDbContext context,
                     if (updatedUserProfile == null)
                     {
                         // Transfer any errors from the user profile repository
-                        if (userProfileRepository.ProcessResult.HasErrors())
+                        if (userProfileRepository.ProcessResult.HasErrors)
                         {
                             ProcessResult.PropagandaResult(userProfileRepository.ProcessResult);
                         }
@@ -125,23 +145,34 @@ public class AccountRepository(ApplicationDbContext context,
             {
                 if (existingAccount.History != null)
                 {
-                    // Update existing History properties except Id
-                    var historyEntry = context.Entry(existingAccount.History);
-                    var historyProperties = historyEntry.Properties.Where(p => !p.Metadata.IsPrimaryKey());
-                    foreach (var property in historyProperties)
+                    // Delegate history update to the practice log repository
+                    account.History.Id = existingAccount.History.Id;
+                    var updatedPracticeLog = await practiceLogRepository.UpdatePracticeLogAsync(account.History);
+                    if (updatedPracticeLog == null)
                     {
-                        var propertyInfo = typeof(PracticeLogDao).GetProperty(property.Metadata.Name);
-                        if (propertyInfo != null && propertyInfo.CanWrite)
+                        // Transfer any errors from the practice log repository
+                        if (practiceLogRepository.ProcessResult.HasErrors)
                         {
-                            var newValue = propertyInfo.GetValue(account.History);
-                            property.CurrentValue = newValue;
+                            ProcessResult.PropagandaResult(practiceLogRepository.ProcessResult);
                         }
+                        return null;
                     }
+                    existingAccount.History = updatedPracticeLog;
                 }
                 else
                 {
-                    // Add new History
-                    existingAccount.History = account.History;
+                    // Create new practice log
+                    var newPracticeLog = await practiceLogRepository.CreatePracticeLogAsync(account.History);
+                    if (newPracticeLog == null)
+                    {
+                        // Transfer any errors from the practice log repository
+                        if (practiceLogRepository.ProcessResult.HasErrors)
+                        {
+                            ProcessResult.PropagandaResult(practiceLogRepository.ProcessResult);
+                        }
+                        return null;
+                    }
+                    existingAccount.History = newPracticeLog;
                 }
             }
 
@@ -172,6 +203,57 @@ public class AccountRepository(ApplicationDbContext context,
         {
             ProcessResult.AddException(e);
             return false;
+        }
+    }
+
+    public async Task<AccountDao?> AddDrillStatToAccountHistoryAsync(int accountId, DrillStatsDao drillStat)
+    {
+        try
+        {
+            // Get the account with its history
+            var account = await context.Accounts
+                .Where(a => !a.IsDeleted)
+                .Include(a => a.History)
+                .FirstOrDefaultAsync(a => a.Id == accountId);
+
+            if (account == null)
+            {
+                ProcessResult.AddError($"Account with ID {accountId} not found");
+                return null;
+            }
+
+            // Check if account has history
+            if (account.History == null)
+            {
+                ProcessResult.AddError($"Account with ID {accountId} does not have a practice log history");
+                return null;
+            }
+
+            // Add the drill stat to the practice log
+            var addedDrillStat = await practiceLogRepository.AddDrillStatAsync(account.History.Id, drillStat);
+            if (addedDrillStat == null)
+            {
+                // Transfer errors from practice log repository
+                if (practiceLogRepository.ProcessResult.HasErrors)
+                {
+                    ProcessResult.PropagandaResult(practiceLogRepository.ProcessResult);
+                }
+                return null;
+            }
+
+            // Get the updated practice log
+            var updatedPracticeLog = await practiceLogRepository.GetPracticeLogByIdAsync(account.History.Id);
+            if (updatedPracticeLog != null)
+            {
+                account.History = updatedPracticeLog;
+            }
+
+            return account;
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return null;
         }
     }
 }

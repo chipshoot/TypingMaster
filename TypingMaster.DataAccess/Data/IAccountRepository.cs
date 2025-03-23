@@ -17,5 +17,13 @@ public interface IAccountRepository
 
     Task<bool> DeleteAccountAsync(int id);
 
+    /// <summary>
+    /// Add drill statistics to an account's practice history
+    /// </summary>
+    /// <param name="accountId">The ID of the account</param>
+    /// <param name="drillStat">The drill statistics to add</param>
+    /// <returns>The updated account if successful, null otherwise</returns>
+    Task<AccountDao?> AddDrillStatToAccountHistoryAsync(int accountId, DrillStatsDao drillStat);
+
     ProcessResult ProcessResult { get; protected set; }
 }

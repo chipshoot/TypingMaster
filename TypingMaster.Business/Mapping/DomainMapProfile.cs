@@ -10,10 +10,12 @@ namespace TypingMaster.Business.Mapping
     {
         public DomainMapProfile()
         {
-            // Add Queue mapping configuration at the top of the constructor
+            // Add improved Queue mapping configuration at the top of the constructor
             CreateMap<Queue<KeyEventDao>, Queue<KeyEvent>>()
                 .ConvertUsing((src, dest, context) =>
                 {
+                    if (src == null) return new Queue<KeyEvent>();
+
                     var queue = new Queue<KeyEvent>();
                     foreach (var item in src)
                     {
@@ -25,6 +27,8 @@ namespace TypingMaster.Business.Mapping
             CreateMap<Queue<KeyEvent>, Queue<KeyEventDao>>()
                 .ConvertUsing((src, dest, context) =>
                 {
+                    if (src == null) return new Queue<KeyEventDao>();
+
                     var queue = new Queue<KeyEventDao>();
                     foreach (var item in src)
                     {
@@ -174,9 +178,17 @@ namespace TypingMaster.Business.Mapping
             // Map from PracticeLog to PracticeLogDao (reverse mapping)
             CreateMap<PracticeLog, PracticeLogDao>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.CurrentCourseId, opt => opt.MapFrom(src => src.CurrentCourseId))
+                .ForMember(dest => dest.CurrentCourseId, opt =>
+                {
+                    opt.PreCondition(src => src.CurrentCourseId != Guid.Empty);
+                    opt.MapFrom(src => src.CurrentCourseId);
+                })
                 .ForMember(dest => dest.CurrentLessonId, opt => opt.MapFrom(src => src.CurrentLessonId))
-                .ForMember(dest => dest.PracticeStats, opt => opt.MapFrom(src => src.PracticeStats))
+                .ForMember(dest => dest.PracticeStats, opt =>
+                {
+                    opt.PreCondition(src => src.PracticeStats != null);
+                    opt.MapFrom<PracticeStatsResolver>();
+                })
                 .ForMember(dest => dest.KeyStatsJson, opt => opt.MapFrom(src => src.KeyStats))
                 .ForMember(dest => dest.PracticeDuration, opt => opt.MapFrom(src => src.PracticeDuration));
 
@@ -203,7 +215,11 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.LessonId, opt => opt.MapFrom(src => src.LessonId))
                 .ForMember(dest => dest.PracticeText, opt => opt.MapFrom(src => src.PracticeText))
                 .ForMember(dest => dest.TypedText, opt => opt.MapFrom(src => src.TypedText))
-                .ForMember(dest => dest.KeyEventsJson, opt => opt.MapFrom(src => src.KeyEvents))
+                .ForMember(dest => dest.KeyEventsJson, opt =>
+                {
+                    opt.PreCondition(src => src.KeyEvents != null);
+                    opt.MapFrom(src => src.KeyEvents);
+                })
                 .ForMember(dest => dest.Wpm, opt => opt.MapFrom(src => src.Wpm))
                 .ForMember(dest => dest.Accuracy, opt => opt.MapFrom(src => src.Accuracy))
                 // Convert TrainingType enum to int
@@ -218,49 +234,9 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.AccountEmail, opt => opt.MapFrom(src => src.AccountEmail))
                 .ForMember(dest => dest.GoalStats, opt => opt.MapFrom(src => src.GoalStats))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
-                .ForMember(dest => dest.History, opt => opt.MapFrom(src => src.History))
-                .ForMember(dest => dest.Courses, opt =>
-                {
-                    opt.MapFrom((src, dest, destMember, context) =>
-                    {
-                        var courses = new List<CourseDao>();
-
-                        // Regular course - add only if CourseId is not empty
-                        if (src.CourseId != Guid.Empty)
-                        {
-                            courses.Add(new CourseDao
-                            {
-                                Id = src.CourseId,
-                                AccountId = src.Id,
-                                Type = ((int)TrainingType.Course).ToString()
-                            });
-                        }
-
-                        // Test course - add only if TestCourseId is not empty
-                        if (src.TestCourseId != Guid.Empty)
-                        {
-                            courses.Add(new CourseDao
-                            {
-                                Id = src.TestCourseId,
-                                AccountId = src.Id,
-                                Type = ((int)TrainingType.AllKeysTest).ToString()
-                            });
-                        }
-
-                        // Game course - add only if GameCourseId is not empty
-                        if (src.GameCourseId != Guid.Empty)
-                        {
-                            courses.Add(new CourseDao
-                            {
-                                Id = src.GameCourseId,
-                                AccountId = src.Id,
-                                Type = ((int)TrainingType.Game).ToString()
-                            });
-                        }
-
-                        return courses;
-                    });
-                });
+                .ForMember(dest => dest.History, opt => opt.PreCondition(src => src.History != null))
+                .ForMember(dest => dest.History, opt => opt.MapFrom<PracticeLogResolver>())
+                .ForMember(dest => dest.Courses, opt => opt.MapFrom<CoursesResolver>());
 
             // LoginLog mappings
             CreateMap<LoginLogDao, LoginLog>()
@@ -324,6 +300,146 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.ExternalIdpId, opt => opt.MapFrom(src => src.ExternalIdpId))
                 .ForMember(dest => dest.ExternalIdpType, opt => opt.MapFrom(src => src.ExternalIdpType))
                 .ForMember(dest => dest.Account, opt => opt.Ignore());
+        }
+    }
+
+    public class PracticeLogResolver : IValueResolver<Account, AccountDao, PracticeLogDao>
+    {
+        public PracticeLogDao Resolve(Account source, AccountDao destination, PracticeLogDao destMember, ResolutionContext context)
+        {
+            if (source.History == null)
+                return null;
+
+            if (source.History.CurrentCourseId == Guid.Empty)
+            {
+                // Create a new PracticeLog with empty GUID to ensure proper mapping
+                return new PracticeLogDao
+                {
+                    Id = source.History.Id,
+                    CurrentCourseId = Guid.Empty,
+                    CurrentLessonId = source.History.CurrentLessonId,
+                    PracticeStats = source.History.PracticeStats?
+                        .Where(stat => stat?.CourseId != Guid.Empty && stat != null)
+                        .Select(stat => new DrillStatsDao
+                        {
+                            Id = stat.Id,
+                            PracticeLogId = stat.PracticeLogId,
+                            CourseId = stat.CourseId,
+                            LessonId = stat.LessonId,
+                            PracticeText = stat.PracticeText,
+                            TypedText = stat.TypedText,
+                            // Map the Queue of KeyEvent to Queue of KeyEventDao - handle null
+                            KeyEventsJson = stat.KeyEvents != null ?
+                                new Queue<KeyEventDao>(stat.KeyEvents.Select(ke => new KeyEventDao
+                                {
+                                    Key = ke.Key,
+                                    TypedKey = ke.TypedKey,
+                                    IsCorrect = ke.IsCorrect,
+                                    KeyDownTime = ke.KeyDownTime,
+                                    KeyUpTime = ke.KeyUpTime,
+                                    Latency = ke.Latency
+                                })) : new Queue<KeyEventDao>(),
+                            Wpm = stat.Wpm,
+                            Accuracy = stat.Accuracy,
+                            TrainingType = (int)stat.Type,
+                            StartTime = stat.StartTime,
+                            FinishTime = stat.FinishTime
+                        }).ToList() ?? new List<DrillStatsDao>(),
+                    // Map Dictionary of KeyStats to Dictionary of KeyStatsDao - handle null
+                    KeyStatsJson = source.History.KeyStats != null ?
+                        source.History.KeyStats.ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => new KeyStatsDao
+                            {
+                                Key = kvp.Value.Key,
+                                TypingCount = kvp.Value.TypingCount,
+                                CorrectCount = kvp.Value.CorrectCount,
+                                PressDuration = kvp.Value.PressDuration,
+                                Latency = kvp.Value.Latency,
+                                Wpm = kvp.Value.Wpm,
+                                Accuracy = kvp.Value.Accuracy
+                            }) : new Dictionary<char, KeyStatsDao>(),
+                    PracticeDuration = source.History.PracticeDuration
+                };
+            }
+
+            // Create a new PracticeLogDao manually with proper handling of nulls
+            var practiceLogDao = new PracticeLogDao
+            {
+                Id = source.History.Id,
+                CurrentCourseId = source.History.CurrentCourseId,
+                CurrentLessonId = source.History.CurrentLessonId,
+                PracticeStats = source.History.PracticeStats?
+                    .Where(stat => stat?.CourseId != Guid.Empty && stat != null)
+                    .Select(stat => context.Mapper.Map<DrillStatsDao>(stat))
+                    .ToList() ?? new List<DrillStatsDao>(),
+                KeyStatsJson = source.History.KeyStats != null ?
+                    source.History.KeyStats.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => context.Mapper.Map<KeyStatsDao>(kvp.Value))
+                    : new Dictionary<char, KeyStatsDao>(),
+                PracticeDuration = source.History.PracticeDuration
+            };
+
+            return practiceLogDao;
+        }
+    }
+
+    public class CoursesResolver : IValueResolver<Account, AccountDao, ICollection<CourseDao>>
+    {
+        public ICollection<CourseDao> Resolve(Account source, AccountDao destination, ICollection<CourseDao> destMember, ResolutionContext context)
+        {
+            var courses = new List<CourseDao>();
+
+            // Regular course - add only if CourseId is not empty
+            if (source.CourseId != Guid.Empty)
+            {
+                courses.Add(new CourseDao
+                {
+                    Id = source.CourseId,
+                    AccountId = source.Id,
+                    Type = ((int)TrainingType.Course).ToString()
+                });
+            }
+
+            // Test course - add only if TestCourseId is not empty
+            if (source.TestCourseId != Guid.Empty)
+            {
+                courses.Add(new CourseDao
+                {
+                    Id = source.TestCourseId,
+                    AccountId = source.Id,
+                    Type = ((int)TrainingType.AllKeysTest).ToString()
+                });
+            }
+
+            // Game course - add only if GameCourseId is not empty
+            if (source.GameCourseId != Guid.Empty)
+            {
+                courses.Add(new CourseDao
+                {
+                    Id = source.GameCourseId,
+                    AccountId = source.Id,
+                    Type = ((int)TrainingType.Game).ToString()
+                });
+            }
+
+            return courses;
+        }
+    }
+
+    public class PracticeStatsResolver : IValueResolver<PracticeLog, PracticeLogDao, ICollection<DrillStatsDao>>
+    {
+        public ICollection<DrillStatsDao> Resolve(PracticeLog source, PracticeLogDao destination, ICollection<DrillStatsDao> destMember, ResolutionContext context)
+        {
+            if (source.PracticeStats == null)
+                return new List<DrillStatsDao>();
+
+            // Filter out records with empty CourseId and map the rest
+            return source.PracticeStats
+                .Where(stat => stat != null && stat.CourseId != Guid.Empty)
+                .Select(stat => context.Mapper.Map<DrillStatsDao>(stat))
+                .ToList();
         }
     }
 }

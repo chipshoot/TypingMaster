@@ -51,22 +51,22 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
         {
             ProcessResult.AddError(InvalidAccountData);
             return null;
-        } 
-        
-        // Validate course ID in history before saving to database
-        if (account.History != null && account.History.CurrentCourseId != Guid.Empty)
-        {
-            var course = await courseService.GetCourse(account.History.CurrentCourseId);
-            if (course == null)
-            {
-                // Invalid course ID found in history, set to empty GUID
-                account.History.CurrentCourseId = Guid.Empty;
-                logger.Warning("Invalid course ID {CourseId} found in account history. Setting to empty GUID.", account.History.CurrentCourseId);
-            }
         }
 
         try
         {
+            // Validate course ID in history before saving to database
+            if (account.History != null && account.History.CurrentCourseId != Guid.Empty)
+            {
+                var course = await courseService.GetCourse(account.History.CurrentCourseId);
+                if (course == null)
+                {
+                    // Invalid course ID found in history, set to empty GUID
+                    account.History.CurrentCourseId = Guid.Empty;
+                    logger.Warning("Invalid course ID {CourseId} found in account history. Setting to empty GUID.", account.History.CurrentCourseId);
+                }
+            }
+
             var accountDao = mapper.Map<AccountDao>(account);
             var newAccountDao = await accountRepository.CreateAccountAsync(accountDao);
             ProcessResult.AddSuccess();

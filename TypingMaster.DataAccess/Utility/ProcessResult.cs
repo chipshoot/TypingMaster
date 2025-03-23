@@ -12,6 +12,8 @@ public class ProcessResult(ILogger? logger = null)
 
     public string CallStack { get; set; } = "";
 
+    public bool HasErrors => Status == ProcessResultStatus.Failure || !string.IsNullOrEmpty(ErrorMessage);
+
     public void AddError(string errorMessage)
     {
         var message = errorMessage ?? "";
@@ -61,8 +63,4 @@ public class ProcessResult(ILogger? logger = null)
         }
     }
 
-    public bool HasErrors()
-    {
-        return Status == ProcessResultStatus.Failure || !string.IsNullOrEmpty(ErrorMessage);
-    }
 }
