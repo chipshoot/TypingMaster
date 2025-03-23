@@ -3,33 +3,30 @@ using Moq;
 using Serilog;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
-using Xunit;
 
 namespace TypingMaster.Tests;
 
 public class PracticeLogRepositoryTests : IDisposable
 {
-    private readonly DbContextOptions<ApplicationDbContext> _options;
     private readonly ApplicationDbContext _context;
     private readonly PracticeLogRepository _repository;
-    private readonly Mock<ILogger> _loggerMock;
 
     public PracticeLogRepositoryTests()
     {
         // Set up in-memory database
-        _options = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: $"TestPracticeLogDatabase_{Guid.NewGuid()}")
             .Options;
 
         // Logger mock
-        _loggerMock = new Mock<ILogger>();
+        var loggerMock = new Mock<ILogger>();
 
         // Create a fresh instance of the context
-        _context = new ApplicationDbContext(_options);
+        _context = new ApplicationDbContext(options);
         _context.Database.EnsureCreated();
 
         // Initialize the repository
-        _repository = new PracticeLogRepository(_context, _loggerMock.Object);
+        _repository = new PracticeLogRepository(_context, loggerMock.Object);
     }
 
     public void Dispose()

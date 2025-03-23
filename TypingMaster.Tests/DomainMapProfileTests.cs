@@ -733,6 +733,7 @@ namespace TypingMaster.Tests
                     {
                         Id = 1,
                         PracticeLogId = 1,
+                        CourseId = Guid.NewGuid(), // Ensure we have a non-empty CourseId
                         Wpm = 70,
                         Accuracy = 93.5,
                         Type = TrainingType.Course,
