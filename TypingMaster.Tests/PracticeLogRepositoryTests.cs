@@ -71,7 +71,6 @@ public class PracticeLogRepositoryTests : IDisposable
     public async Task GetPracticeLogByAccountIdAsync_ExistingAccount_ReturnsPracticeLog()
     {
         // Arrange
-        var accountId = 5;
         var practiceLog = new PracticeLogDao
         {
             CurrentCourseId = Guid.NewGuid(),
@@ -135,7 +134,6 @@ public class PracticeLogRepositoryTests : IDisposable
             CurrentCourseId = Guid.NewGuid(),
             CurrentLessonId = 1,
             KeyStatsJson = new Dictionary<char, KeyStatsDao>(),
-            PracticeStats = null // Explicitly set to null to test initialization
         };
 
         // Act
