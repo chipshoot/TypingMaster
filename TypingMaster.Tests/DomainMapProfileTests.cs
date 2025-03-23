@@ -262,9 +262,9 @@ namespace TypingMaster.Tests
             Assert.Equal(2, accountDao.Courses.Count);
 
             // Verify only the expected courses exist
-            Assert.Single(accountDao.Courses.Where(c => c.Type == "0")); // Regular course
-            Assert.Empty(accountDao.Courses.Where(c => c.Type == "1"));  // Test course should not be present
-            Assert.Single(accountDao.Courses.Where(c => c.Type == "3")); // Game course
+            Assert.Single(accountDao.Courses, c => c.Type == "0"); // Regular course
+            Assert.DoesNotContain(accountDao.Courses, c => c.Type == "1");  // Test course should not be present
+            Assert.Single(accountDao.Courses, c => c.Type == "3"); // Game course
 
             // Verify the correct IDs were mapped
             var regularCourse = accountDao.Courses.Single(c => c.Type == "0");
@@ -495,7 +495,7 @@ namespace TypingMaster.Tests
             {
                 Id = Guid.NewGuid(),
                 Name = "AdvancedLevelCourse",
-                Settings = null
+                Settings = null!
             };
 
             // Act
