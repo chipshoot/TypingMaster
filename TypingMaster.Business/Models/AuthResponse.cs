@@ -4,16 +4,16 @@ namespace TypingMaster.Business.Models
     {
         public bool Success { get; set; }
 
-        public string? Message { get; set; } = null!;
+        public string Message { get; set; } = string.Empty;
 
-        public string? Token { get; set; }
+        public string Token { get; set; } = string.Empty;
 
-        public string? RefreshToken { get; set; }
+        public string RefreshToken { get; set; } = string.Empty;
 
         public DateTime? Expiration { get; set; }
 
         public int AccountId { get; set; }
 
-        public string? AccountName { get; set; }
+        public string AccountName { get; set; } = string.Empty;
     }
 }

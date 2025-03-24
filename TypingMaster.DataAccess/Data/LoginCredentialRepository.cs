@@ -94,7 +94,7 @@ public class LoginCredentialRepository : ILoginCredentialRepository
         }
     }
 
-    public async Task<bool> UpdateFailedLoginAttemptAsync(int id, int failedAttempts)
+    public async Task<bool> UpdateLastLoginAsync(int id, DateTime lastLoginAt)
     {
         try
         {
@@ -104,7 +104,7 @@ public class LoginCredentialRepository : ILoginCredentialRepository
                 return false;
             }
 
-            credential.FailedLoginAttempts = failedAttempts;
+            credential.LastLoginAt = lastLoginAt;
             credential.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -116,7 +116,7 @@ public class LoginCredentialRepository : ILoginCredentialRepository
         }
     }
 
-    public async Task<bool> UpdateRefreshTokenAsync(int id, string refreshToken, DateTime expiry)
+    public async Task<bool> SetAccountStatusAsync(int id, bool isActive)
     {
         try
         {
@@ -126,8 +126,7 @@ public class LoginCredentialRepository : ILoginCredentialRepository
                 return false;
             }
 
-            credential.RefreshToken = refreshToken;
-            credential.RefreshTokenExpiry = expiry;
+            credential.IsActive = isActive;
             credential.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -136,132 +135,6 @@ public class LoginCredentialRepository : ILoginCredentialRepository
         catch (Exception)
         {
             return false;
-        }
-    }
-
-    public async Task<bool> UpdatePasswordAsync(int id, string passwordHash, string passwordSalt)
-    {
-        try
-        {
-            var credential = await _context.LoginCredentials.FindAsync(id);
-            if (credential == null)
-            {
-                return false;
-            }
-
-            credential.PasswordHash = passwordHash;
-            credential.PasswordSalt = passwordSalt;
-            credential.LastUpdated = DateTime.UtcNow;
-
-            // Reset any password reset tokens
-            credential.ResetPasswordToken = null;
-            credential.ResetPasswordTokenExpiry = null;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    public async Task<bool> LockAccountAsync(int id, DateTime lockoutEnd)
-    {
-        try
-        {
-            var credential = await _context.LoginCredentials.FindAsync(id);
-            if (credential == null)
-            {
-                return false;
-            }
-
-            credential.IsLocked = true;
-            credential.LockoutEnd = lockoutEnd;
-            credential.LastUpdated = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    public async Task<bool> UnlockAccountAsync(int id)
-    {
-        try
-        {
-            var credential = await _context.LoginCredentials.FindAsync(id);
-            if (credential == null)
-            {
-                return false;
-            }
-
-            credential.IsLocked = false;
-            credential.LockoutEnd = null;
-            credential.FailedLoginAttempts = 0;
-            credential.LastUpdated = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    public async Task<bool> ConfirmEmailAsync(int id)
-    {
-        try
-        {
-            var credential = await _context.LoginCredentials.FindAsync(id);
-            if (credential == null)
-            {
-                return false;
-            }
-
-            credential.IsEmailConfirmed = true;
-            credential.ConfirmationToken = null;
-            credential.ConfirmationTokenExpiry = null;
-            credential.LastUpdated = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    public async Task<LoginCredentialDao?> GetByResetTokenAsync(string resetToken)
-    {
-        try
-        {
-            return await _context.LoginCredentials
-                .FirstOrDefaultAsync(c => c.ResetPasswordToken == resetToken &&
-                                           c.ResetPasswordTokenExpiry > DateTime.UtcNow);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
-
-    public async Task<LoginCredentialDao?> GetByConfirmationTokenAsync(string confirmationToken)
-    {
-        try
-        {
-            return await _context.LoginCredentials
-                .FirstOrDefaultAsync(c => c.ConfirmationToken == confirmationToken &&
-                                           c.ConfirmationTokenExpiry > DateTime.UtcNow);
-        }
-        catch (Exception)
-        {
-            return null;
         }
     }
 }

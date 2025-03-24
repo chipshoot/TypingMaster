@@ -8,35 +8,15 @@ public class LoginCredential
 
     public string Email { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
+    public string? ExternalIdpId { get; set; }
 
-    public string PasswordSalt { get; set; } = null!;
+    public string? ExternalIdpType { get; set; }
 
-    public bool IsEmailConfirmed { get; set; }
+    public DateTime LastLoginAt { get; set; }
 
-    public string? ConfirmationToken { get; set; }
-
-    public DateTime? ConfirmationTokenExpiry { get; set; }
-
-    public string? RefreshToken { get; set; }
-
-    public DateTime? RefreshTokenExpiry { get; set; }
-
-    public string? ResetPasswordToken { get; set; }
-
-    public DateTime? ResetPasswordTokenExpiry { get; set; }
-
-    public bool IsLocked { get; set; }
-
-    public int FailedLoginAttempts { get; set; }
-
-    public DateTime? LockoutEnd { get; set; }
+    public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime LastUpdated { get; set; }
-
-    public string? ExternalIdpId { get; set; }
-
-    public string? ExternalIdpType { get; set; }
 }

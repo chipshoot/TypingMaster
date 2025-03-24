@@ -9,7 +9,7 @@ namespace TypingMaster.Business.Contract
 
         Task<IEnumerable<Account>> GetAllAccounts();
 
-        Task<Account?> GetAccount(int id);
+        Task<Account?> GetAccountById(int id);
 
         Task<Account?> GetAccountByEmail(string email);
 

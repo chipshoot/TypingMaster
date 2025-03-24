@@ -25,7 +25,7 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
         }
     }
 
-    public async Task<Account?> GetAccount(int id)
+    public async Task<Account?> GetAccountById(int id)
     {
         try
         {

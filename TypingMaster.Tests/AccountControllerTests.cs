@@ -97,7 +97,7 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
 
             // Act
@@ -115,7 +115,7 @@ namespace TypingMaster.Tests
             // Arrange
             int accountId = 999;
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync((Account)null);
 
             // Act
@@ -132,7 +132,7 @@ namespace TypingMaster.Tests
             // Arrange
             var accountId = 1;
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ThrowsAsync(new Exception("Database error"));
 
             // Act
@@ -154,7 +154,7 @@ namespace TypingMaster.Tests
             processResult.Status = ProcessResultStatus.Failure;
             processResult.ErrorMessage = "Permission denied";
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.ProcessResult)
                 .Returns(processResult);
@@ -256,7 +256,7 @@ namespace TypingMaster.Tests
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
             var updatedAccount = new Account { Id = accountId, AccountName = "Updated", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.UpdateAccount(account))
                 .ReturnsAsync(updatedAccount);
@@ -292,7 +292,7 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync((Account)null);
 
             // Act
@@ -310,7 +310,7 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.UpdateAccount(account))
                 .ThrowsAsync(new Exception("Database error"));
@@ -334,7 +334,7 @@ namespace TypingMaster.Tests
             processResult.Status = ProcessResultStatus.Failure;
             processResult.ErrorMessage = "Account retrieval failed";
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.ProcessResult)
                 .Returns(processResult);
@@ -354,15 +354,15 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            // Setup initial success for GetAccount
+            // Setup initial success for GetAccountById
             var initialProcessResult = new ProcessResult();
             initialProcessResult.Status = ProcessResultStatus.Success;
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account)
                 .Callback(() =>
                 {
-                    // The ProcessResult remains successful after GetAccount
+                    // The ProcessResult remains successful after GetAccountById
                 });
 
             // Setup failure for UpdateAccount
@@ -469,7 +469,7 @@ namespace TypingMaster.Tests
             var patchDoc = new JsonPatchDocument<Account>();
             patchDoc.Replace(a => a.AccountName, "Updated");
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(existingAccount);
             _mockAccountService.Setup(service => service.UpdateAccount(It.IsAny<Account>()))
                 .ReturnsAsync(updatedAccount);
@@ -505,7 +505,7 @@ namespace TypingMaster.Tests
             var patchDoc = new JsonPatchDocument<Account>();
             patchDoc.Replace(a => a.AccountName, "Updated");
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync((Account)null);
 
             // Act
@@ -526,7 +526,7 @@ namespace TypingMaster.Tests
             var patchDoc = new JsonPatchDocument<Account>();
             patchDoc.Replace(a => a.AccountName, "Updated");
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(existingAccount);
             _mockAccountService.Setup(service => service.UpdateAccount(It.IsAny<Account>()))
                 .ThrowsAsync(new Exception("Database error"));
@@ -551,7 +551,7 @@ namespace TypingMaster.Tests
             processResult.Status = ProcessResultStatus.Failure;
             processResult.ErrorMessage = "Account retrieval failed";
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.ProcessResult)
                 .Returns(processResult);
@@ -572,15 +572,15 @@ namespace TypingMaster.Tests
             var patchDoc = new JsonPatchDocument<Account>();
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            // Setup initial success for GetAccount
+            // Setup initial success for GetAccountById
             var initialProcessResult = new ProcessResult();
             initialProcessResult.Status = ProcessResultStatus.Success;
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account)
                 .Callback(() =>
                 {
-                    // The ProcessResult remains successful after GetAccount
+                    // The ProcessResult remains successful after GetAccountById
                 });
 
             // Setup failure for UpdateAccount
@@ -627,7 +627,7 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.UpdateAccount(account))
                 .ThrowsAsync(new ArgumentException("Invalid account data provided"));
@@ -647,7 +647,7 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.UpdateAccount(account))
                 .ThrowsAsync(new InvalidOperationException("Operation not allowed"));
@@ -667,7 +667,7 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.UpdateAccount(account))
                 .ThrowsAsync(new UnauthorizedAccessException("Access denied"));
@@ -688,7 +688,7 @@ namespace TypingMaster.Tests
             int accountId = 1;
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
             _mockAccountService.Setup(service => service.UpdateAccount(account))
                 .ThrowsAsync(new DbUpdateConcurrencyException("Concurrency conflict"));
@@ -709,7 +709,7 @@ namespace TypingMaster.Tests
             var patchDoc = new JsonPatchDocument<Account>();
             var account = new Account { Id = accountId, AccountName = "Test", AccountEmail = "test@example.com" };
 
-            _mockAccountService.Setup(service => service.GetAccount(accountId))
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
                 .ReturnsAsync(account);
 
             // Mock DbUpdateException when updating the patched account

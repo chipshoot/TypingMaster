@@ -8,29 +8,13 @@ public interface ILoginCredentialService
 
     Task<LoginCredential?> GetByEmailAsync(string email);
 
-    Task<LoginCredential> CreateAsync(int accountId, string email, string password);
+    Task<LoginCredential> CreateAsync(int accountId, string email);
 
     Task<LoginCredential?> UpdateAsync(LoginCredential credential);
 
-    Task<bool> ValidateCredentialsAsync(string email, string password);
-
-    Task<bool> ChangePasswordAsync(int accountId, string currentPassword, string newPassword);
-
-    Task<string> GeneratePasswordResetTokenAsync(string email);
-
-    Task<bool> ResetPasswordAsync(string token, string newPassword);
-
-    Task<string> GenerateEmailConfirmationTokenAsync(int accountId);
-
-    Task<bool> ConfirmEmailAsync(string token);
-
     Task<bool> UpdateExternalIdpInfoAsync(int accountId, string externalIdpId, string externalIdpType);
 
-    Task<bool> HandleFailedLoginAttemptAsync(string email);
+    Task<bool> UpdateLastLoginAsync(int accountId);
 
-    Task<bool> UnlockAccountAsync(int accountId);
-
-    Task<bool> IsAccountLockedAsync(string email);
-
-    Task<bool> DeleteAsync(int accountId);
+    Task<bool> SetAccountStatusAsync(int accountId, bool isActive);
 }

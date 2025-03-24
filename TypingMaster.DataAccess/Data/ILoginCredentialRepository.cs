@@ -14,19 +14,7 @@ public interface ILoginCredentialRepository
 
     Task<bool> DeleteAsync(int id);
 
-    Task<bool> UpdateFailedLoginAttemptAsync(int id, int failedAttempts);
+    Task<bool> UpdateLastLoginAsync(int id, DateTime lastLoginAt);
 
-    Task<bool> UpdateRefreshTokenAsync(int id, string refreshToken, DateTime expiry);
-
-    Task<bool> UpdatePasswordAsync(int id, string passwordHash, string passwordSalt);
-
-    Task<bool> LockAccountAsync(int id, DateTime lockoutEnd);
-
-    Task<bool> UnlockAccountAsync(int id);
-
-    Task<bool> ConfirmEmailAsync(int id);
-
-    Task<LoginCredentialDao?> GetByResetTokenAsync(string resetToken);
-
-    Task<LoginCredentialDao?> GetByConfirmationTokenAsync(string confirmationToken);
+    Task<bool> SetAccountStatusAsync(int id, bool isActive);
 }

@@ -91,7 +91,7 @@ namespace TypingMaster.Tests
                 .Returns(account);
 
             // Act
-            var result = await _accountService.GetAccount(id);
+            var result = await _accountService.GetAccountById(id);
 
             // Assert
             Assert.NotNull(result);
@@ -109,7 +109,7 @@ namespace TypingMaster.Tests
                 .ReturnsAsync((AccountDao)null);
 
             // Act
-            var result = await _accountService.GetAccount(id);
+            var result = await _accountService.GetAccountById(id);
 
             // Assert
             Assert.Null(result);
@@ -125,7 +125,7 @@ namespace TypingMaster.Tests
                 .ThrowsAsync(new Exception("Test exception"));
 
             // Act
-            var result = await _accountService.GetAccount(id);
+            var result = await _accountService.GetAccountById(id);
 
             // Assert
             Assert.Null(result);

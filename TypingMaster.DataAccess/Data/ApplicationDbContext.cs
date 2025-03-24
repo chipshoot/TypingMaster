@@ -140,11 +140,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey<LoginCredentialDao>(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure remaining properties
-            entity.Property(e => e.PasswordHash).IsRequired();
-            entity.Property(e => e.PasswordSalt).IsRequired();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.LastUpdated).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            // Map camelCase property names to snake_case column names
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.AccountId).HasColumnName("account_id");
+            entity.Property(e => e.ExternalIdpId).HasColumnName("external_idp_id");
+            entity.Property(e => e.ExternalIdpType).HasColumnName("external_idp_type");
+            entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.LastUpdated).HasColumnName("last_updated");
         });
 
         // Apply snake_case naming convention to all remaining properties
