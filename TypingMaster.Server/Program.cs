@@ -7,6 +7,9 @@ using TypingMaster.DataAccess.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using TypingMaster.Server.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,12 +58,28 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
+        policy.WithOrigins(allowedOrigins ?? Array.Empty<string>())
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
 // Register repositories
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddScoped<IPracticeLogRepository, PracticeLogRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
 builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository>();
 
 // Register business services
+builder.Services.AddScoped<MockIdpService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILoginLogService, LoginLogService>();
@@ -69,6 +88,18 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ITypingTrainer, TypingTrainer>();
 builder.Services.AddScoped<ITypingMaterialGenerator, TypingMaterialGenerator>();
+
+// Register services
+builder.Services.AddScoped<MockIdpService>();
+builder.Services.AddScoped<IAuthorizationHandler, IdpAuthorizationHandler>();
+builder.Services.AddHttpContextAccessor();
+
+// Configure authorization
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("IdPAuth", policy =>
+        policy.Requirements.Add(new IdpAuthorizationRequirement()));
+});
 
 // Add HTTP client for external services
 builder.Services.AddHttpClient();
@@ -96,6 +127,9 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger";
     });
 }
+
+// Add CORS middleware before any other middleware
+app.UseCors();
 
 app.UseStaticFiles();
 app.UseHttpsRedirection();

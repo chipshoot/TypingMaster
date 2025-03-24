@@ -104,47 +104,29 @@
 
                 if (authResponse != null && authResponse.Success)
                 {
-                    // Use HttpClient to get account information
-                    var accountUrl = ApiConfig.BuildApiUrl($"api/account/{authResponse.AccountId}");
-                    var accountResponse = await HttpClient.GetAsync(accountUrl);
-
-                    if (accountResponse.IsSuccessStatusCode)
+                    // Set the account in application state
+                    AppState.CurrentAccount = new Account
                     {
-                        var account = await accountResponse.Content.ReadFromJsonAsync<Account>();
+                        Id = authResponse.AccountId,
+                        AccountEmail = _loginModel.Account
+                    };
 
-                        if (account == null)
+                    if (AppState.CurrentAccount != null)
+                    {
+                        // Load course information if available
+                        if (AppState.CurrentAccount.CourseId != Guid.Empty)
                         {
-                            Logger.Error($"Account not found for ID: {authResponse.AccountId}");
-                            _errorMessage = "Account not found. Please check your credentials.";
-                            _isLoading = false;
-                            return;
+                            AppState.CurrentCourse = await CourseProvider.GetCourse(AppState.CurrentAccount.CourseId);
                         }
 
-                        // Set the account in application state
-                        AppState.CurrentAccount = account;
+                        AppState.IsLoggedIn = true;
 
-                        if (AppState.CurrentAccount != null)
-                        {
-                            // Load course information if available
-                            if (AppState.CurrentAccount.CourseId != Guid.Empty)
-                            {
-                                AppState.CurrentCourse = await CourseProvider.GetCourse(AppState.CurrentAccount.CourseId);
-                            }
-
-                            AppState.IsLoggedIn = true;
-
-                            Navigation.NavigateTo(!string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/");
-                        }
-                        else
-                        {
-                            Logger.Error("Cannot retrieve user information");
-                            _errorMessage = "Error retrieving user information";
-                        }
+                        Navigation.NavigateTo(!string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/");
                     }
                     else
                     {
-                        Logger.Error($"Failed to get account details: {await accountResponse.Content.ReadAsStringAsync()}");
-                        _errorMessage = "Error retrieving account information.";
+                        Logger.Error("Cannot retrieve user information");
+                        _errorMessage = "Error retrieving user information";
                     }
                 }
                 else
