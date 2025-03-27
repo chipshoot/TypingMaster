@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models;
-using TypingMaster.Server.Controllers;
-using Microsoft.EntityFrameworkCore;
 using TypingMaster.Business.Utility;
+using TypingMaster.Core.Models;
+using TypingMaster.Server.Controllers;
 
-namespace TypingMaster.Tests
+namespace TypingMaster.Tests.Server
 {
     public class AccountControllerTests
     {
