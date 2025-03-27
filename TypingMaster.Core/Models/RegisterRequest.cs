@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TypingMaster.Business.Models
+namespace TypingMaster.Core.Models
 {
     public class RegisterRequest
     {

@@ -1,6 +1,7 @@
-﻿using TypingMaster.Business.Models;
+using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 
-namespace TypingMaster.Business.Contract;
+namespace TypingMaster.Core.Contract;
 
 public interface ICourse
 {
@@ -15,14 +16,12 @@ public interface ICourse
     IEnumerable<Lesson> Lessons { get; set; }
 
     string CompleteText { get; }
-
-    Lesson? GetPracticeLesson(int curLessonId, StatsBase stats);
-
-    public CourseSetting Settings { get; set; }
-
-    bool IsCompleted(int curLessonId, StatsBase stats);
-
-    DrillStats GenerateStartStats();
+    
+    CourseSetting Settings { get; set; }
 
     string Description { get; }
+    
+    Lesson? GetPracticeLesson(int curLessonId, StatsBase stats);
+
+    bool IsCompleted(int curLessonId, StatsBase stats);
 }

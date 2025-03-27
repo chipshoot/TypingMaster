@@ -1,6 +1,4 @@
-﻿using TypingMaster.Business.Models;
-
-namespace TypingMaster.Business;
+﻿namespace TypingMaster.Core.Models;
 
 public static class Extensions
 {
@@ -39,5 +37,18 @@ public static class Extensions
             >= 5 => SkillLevel.Expert,
             _ => throw new ArgumentOutOfRangeException(nameof(stats))
         };
+    }
+
+    public static Queue<KeyEvent> Copy(this Queue<KeyEvent> originalQueue)
+    {
+        return new Queue<KeyEvent>(originalQueue.Select(k => new KeyEvent
+        {
+            Key = k.Key,
+            TypedKey = k.TypedKey,
+            IsCorrect = k.IsCorrect,
+            KeyDownTime = k.KeyDownTime,
+            KeyUpTime = k.KeyUpTime,
+            Latency = k.Latency
+        }));
     }
 }

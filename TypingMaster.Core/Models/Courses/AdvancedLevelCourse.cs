@@ -1,12 +1,10 @@
-﻿using TypingMaster.Business.Contract;
-
-namespace TypingMaster.Business.Models.Courses
+﻿namespace TypingMaster.Core.Models.Courses
 {
     /// <summary>
     /// The course that increase the level of lesson based on the user's performance.
     /// If the user performs is better than advanced level, the lesson level will be increased.
     /// </summary>
-    public class AdvancedLevelCourse : CourseBase
+    public class AdvancedLevelCourse : CourseBase 
     {
         public AdvancedLevelCourse(string lessonDataFileUrl = "")
         {
@@ -86,7 +84,7 @@ namespace TypingMaster.Business.Models.Courses
         {
             return new DrillStats
             {
-                CourseId = CourseService.CourseId1,
+                CourseId = Guid.NewGuid(),
                 LessonId = 1,
                 Wpm = 0,
                 Accuracy = 0,

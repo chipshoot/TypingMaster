@@ -64,7 +64,7 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
         {
             return;
         }
-        _currentCourse = await courseService.GetCourse(_currentCourseId);
+        _currentCourse = await _courseWebService.GetCourse(_currentCourseId);
     }
 
     public void InitializeAccount()

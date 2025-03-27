@@ -1,6 +1,6 @@
-﻿using System.Text;
+using System.Text;
 
-namespace TypingMaster.Business.Models.Courses;
+namespace TypingMaster.Core.Models.Courses;
 
 public class BeginnerCourse : CourseBase
 {

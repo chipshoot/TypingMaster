@@ -1,4 +1,4 @@
-﻿namespace TypingMaster.Business.Models;
+﻿namespace TypingMaster.Core.Models;
 
 public class KeyStats : StatsBase
 {
