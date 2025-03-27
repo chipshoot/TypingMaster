@@ -3,7 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using TypingMaster.Business.Models;
+using TypingMaster.Core.Models;
 
 namespace TypingMaster.Business;
 

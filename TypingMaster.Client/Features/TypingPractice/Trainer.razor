@@ -1,6 +1,7 @@
 ﻿@page "/trainer"
 
 @inject ILogger Logger
+@inject ICourseWebService CourseService
 @inject ITypingTrainer TypingTrainer
 @inject ApplicationContext Context
 
@@ -37,14 +38,14 @@
     private IList<DrillStats> StatsList => Context.CurrentAccount?.History.PracticeStats.ToList() ?? [];
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (Context.CurrentAccount == null)
         {
             return;
         }
 
-        var stats = Context.CurrentAccount.History.PracticeStats.LastOrDefault() ?? Context.CurrentCourse?.GenerateStartStats();
+        var stats = Context.CurrentAccount.History.PracticeStats.LastOrDefault() ?? await CourseService.GenerateStartStats();
         _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats.LessonId, stats);
         TypingTrainer.Account = Context.CurrentAccount;
         TypingTrainer.TrainingType = TrainingType.Course;

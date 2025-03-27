@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models;
+using TypingMaster.Core.Models;
 using TypingMaster.Server.Models;
 
 namespace TypingMaster.Server.Controllers

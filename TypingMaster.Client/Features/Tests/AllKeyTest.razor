@@ -2,9 +2,9 @@
 
 @inject ILogger Logger
 @inject ITypingTrainer TypingTrainer
-@inject ICourseService CourseService
+@inject ICourseWebService CourseService
 @inject ApplicationContext AppState
-@inject IAccountService AccountService
+@inject IAccountWebService AccountService
 @inject NavigationManager NavigationManager
 
 @if (!_isCompleted)
@@ -53,11 +53,11 @@ else
         AppState.InitializeAccount();
         if (!AppState.IsLoggedIn && AppState.CurrentAccount == null)
         {
-            AppState.CurrentAccount = AccountService.GetGuestAccount();
+            AppState.CurrentAccount = await AccountService.GetGuestAccount();
         }
         else if(AppState.CurrentAccount == null)
         {
-            await AppState.GetCourse(CourseService);
+            await AppState.GetCourse();
             if (AppState.CurrentCourse == null)
             {
                 Logger.Error(NullAccountFound);

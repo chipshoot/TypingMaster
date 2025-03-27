@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using TypingMaster.Core.Models;
 
 namespace TypingMaster.Server.Controllers
 {

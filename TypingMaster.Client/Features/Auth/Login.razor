@@ -1,11 +1,10 @@
 ﻿@page "/login"
-
 @inject NavigationManager Navigation
-@inject HttpClient HttpClient
+@inject IAuthWebService AuthService
+@inject IAccountWebService AccountService
+@inject ICourseWebService CourseService
 @inject ApplicationContext AppState
 @inject ILogger Logger
-@inject ICourseService CourseProvider
-@inject IApiConfiguration ApiConfig
 
 <style>
     .login-container {
@@ -95,28 +94,26 @@
                 Password = _loginModel.Password
             };
 
-            var authUrl = ApiConfig.BuildApiUrl("api/auth/login");
-            var response = await HttpClient.PostAsJsonAsync(authUrl, loginRequest);
-
-            if (response.IsSuccessStatusCode)
+            var authResponse = await AuthService.LoginAsync(_loginModel.Account, _loginModel.Password);
+            if (authResponse.Success)
             {
-                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
 
-                if (authResponse != null && authResponse.Success)
+                if (authResponse is { Success: true })
                 {
                     // Set the account in application state
-                    AppState.CurrentAccount = new Account
+                    var account = await AccountService.GetAccountAsync(authResponse.AccountId);
+                    if (account != null)
                     {
-                        Id = authResponse.AccountId,
-                        AccountEmail = _loginModel.Account
-                    };
+                        AppState.CurrentAccount = account;
 
-                    if (AppState.CurrentAccount != null)
-                    {
+                        // Store the authentication token
+                        AppState.Token = authResponse.Token;
+                        AppState.RefreshToken = authResponse.RefreshToken;
+
                         // Load course information if available
                         if (AppState.CurrentAccount.CourseId != Guid.Empty)
                         {
-                            AppState.CurrentCourse = await CourseProvider.GetCourse(AppState.CurrentAccount.CourseId);
+                            AppState.CurrentCourse = await CourseService.GetCourse(AppState.CurrentAccount.CourseId);
                         }
 
                         AppState.IsLoggedIn = true;
@@ -136,8 +133,7 @@
             }
             else
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                Logger.Error($"Auth API error: {errorContent}");
+                Logger.Error($"Auth API error: {authResponse}");
                 _errorMessage = "Login failed. Please check your credentials.";
             }
         }

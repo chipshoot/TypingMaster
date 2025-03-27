@@ -37,6 +37,8 @@
   <ItemGroup>
     <ProjectReference Include="..\TypingMaster.Business\TypingMaster.Business.csproj" />
     <ProjectReference Include="..\TypingMaster.Client\TypingMaster.Client.csproj" />
+    <ProjectReference Include="..\TypingMaster.Core\TypingMaster.Core.csproj" />
+    <ProjectReference Include="..\TypingMaster.DataAccess\TypingMaster.DataAccess.csproj" />
     <ProjectReference Include="..\TypingMaster.Server\TypingMaster.Server.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,6 @@
-﻿using TypingMaster.Business.Contract;
+﻿using TypingMaster.Core.Contract;
+using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Business.Models.Courses;
 
@@ -23,19 +25,4 @@ public abstract class CourseBase : ICourse
     public abstract Lesson? GetPracticeLesson(int curLessonId, StatsBase stats);
 
     public abstract bool IsCompleted(int curLessonId, StatsBase stats);
-
-    public DrillStats GenerateStartStats()
-    {
-        return new DrillStats
-        {
-            CourseId = CourseService.CourseId1,
-            LessonId = 1,
-            Wpm = 0,
-            Accuracy = 0,
-            KeyEvents = [],
-            TypedText = string.Empty,
-            StartTime = DateTime.Now,
-            FinishTime = DateTime.UtcNow
-        };
-    }
 }

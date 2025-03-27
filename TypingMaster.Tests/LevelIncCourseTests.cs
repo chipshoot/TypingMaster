@@ -1,6 +1,5 @@
-﻿using TypingMaster.Business;
-using TypingMaster.Business.Models;
-using TypingMaster.Business.Models.Courses;
+﻿using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Tests
 {
@@ -8,6 +7,7 @@ namespace TypingMaster.Tests
     {
         private const string ExpectDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
         private static readonly Guid CourseId = new Guid("1C7B4C4F-3114-43E4-B5E5-265BCDB6C5EE");
+
         private readonly AdvancedLevelCourse _course = new()
         {
             Id = CourseId,

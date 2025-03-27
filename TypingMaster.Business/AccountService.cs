@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models;
+using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 

@@ -2,7 +2,7 @@ using AutoMapper;
 using Moq;
 using Serilog;
 using TypingMaster.Business;
-using TypingMaster.Business.Models;
+using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 

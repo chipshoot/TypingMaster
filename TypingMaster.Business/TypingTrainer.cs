@@ -1,8 +1,9 @@
 ﻿using System.Text.Json;
 using Serilog;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models;
 using TypingMaster.Business.Utility;
+using TypingMaster.Core.Contract;
+using TypingMaster.Core.Models;
 
 namespace TypingMaster.Business;
 

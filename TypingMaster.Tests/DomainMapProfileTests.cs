@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using TypingMaster.Business.Models;
-using TypingMaster.Business.Models.Courses;
 using TypingMaster.Business.Mapping;
+using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 using TypingMaster.DataAccess.Dao;
 
 namespace TypingMaster.Tests
@@ -223,55 +223,6 @@ namespace TypingMaster.Tests
             // Courses should be initialized but empty as they're ignored in the mapping
             Assert.NotNull(accountDao.Courses);
             Assert.NotEmpty(accountDao.Courses);
-        }
-
-        [Fact]
-        public void Account_To_AccountDao_EmptyGuids_NotAddedToCourses()
-        {
-            // Arrange
-            var account = new Account
-            {
-                Id = 1,
-                AccountName = "TestAccount",
-                AccountEmail = "test@example.com",
-                User = new UserProfile
-                {
-                    Id = 1,
-                    FirstName = "Test",
-                    LastName = "User"
-                },
-                History = new PracticeLog
-                {
-                    Id = 1,
-                    PracticeDuration = 60
-                },
-                // Set some valid GUIDs and some empty ones
-                CourseId = Guid.NewGuid(),        // Valid GUID (should be added)
-                TestCourseId = Guid.Empty,        // Empty GUID (should NOT be added)
-                GameCourseId = Guid.NewGuid()     // Valid GUID (should be added)
-            };
-
-            // Act
-            var accountDao = _mapper.Map<AccountDao>(account);
-
-            // Assert
-            Assert.NotNull(accountDao);
-            Assert.NotNull(accountDao.Courses);
-
-            // Should only have 2 courses (CourseId and GameCourseId), TestCourseId should be excluded
-            Assert.Equal(2, accountDao.Courses.Count);
-
-            // Verify only the expected courses exist
-            Assert.Single(accountDao.Courses, c => c.Type == "0"); // Regular course
-            Assert.DoesNotContain(accountDao.Courses, c => c.Type == "1");  // Test course should not be present
-            Assert.Single(accountDao.Courses, c => c.Type == "3"); // Game course
-
-            // Verify the correct IDs were mapped
-            var regularCourse = accountDao.Courses.Single(c => c.Type == "0");
-            Assert.Equal(account.CourseId, regularCourse.Id);
-
-            var gameCourse = accountDao.Courses.Single(c => c.Type == "3");
-            Assert.Equal(account.GameCourseId, gameCourse.Id);
         }
 
         [Fact]
@@ -685,7 +636,7 @@ namespace TypingMaster.Tests
                 },
                 KeyStatsJson = new Dictionary<char, KeyStatsDao>
                 {
-                    {'a', new KeyStatsDao { Key = "a", TypingCount = 50, CorrectCount = 45 }}
+                    { 'a', new KeyStatsDao { Key = "a", TypingCount = 50, CorrectCount = 45 } }
                 },
                 PracticeDuration = 3600
             };
@@ -745,7 +696,7 @@ namespace TypingMaster.Tests
                 },
                 KeyStats = new Dictionary<char, KeyStats>
                 {
-                    {'a', new KeyStats { Key = "a", TypingCount = 50, CorrectCount = 45 }}
+                    { 'a', new KeyStats { Key = "a", TypingCount = 50, CorrectCount = 45 } }
                 },
                 PracticeDuration = 3600
             };
@@ -962,7 +913,7 @@ namespace TypingMaster.Tests
             // Assert
             Assert.NotNull(drillStatsDao);
 
-            // The CourseId property should default to empty GUID 
+            // The CourseId property should default to empty GUID
             // since the PreCondition prevents mapping the source value
             Assert.Equal(Guid.Empty, drillStatsDao.CourseId);
         }
@@ -1019,6 +970,109 @@ namespace TypingMaster.Tests
             // Only the drill stats with valid course ID should be mapped
             Assert.Single(accountDao.History.PracticeStats);
             Assert.Equal(validCourseId, accountDao.History.PracticeStats.First().CourseId);
+        }
+
+        [Fact]
+        public void Account_To_AccountDao_EmptyGuids_NotAddedToCourses()
+        {
+            // Arrange
+            var account = new Account
+            {
+                Id = 1,
+                AccountName = "TestAccount",
+                AccountEmail = "test@example.com",
+                User = new UserProfile
+                {
+                    Id = 1,
+                    FirstName = "Test",
+                    LastName = "User"
+                },
+                History = new PracticeLog
+                {
+                    Id = 1,
+                    PracticeDuration = 60
+                },
+                // Set some valid GUIDs and some empty ones
+                CourseId = Guid.NewGuid(), // Valid GUID (should be added)
+                TestCourseId = Guid.Empty, // Empty GUID (should NOT be added)
+                GameCourseId = Guid.NewGuid() // Valid GUID (should be added)
+            };
+
+            // Act
+            var accountDao = _mapper.Map<AccountDao>(account);
+
+            // Assert
+            Assert.NotNull(accountDao);
+            Assert.NotNull(accountDao.Courses);
+
+            // Should only have 2 courses (CourseId and GameCourseId), TestCourseId should be excluded
+            Assert.Equal(2, accountDao.Courses.Count);
+
+            // Verify only the expected courses exist
+            Assert.Single(accountDao.Courses, c => c.Type == "0"); // Regular course
+            Assert.DoesNotContain(accountDao.Courses, c => c.Type == "1"); // Test course should not be present
+            Assert.Single(accountDao.Courses, c => c.Type == "3"); // Game course
+
+            // Verify the correct IDs were mapped
+            var regularCourse = accountDao.Courses.Single(c => c.Type == "0");
+            Assert.Equal(account.CourseId, regularCourse.Id);
+
+            var gameCourse = accountDao.Courses.Single(c => c.Type == "3");
+            Assert.Equal(account.GameCourseId, gameCourse.Id);
+        }
+
+        [Theory]
+        [InlineData("BeginnerCourse", typeof(BeginnerCourse))]
+        [InlineData("AdvancedLevelCourse", typeof(AdvancedLevelCourse))]
+        [InlineData("UnknownCourse", typeof(AdvancedLevelCourse))] // Should default to AdvancedLevelCourse
+        public void CourseDao_Maps_To_Correct_CourseType_Based_On_Name(string courseName, Type expectedType)
+        {
+            // Arrange
+            var courseDao = new CourseDao
+            {
+                Id = Guid.NewGuid(),
+                AccountId = 1,
+                Name = courseName,
+                Type = "0", // TrainingType.Course
+                Description = "Test course description",
+                LessonDataUrl = "https://example.com/lesson-data",
+                SettingsJson = new CourseSettingDao
+                {
+                    Minutes = 30,
+                    NewKeysPerStep = 1,
+                    PracticeTextLength = 50,
+                    TargetStats = new StatsDao
+                    {
+                        Wpm = 50,
+                        Accuracy = 90
+                    }
+                }
+            };
+
+            // Act
+            var courseBase = _mapper.Map<CourseBase>(courseDao);
+
+            // Assert
+            Assert.NotNull(courseBase);
+            Assert.IsType(expectedType, courseBase);
+
+            // Verify common properties are mapped correctly
+            Assert.Equal(courseDao.Id, courseBase.Id);
+            Assert.Equal(courseDao.Name, courseBase.Name);
+            Assert.Equal(courseDao.Description, courseBase.Description);
+            Assert.Equal(courseDao.LessonDataUrl, courseBase.LessonDataUrl);
+            Assert.Equal(TrainingType.Course, courseBase.Type); // Verify Type is mapped as enum
+
+            // Verify settings are mapped correctly
+            Assert.NotNull(courseBase.Settings);
+            Assert.Equal(courseDao.SettingsJson.Minutes, courseBase.Settings.Minutes);
+            Assert.Equal(courseDao.SettingsJson.NewKeysPerStep, courseBase.Settings.NewKeysPerStep);
+            Assert.Equal(courseDao.SettingsJson.PracticeTextLength, courseBase.Settings.PracticeTextLength);
+
+            // Verify target stats are mapped correctly
+            Assert.NotNull(courseBase.Settings.TargetStats);
+            Assert.Equal(courseDao.SettingsJson.TargetStats.Wpm, courseBase.Settings.TargetStats.Wpm);
+            Assert.Equal(courseDao.SettingsJson.TargetStats.Accuracy, courseBase.Settings.TargetStats.Accuracy);
         }
     }
 }

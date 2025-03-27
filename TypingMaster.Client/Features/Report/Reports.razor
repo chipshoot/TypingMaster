@@ -1,13 +1,13 @@
 ﻿@page "/reports"
 
 @inject ApplicationContext Context
-@inject IReportService ReportService
+@inject IReportWebService ReportService
 
 <style>
     .header-cell {
-        align-items: center;
-        text-align: center;
-        word-break: break-all;
+    align-items: center;
+    text-align: center;
+    word-break: break-all;
     }
 </style>
 <RequireAuthentication ShowMessage="true">
@@ -17,10 +17,10 @@
             <Collapse IsAccordion="true">
                 <CollapseItems>
                     <CollapseItem Text="Lesson - Practice" IsCollapsed="false">
-                        <ProgressTable Items="@GetItems(TrainingType.Course)" />
+                        <ProgressTable Items="@_courseProgress" />
                     </CollapseItem>
                     <CollapseItem Text="Test">
-                        <ProgressTable Items="@GetItems(TrainingType.AllKeysTest)" />
+                        <ProgressTable Items="@_testProgress" />
                     </CollapseItem>
                 </CollapseItems>
             </Collapse>
@@ -28,33 +28,45 @@
         <TabItem Text="Speed">
             <div>Speed</div>
             <ReportChart IsSetTitle="true" IsStacked="false" Title="Speed" XTitle="Keys" YTitle="Speed (WPM)"
-                         Xlabels="@_keys" Data="@GetSpeedData()"></ReportChart>
+            Xlabels="@_keys" Data="@GetSpeedData()"></ReportChart>
         </TabItem>
         <TabItem Text="Accuracy">
             <div>Accuracy</div>
             <ReportChart IsSetTitle="true" IsStacked="false" Title="Accuracy" XTitle="Keys" YTitle="Accuracy"
-                         Xlabels="@_keys" Data="@GetAccuracyData()"></ReportChart>
+            Xlabels="@_keys" Data="@GetAccuracyData()"></ReportChart>
         </TabItem>
     </Tab>
 </RequireAuthentication>
 
 @code {
 
-
     [Parameter] public int AccountId { get; set; } = 1;
+
     private Chart _barChart;
     private IEnumerable<string>? _keys;
     private Dictionary<string, IEnumerable<double>>? _keyStats;
+    private List<ProgressRecord> _courseProgress = new();
+    private List<ProgressRecord> _testProgress = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (Context?.CurrentAccount?.History == null)
         {
             return;
         }
 
-        _keys ??= ReportService.GetKeyLabels(Context.CurrentAccount.History);
-        _keyStats ??= ReportService.GetKeyStats(Context.CurrentAccount.History, false);
+        _keys ??= await ReportService.GetKeyLabels(Context.CurrentAccount.History);
+        _keyStats ??= await ReportService.GetKeyStats(Context.CurrentAccount.History, false);
+
+        _courseProgress = (await ReportService.GetProgressRecords(
+            Context.CurrentAccount.History,
+            Context.CurrentCourse,
+            TrainingType.Course)).ToList();
+
+        _testProgress = (await ReportService.GetProgressRecords(
+            Context.CurrentAccount.History,
+            Context.CurrentCourse,
+            TrainingType.AllKeysTest)).ToList();
     }
 
     private List<ChartDataset> GetSpeedData()
@@ -89,17 +101,5 @@
         };
 
         return data;
-    }
-
-    private List<ProgressRecord> GetItems(TrainingType type)
-    {
-        if (Context.CurrentAccount == null || Context.CurrentCourse == null)
-        {
-            return [];
-        }
-
-        var progress = ReportService.GetProgressRecords(Context.CurrentAccount.History, Context.CurrentCourse, type);
-
-        return progress.ToList();
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Serilog;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models;
+using TypingMaster.Core.Models;
 
 namespace TypingMaster.Business;
 
@@ -104,7 +104,8 @@ public class AuthService : ServiceBase, IAuthService
                 {
                     FirstName = request.FirstName,
                     LastName = request.LastName,
-                }
+                },
+                GoalStats = new StatsBase { Wpm = 0, Accuracy = 0 }
             };
 
             // Check if email is already registered

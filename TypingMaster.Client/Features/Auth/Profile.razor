@@ -1,12 +1,10 @@
 @page "/profile"
 
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Components.Forms
 @inject NavigationManager Navigation
 @inject ApplicationContext AppState
 @inject ILogger Logger
 @inject HttpClient Http
-@inject IAccountService AccountService
+@inject IAccountWebService AccountService
 
 <style>
     .profile-container {
@@ -149,7 +147,7 @@
             AppState.CurrentAccount.User.LastName = _profileModel.LastName;
             AppState.CurrentAccount.User.Title = _profileModel.Title;
 
-            await AccountService.UpdateAccount(AppState.CurrentAccount);
+            await AccountService.UpdateAccountAsync(AppState.CurrentAccount);
             Navigation.NavigateTo("/", true);
         }
         catch (Exception ex)

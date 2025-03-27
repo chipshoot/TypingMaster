@@ -1,8 +1,10 @@
-﻿using Moq;
+﻿using AutoMapper;
+using Moq;
 using Serilog;
 using TypingMaster.Business;
-using TypingMaster.Business.Models;
-using TypingMaster.Business.Models.Courses;
+using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
+using TypingMaster.DataAccess.Data;
 using TypingMaster.Tests.Utility;
 
 namespace TypingMaster.Tests
@@ -10,6 +12,8 @@ namespace TypingMaster.Tests
     public class BeginnerCourseTests : IDisposable
     {
         private readonly Mock<ILogger> _mockLogger;
+        private readonly Mock<IMapper> _mockMapper;
+        private readonly Mock<ICourseRepository> _mockRepository;
         private const int PracticeTextLength = 30;
         private static BeginnerCourse _course;
         private static bool _initialized = false;
@@ -20,8 +24,11 @@ namespace TypingMaster.Tests
         public BeginnerCourseTests()
         {
             _mockLogger = new Mock<ILogger>();
+            _mockMapper = new Mock<IMapper>();
+            _mockRepository = new Mock<ICourseRepository>();
             InitializeAsync().GetAwaiter().GetResult();
         }
+
         private async Task InitializeAsync()
         {
             if (_initialized)
@@ -83,9 +90,9 @@ namespace TypingMaster.Tests
                         PracticeTextLength = PracticeTextLength
                     };
 
-                    var courseService = new CourseService(_mockLogger.Object);
+                    var courseService = new CourseService(_mockRepository.Object, _mockMapper.Object, _mockLogger.Object);
                     // Override the LessonDataUrl for testing
-                    _course = await courseService.GenerateBeginnerCourse(settings) as BeginnerCourse; 
+                    _course = await courseService.GenerateBeginnerCourse(settings) as BeginnerCourse;
                     _initialized = true;
                 }
             }
@@ -121,7 +128,6 @@ namespace TypingMaster.Tests
 
             // Assert
             Assert.NotEqual(Guid.Empty, id);
-
         }
 
         [Fact]

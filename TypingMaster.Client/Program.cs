@@ -3,9 +3,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Serilog;
-using TypingMaster.Business;
-using TypingMaster.Business.Contract;
 using TypingMaster.Client;
+using TypingMaster.Client.Services;
 using TypingMaster.Shared.Utility;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -29,15 +28,17 @@ builder.Services.AddSingleton<IApiConfiguration, ApiConfiguration>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<IClientStorageService, SessionStorageService>();
+builder.Services.AddScoped<IAuthWebService, AuthWebService>();
+builder.Services.AddScoped<IAccountWebService, AccountWebService>();
+builder.Services.AddScoped<ICourseWebService, CourseWebService>();
+builder.Services.AddScoped<IReportWebService, ReportWebService>();
 builder.Services.AddSingleton<ApplicationContext>(sp =>
     new ApplicationContext(
         sp.GetRequiredService<IClientStorageService>(),
-        sp.GetRequiredService<NavigationManager>()
+        sp.GetRequiredService<NavigationManager>(),
+        sp.GetRequiredService<ICourseWebService>()
     )
 );
-builder.Services.AddScoped<ICourseService, CourseService>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<ITypingTrainer, TypingTrainer>();
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddBootstrapBlazor();
 

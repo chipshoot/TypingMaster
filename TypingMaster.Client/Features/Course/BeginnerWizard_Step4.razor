@@ -1,52 +1,55 @@
 ﻿@inject ApplicationContext AppState
-@inject ICourseService CourseService
+@inject ICourseWebService CourseService
+@inject IApiConfiguration ApiConfig
 @inject NavigationManager Navigation
+@inject HttpClient HttpClient
+@inject ILogger Logger
 
 <style>
     .step-card {
-        width: 450px;
-        margin: 0 auto;
+    width: 450px;
+    margin: 0 auto;
     }
 
     .summary-content {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     }
 
     .summary-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        padding: 5px 0;
-        border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
     }
 
-        .summary-item:last-child {
-            border-bottom: none;
-        }
+    .summary-item:last-child {
+    border-bottom: none;
+    }
 
     .confirm-btn {
-        background-color: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        width: 100%;
-        margin-top: 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    margin-top: 15px;
     }
 
-        .confirm-btn:hover {
-            background-color: #218838;
-        }
+    .confirm-btn:hover {
+    background-color: #218838;
+    }
 
     h4 {
-        color: #495057;
-        margin-bottom: 15px;
+    color: #495057;
+    margin-bottom: 15px;
     }
 </style>
 <div class="step-card">
@@ -102,12 +105,55 @@
 
     private async Task ConfirmSetup()
     {
-        var course = await CourseService.GenerateBeginnerCourse(SettingResult);
-        AppState.CurrentCourse = course;
-        AppState.CurrentAccount.CourseId = course.Id;
-        AppState.CurrentAccount.History.CurrentCourseId = course.Id;
-        AppState.CurrentAccount.History.CurrentLessonId = 1; 
-        Navigation.NavigateTo("/Trainer");
+        try
+        {
+            var course = await CourseService.GenerateBeginnerCourse(SettingResult);
+            AppState.CurrentCourse = course;
+            AppState.CurrentAccount.CourseId = course.Id;
+            AppState.CurrentAccount.History.CurrentCourseId = course.Id;
+            AppState.CurrentAccount.History.CurrentLessonId = 1;
+            AppState.CurrentAccount.GoalStats = SettingResult.TargetStats;
+
+            await UpdateAccount(AppState);
+            Navigation.NavigateTo("/Trainer");
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e.Message);
+            throw;
+        }
     }
 
+    private async Task UpdateAccount(ApplicationContext appState)
+    {
+        try
+        {
+            if (appState?.CurrentAccount == null)
+            {
+                return;
+            }
+
+            var accountUrl = ApiConfig.BuildApiUrl($"api/account/{appState.CurrentAccount.Id}");
+            var response = await HttpClient.PutAsJsonAsync(accountUrl, appState.CurrentAccount);
+            if (response.IsSuccessStatusCode)
+            {
+                Logger.Information("Account updated successfully");
+                // Additional success handling if needed
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Logger.Error($"Failed to update account: {response.StatusCode}. Details: {errorContent}");
+            }
+
+            Logger.Information(response.IsSuccessStatusCode 
+                ? "Account updated successfully" 
+                : "Failed to update account");
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e.Message);
+            throw;
+        }
+    }
 }

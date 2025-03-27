@@ -1,19 +1,27 @@
 ﻿using Microsoft.AspNetCore.Components;
-using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models;
+using TypingMaster.Client.Services;
+using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 using TypingMaster.Shared.Utility;
 
 namespace TypingMaster.Client;
 
-public class ApplicationContext(IClientStorageService storage, NavigationManager navigationManager)
+public class ApplicationContext(
+    IClientStorageService storage,
+    NavigationManager navigationManager,
+    ICourseWebService courseWebService)
 {
     private const string AccountKey = "Account";
     private const string CourseKey = "Course";
     private const string IsLoggedKey = "Login";
+    private const string TokenKey = "Token";
+    private const string RefreshTokenKey = "RefreshToken";
     private Account? _currentAccount;
     private Guid _currentCourseId;
-    private ICourse? _currentCourse;
+    private CourseBase? _currentCourse;
     private bool _isLoggedIn;
+    private string? _token;
+    private string? _refreshToken;
 
     public bool IsLoggedIn
     {
@@ -29,6 +37,46 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
         }
     }
 
+    public string? Token
+    {
+        get => _token;
+        set
+        {
+            if (_token != value)
+            {
+                _token = value;
+                if (value != null)
+                {
+                    storage.SetItem(TokenKey, value);
+                }
+                else
+                {
+                    storage.RemoveItem(TokenKey);
+                }
+            }
+        }
+    }
+
+    // Add refresh token property
+    public string? RefreshToken
+    {
+        get => _refreshToken;
+        set
+        {
+            if (_refreshToken != value)
+            {
+                _refreshToken = value;
+                if (value != null)
+                {
+                    storage.SetItem(RefreshTokenKey, value);
+                }
+                else
+                {
+                    storage.RemoveItem(RefreshTokenKey);
+                }
+            }
+        }
+    }
 
     public Account? CurrentAccount
     {
@@ -44,7 +92,7 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
         }
     }
 
-    public ICourse? CurrentCourse
+    public CourseBase? CurrentCourse
     {
         get => _currentCourse;
         set
@@ -58,13 +106,13 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
         }
     }
 
-    public async Task GetCourse(ICourseService courseService)
+    public async Task GetCourse()
     {
         if (_currentCourseId == Guid.Empty)
         {
             return;
         }
-        _currentCourse = await _courseWebService.GetCourse(_currentCourseId);
+        _currentCourse = await courseWebService.GetCourse(_currentCourseId);
     }
 
     public void InitializeAccount()
@@ -72,6 +120,9 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
         _currentAccount = storage.GetItem<Account>(AccountKey);
         _currentCourseId = storage.GetItem<Guid>(CourseKey);
         IsLoggedIn = storage.GetItem<bool>(IsLoggedKey);
+        _token = storage.GetItem<string>(TokenKey);
+        _refreshToken = storage.GetItem<string>(RefreshTokenKey);
+
         if (_currentAccount == null || _currentCourseId == Guid.Empty)
         {
             return;
@@ -85,9 +136,12 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
         _currentAccount = null;
         _currentCourse = null;
         IsLoggedIn = false;
+        _token = null;
         storage.RemoveItem(AccountKey);
         storage.RemoveItem(CourseKey);
         storage.RemoveItem(IsLoggedKey);
+        storage.RemoveItem(TokenKey);
+        storage.RemoveItem(RefreshTokenKey);
         NotifyStateChanged();
     }
 
@@ -107,6 +161,30 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
         {
             storage.SetItem(IsLoggedKey, IsLoggedIn);
         }
+
+        if (key == TokenKey)
+        {
+            if (_token != null)
+            {
+                storage.SetItem(TokenKey, _token);
+            }
+            else
+            {
+                storage.RemoveItem(TokenKey);
+            }
+        }
+
+        if (key == RefreshTokenKey)
+        {
+            if (_refreshToken != null)
+            {
+                storage.SetItem(RefreshTokenKey, _refreshToken);
+            }
+            else
+            {
+                storage.RemoveItem(RefreshTokenKey);
+            }
+        }
     }
 
     /// <summary>
@@ -118,7 +196,7 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
     {
         // Refresh authentication state from storage
         InitializeAccount();
-        
+
         if (!IsLoggedIn || CurrentAccount == null)
         {
             // Redirect to login page with return URL if provided
@@ -130,13 +208,13 @@ public class ApplicationContext(IClientStorageService storage, NavigationManager
             {
                 navigationManager.NavigateTo("/login");
             }
-            
+
             return false;
         }
-        
+
         return true;
     }
-    
+
     /// <summary>
     /// Asynchronously ensures authentication status is current and redirects if needed
     /// </summary>

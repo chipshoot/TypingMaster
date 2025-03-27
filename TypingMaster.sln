@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -14,6 +13,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingMaster.Business", "TypingMaster.Business\TypingMaster.Business.csproj", "{4A4F3D2D-D3E3-4BA9-AF1B-DCB0BF5EAF03}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingMaster.DataAccess", "TypingMaster.DataAccess\TypingMaster.DataAccess.csproj", "{A7353241-87C8-4F80-83D0-6B2958AA2E7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingMaster.Core", "TypingMaster.Core\TypingMaster.Core.csproj", "{B7353241-87C8-4F80-83D0-6B2958AA2E7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +46,10 @@ Global
 		{A7353241-87C8-4F80-83D0-6B2958AA2E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7353241-87C8-4F80-83D0-6B2958AA2E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7353241-87C8-4F80-83D0-6B2958AA2E7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7353241-87C8-4F80-83D0-6B2958AA2E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7353241-87C8-4F80-83D0-6B2958AA2E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7353241-87C8-4F80-83D0-6B2958AA2E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7353241-87C8-4F80-83D0-6B2958AA2E7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

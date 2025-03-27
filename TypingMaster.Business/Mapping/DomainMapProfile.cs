@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using TypingMaster.Business.Models;
-using TypingMaster.Business.Models.Courses;
-using TypingMaster.Business.Contract;
+using TypingMaster.Core.Contract;
+using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 using TypingMaster.DataAccess.Dao;
 
 namespace TypingMaster.Business.Mapping
@@ -49,6 +49,33 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Settings, opt => opt.MapFrom(src => src.SettingsJson))
                 .ForMember(dest => dest.LessonDataUrl, opt => opt.MapFrom(src => src.LessonDataUrl));
+
+            // Add this type resolver to the DomainMapProfile constructor
+            CreateMap<CourseDao, CourseBase>()
+                .Include<CourseDao, BeginnerCourse>()
+                .Include<CourseDao, AdvancedLevelCourse>()
+                .ConstructUsing((src, ctx) =>
+                {
+                    return src.Name switch
+                    {
+                        // Determine the appropriate type based on name
+                        "BeginnerCourse" => new BeginnerCourse(),
+                        "AdvancedLevelCourse" => new AdvancedLevelCourse(),
+                        _ => new AdvancedLevelCourse()
+                    };
+                })
+                .ForMember(dest => dest.Settings, opt => opt.MapFrom(src =>
+                    new CourseSetting
+                    {
+                        Minutes = src.SettingsJson.Minutes,
+                        NewKeysPerStep = src.SettingsJson.NewKeysPerStep,
+                        PracticeTextLength = src.SettingsJson.PracticeTextLength,
+                        TargetStats = new StatsBase
+                        {
+                            Wpm = src.SettingsJson.TargetStats.Wpm,
+                            Accuracy = src.SettingsJson.TargetStats.Accuracy
+                        }
+                    }));
 
             // Map from ICourse implementations to CourseDao
             CreateMap<ICourse, CourseDao>()

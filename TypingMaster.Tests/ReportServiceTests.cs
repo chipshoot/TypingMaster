@@ -1,8 +1,7 @@
 ﻿using Moq;
 using Serilog;
 using TypingMaster.Business;
-using TypingMaster.Business.Models;
-using Xunit;
+using TypingMaster.Core.Models;
 
 namespace TypingMaster.Tests
 {

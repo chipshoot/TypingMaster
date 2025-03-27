@@ -1,4 +1,4 @@
-﻿@inject IReportService ReportService
+﻿@inject IReportWebService ReportService
 @inject ApplicationContext Context
 @inject ILogger Logger
 
@@ -62,11 +62,11 @@
             <DockContent Type="DockContentType.Column">
                 <DockComponent ShowClose="false" Title="Speed Diagram">
                     <ReportChart IsSetTitle="true" IsStacked="false" Title="Speed" XTitle="Keys" YTitle="Speed (WPM)"
-                                 Xlabels="@_keys" Data="@GetSpeedData()"></ReportChart>
+                                 Xlabels="@_keys" Data="@_speedData"></ReportChart>
                 </DockComponent>
                 <DockComponent ShowClose="false" Title="Accucary Diagram">
                     <ReportChart IsSetTitle="true" IsStacked="false" Title="Accuracy" XTitle="Keys" YTitle="Accuracy"
-                                 Xlabels="@_keys" Data="@GetAccuracyData()"></ReportChart>
+                                 Xlabels="@_keys" Data="@_accuracyData"></ReportChart>
                     <div>component 2</div>
                 </DockComponent>
             </DockContent>
@@ -79,9 +79,11 @@
     private IEnumerable<string>? _keys;
     private IList<DrillStats> _statsList;
     private DrillStats _curStats;
+    private List<ChartDataset> _speedData = [];
+    private List<ChartDataset> _accuracyData = [];
     private SkillLevel Level => (_curStats.Wpm, _curStats.Accuracy).GetSkillLevel();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (Context.CurrentAccount == null)
         {
@@ -92,11 +94,13 @@
         }
 
         _statsList = Context.CurrentAccount.History.PracticeStats.ToList();
-        _keys ??= ReportService.GetKeyLabels(Context.CurrentAccount.History);
+        _keys ??= await ReportService.GetKeyLabels(Context.CurrentAccount.History);
 
+        _speedData = await GetSpeedData();
+        _accuracyData = await GetAccuracyData();
         SetResultContext();
     }
-
+    
     private void SetResultContext()
     {
         _curStats = _statsList.FirstOrDefault();
@@ -108,9 +112,9 @@
         }
     }
 
-    private List<ChartDataset> GetSpeedData()
+    private async Task<List<ChartDataset>> GetSpeedData()
     {
-        var keyStats = ReportService.GetKeyStats(Context.CurrentAccount.History, false);
+        var keyStats = await ReportService.GetKeyStats(Context.CurrentAccount.History, false);
         if (keyStats == null)
         {
             Logger.Error("Empty or Null key stats found in GetSpeedData");
@@ -126,9 +130,9 @@
         return data;
     }
 
-    private List<ChartDataset> GetAccuracyData()
+    private async Task<List<ChartDataset>> GetAccuracyData()
     {
-        var keyStats = ReportService.GetKeyStats(Context.CurrentAccount.History, false);
+        var keyStats = await ReportService.GetKeyStats(Context.CurrentAccount.History, false);
         if (keyStats == null)
         {
             Logger.Error("Empty or Null key stats found in GetAccuracyData");

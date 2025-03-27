@@ -22,6 +22,7 @@
 	<ItemGroup>
 	  <Content Remove="appsettings.json" />
 	  <Content Remove="wwwroot\site.js" />
+	  <Content Remove="wwwroot\UserProfile.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -34,7 +35,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-		<PackageReference Include="BootstrapBlazor" Version="9.4.9" />
+		<PackageReference Include="BootstrapBlazor" Version="9.4.12" />
 		<PackageReference Include="BootstrapBlazor.Chart" Version="9.0.0" />
 		<PackageReference Include="BootstrapBlazor.Dock" Version="9.0.0" />
 		<PackageReference Include="BootstrapBlazor.FontAwesome" Version="9.0.2" />
@@ -42,7 +43,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.3" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.3" />
-		<PackageReference Include="Serilog.Extensions.Logging" Version="9.0.0" />
+		<PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1" />
 		<PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
 		<PackageReference Include="Serilog.Sinks.BrowserConsole" Version="8.0.0" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
@@ -54,17 +55,20 @@
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Include="Features\TypingPractice\TypingStatsCalculator.razor" />
+		<None Include="wwwroot\css\app.css" />
+		<None Include="wwwroot\favicon.ico" />
+		<None Include="wwwroot\imges\typingLogo.png" />
+		<None Include="wwwroot\index.html" />
+		<None Include="wwwroot\Sample\WelcomeMessage.md" />
+		<None Include="wwwroot\scripts\site.js" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\TypingMaster.Business\TypingMaster.Business.csproj" />
+		<ProjectReference Include="..\TypingMaster.Core\TypingMaster.Core.csproj" />
 		<ProjectReference Include="..\TypingMaster.Shared\TypingMaster.Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="wwwroot\Accounts.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
 	  <Content Update="wwwroot\Sample\Courses.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>

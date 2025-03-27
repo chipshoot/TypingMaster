@@ -1,9 +1,8 @@
 @page "/register"
 
 @inject NavigationManager Navigation
-@inject HttpClient HttpClient
-@inject IApiConfiguration ApiConfig
 @inject ApplicationContext AppState
+@inject IAuthWebService AuthService
 @inject ILogger Logger
 
 <style>
@@ -87,22 +86,16 @@
 
         try
         {
-            // Call register API endpoint
-            var registerUrl = ApiConfig.BuildApiUrl("api/auth/register");
-            var response = await HttpClient.PostAsJsonAsync(registerUrl, _registerModel);
+            var response = await AuthService.RegisterAsync(_registerModel);
 
-            if (response.IsSuccessStatusCode)
+            if (response.Success)
             {
-                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-
-                if (authResponse != null && authResponse.Success)
-                {
                     // Set the current account in application state
                     AppState.IsLoggedIn = true;
                     AppState.CurrentAccount = new Account
                     {
-                        Id = authResponse.AccountId,
-                        AccountName = authResponse.AccountName ?? _registerModel.AccountName,
+                        Id = response.AccountId,
+                        AccountName = response.AccountName ?? _registerModel.AccountName,
                         AccountEmail = _registerModel.Email,
                         User = new UserProfile
                         {
@@ -113,16 +106,10 @@
 
                     // Navigate to home page or dashboard
                     Navigation.NavigateTo("/");
-                }
-                else
-                {
-                    _errorMessage = authResponse?.Message ?? "Registration failed. Please try again.";
-                }
             }
             else
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                Logger.Error($"Registration API error: {errorContent}");
+                Logger.Error($"Registration API error: {response.Message}");
                 _errorMessage = "Registration failed. Please check your information and try again.";
             }
         }

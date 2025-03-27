@@ -1,5 +1,5 @@
-﻿using TypingMaster.Business.Models;
-using TypingMaster.Business.Utility;
+﻿using TypingMaster.Business.Utility;
+using TypingMaster.Core.Models;
 
 namespace TypingMaster.Business.Contract
 {
