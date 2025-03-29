@@ -1,0 +1,116 @@
+{
+  "info": {
+    "_postman_id": "b5e8f9d3-9b1a-4b2c-9d3e-1a2b3c4d5e6f",
+    "name": "TypingMaster Course API",
+    "description": "Collection for testing TypingMaster Course Controller endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Course by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/course/{{courseId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course", "{{courseId}}"]
+        },
+        "description": "Get a specific course by its ID"
+      }
+    },
+    {
+      "name": "Get All Keys Course",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/course/all-keys/{{courseId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course", "all-keys", "{{courseId}}"]
+        },
+        "description": "Get all keys course with optional course ID"
+      }
+    },
+    {
+      "name": "Generate Beginner Course",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Minutes\": 30, \"TargetStats\": { \"Wpm\": 50, \"Accuracy\": 95.5 }, \"NewKeysPerStep\": 5, \"PracticeTextLength\": 1000 }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/course/beginner",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course", "beginner"]
+        },
+        "description": "Generate a new beginner course with specified settings"
+      }
+    },
+    {
+      "name": "Generate Start Stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/course/start-stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course", "start-stats"]
+        },
+        "description": "Generate initial typing statistics"
+      }
+    },
+    {
+      "name": "Get Practice Lesson",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"Minutes\": 30, \"TargetStats\": { \"Wpm\": 50, \"Accuracy\": 95.5 }, \"NewKeysPerStep\": 5, \"PracticeTextLength\": 1000 }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/course/practice-lesson/{{courseId}}/{{lessonId}}",
+          "host": ["{{baseUrl}}"],
+          "path": [
+            "api",
+            "course",
+            "practice-lesson",
+            "{{courseId}}",
+            "{{lessonId}}"
+          ]
+        },
+        "description": "Get a specific practice lesson for a course"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "courseId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "lessonId",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}
