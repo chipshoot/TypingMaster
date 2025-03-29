@@ -1,7 +1,6 @@
 @page "/register"
 
 @inject NavigationManager Navigation
-@inject ApplicationContext AppState
 @inject IAuthWebService AuthService
 @inject ILogger Logger
 
@@ -90,22 +89,22 @@
 
             if (response.Success)
             {
-                    // Set the current account in application state
-                    AppState.IsLoggedIn = true;
-                    AppState.CurrentAccount = new Account
-                    {
-                        Id = response.AccountId,
-                        AccountName = response.AccountName ?? _registerModel.AccountName,
-                        AccountEmail = _registerModel.Email,
-                        User = new UserProfile
-                        {
-                            FirstName = _registerModel.FirstName,
-                            LastName = _registerModel.LastName
-                        }
-                    };
+                // Login the user with the newly registered credentials
+                var loginResponse = await AuthService.LoginAsync(_registerModel.Email, _registerModel.Password);
 
-                    // Navigate to home page or dashboard
+                if (loginResponse.Success)
+                {
                     Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    Logger.Error($"Auto-login after registration failed: {loginResponse.Message}");
+                    _errorMessage = "Registration successful, but automatic login failed. Please try logging in manually.";
+                    Navigation.NavigateTo("/login");
+                }
+
+                // Navigate to home page or dashboard
+                Navigation.NavigateTo("/");
             }
             else
             {

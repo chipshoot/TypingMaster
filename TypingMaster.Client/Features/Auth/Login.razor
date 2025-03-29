@@ -1,9 +1,6 @@
 ﻿@page "/login"
 @inject NavigationManager Navigation
 @inject IAuthWebService AuthService
-@inject IAccountWebService AccountService
-@inject ICourseWebService CourseService
-@inject ApplicationContext AppState
 @inject ILogger Logger
 
 <style>
@@ -87,49 +84,10 @@
 
         try
         {
-            // Use HttpClient to call auth API endpoint
-            var loginRequest = new
-            {
-                Email = _loginModel.Account,
-                Password = _loginModel.Password
-            };
-
             var authResponse = await AuthService.LoginAsync(_loginModel.Account, _loginModel.Password);
             if (authResponse.Success)
             {
-
-                if (authResponse is { Success: true })
-                {
-                    // Set the account in application state
-                    var account = await AccountService.GetAccountAsync(authResponse.AccountId);
-                    if (account != null)
-                    {
-                        AppState.CurrentAccount = account;
-
-                        // Store the authentication token
-                        AppState.Token = authResponse.Token;
-                        AppState.RefreshToken = authResponse.RefreshToken;
-
-                        // Load course information if available
-                        if (AppState.CurrentAccount.CourseId != Guid.Empty)
-                        {
-                            AppState.CurrentCourse = await CourseService.GetCourse(AppState.CurrentAccount.CourseId);
-                        }
-
-                        AppState.IsLoggedIn = true;
-
-                        Navigation.NavigateTo(!string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/");
-                    }
-                    else
-                    {
-                        Logger.Error("Cannot retrieve user information");
-                        _errorMessage = "Error retrieving user information";
-                    }
-                }
-                else
-                {
-                    _errorMessage = authResponse?.Message ?? "Invalid username or password.";
-                }
+                Navigation.NavigateTo(!string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/");
             }
             else
             {
