@@ -103,7 +103,7 @@ public class AuthService : ServiceBase, IAuthService
                 User = new UserProfile
                 {
                     FirstName = request.FirstName,
-                    LastName = request.LastName,
+                    LastName = request.LastName ?? string.Empty,
                 },
                 GoalStats = new StatsBase { Wpm = 0, Accuracy = 0 }
             };
