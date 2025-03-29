@@ -4,7 +4,7 @@ public class CourseSettingDao
 {
     public int Minutes { get; set; }
 
-    public StatsDao TargetStats { get; set; } 
+    public StatsDao TargetStats { get; set; } = null!;
 
     public int NewKeysPerStep { get; set; }
     
