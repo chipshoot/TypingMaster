@@ -6,7 +6,7 @@ using TypingMaster.Core.Models.Courses;
 namespace TypingMaster.Server.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/course")]
     public class CourseController(ICourseService courseService) : ControllerBase
     {
         [HttpGet("{id}")]
@@ -32,7 +32,7 @@ namespace TypingMaster.Server.Controllers
         }
 
         [HttpPost("beginner")]
-        public async Task<ActionResult<ICourse>> GenerateBeginnerCourse([FromBody] CourseSetting settings)
+        public async Task<ActionResult<CourseDto>> GenerateBeginnerCourse([FromBody] CourseSetting settings)
         {
             var course = await courseService.GenerateBeginnerCourse(settings);
             return Ok(course);

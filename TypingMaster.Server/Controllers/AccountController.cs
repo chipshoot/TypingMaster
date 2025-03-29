@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TypingMaster.Business.Contract;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Server.Controllers
 {
@@ -30,7 +31,7 @@ namespace TypingMaster.Server.Controllers
                 var accounts = await _accountService.GetAllAccounts();
 
                 // Check if there's an error message in the ProcessResult
-                if (_accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                 {
                     return BadRequest(_accountService.ProcessResult.ErrorMessage);
                 }
@@ -124,7 +125,7 @@ namespace TypingMaster.Server.Controllers
                 if (createdAccount == null)
                 {
                     // Check if there's an error message in the ProcessResult
-                    if (_accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                    if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                     {
                         return BadRequest(_accountService.ProcessResult.ErrorMessage);
                     }
@@ -197,7 +198,7 @@ namespace TypingMaster.Server.Controllers
                 if (!result)
                 {
                     // Check if there's an error message in the ProcessResult
-                    if (_accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                    if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                     {
                         return BadRequest(_accountService.ProcessResult.ErrorMessage);
                     }
@@ -247,7 +248,7 @@ namespace TypingMaster.Server.Controllers
                 var existingAccount = await _accountService.GetAccountById(id);
 
                 // Check if there's an error message in the ProcessResult after GetAccountById
-                if (_accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                 {
                     return BadRequest(_accountService.ProcessResult.ErrorMessage);
                 }
@@ -269,7 +270,7 @@ namespace TypingMaster.Server.Controllers
                 if (updatedAccount == null)
                 {
                     // Check if there's an error message in the ProcessResult
-                    if (_accountService.ProcessResult.Status == TypingMaster.Business.Utility.ProcessResultStatus.Failure)
+                    if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                     {
                         return BadRequest(_accountService.ProcessResult.ErrorMessage);
                     }
