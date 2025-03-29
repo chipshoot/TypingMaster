@@ -1,5 +1,5 @@
 ﻿using Serilog;
-using TypingMaster.Business.Utility;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business;
 
