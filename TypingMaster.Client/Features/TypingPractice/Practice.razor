@@ -114,7 +114,7 @@
         </div>
         @if (!string.IsNullOrEmpty(CurrentLesson?.Instruction))
         {
-            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false" />
+            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false" TextType="MessageTextType.Markdown" />
         }
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
             RightShiftPressed="@_rightShiftPressed" />
