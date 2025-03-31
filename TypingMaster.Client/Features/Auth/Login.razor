@@ -21,8 +21,8 @@
             <FieldItems>
                 <EditorItem @bind-Field="@context.Account">
                     <EditTemplate Context="value">
-                        <BootstrapInput TValue="string" PlaceHolder="Email" type="email" maxLength="254"
-                            @bind-value="@value.Account" ShowLabel="true" DisplayText="Account" />
+                        <BootstrapInput @ref="_emailInput" TValue="string" PlaceHolder="Email" type="email"
+                            maxLength="254" @bind-value="@value.Account" ShowLabel="true" DisplayText="Account" />
                     </EditTemplate>
                 </EditorItem>
                 <EditorItem @bind-Field="@context.Password">
@@ -53,13 +53,20 @@
     private bool _isLoading = false;
     private string? _errorMessage;
     private string? _returnUrl;
+    private BootstrapInput<string>? _emailInput;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(Navigation.Uri);
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrl))
         {
             _returnUrl = returnUrl;
+        }
+
+        await Task.Delay(100); // Small delay to ensure the component is fully rendered
+        if (_emailInput != null)
+        {
+            await _emailInput.FocusAsync();
         }
     }
 

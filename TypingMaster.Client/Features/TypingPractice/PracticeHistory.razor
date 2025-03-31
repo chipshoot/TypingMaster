@@ -1,6 +1,6 @@
 ﻿@* PracticeHistory.razor *@
 <style>
-    .dropdown-menu {
+    .history-dropdown-menu {
         max-height: 100px;
         overflow-y: auto;
     }
@@ -28,7 +28,7 @@
         Practice History
     </button>
     @* @if (StatsList?.Any() == true) *@
-        <div class="dropdown-menu w-100" style="min-width: 300px;">
+        <div class="dropdown-menu history-dropdown-menu w-100" style="min-width: 300px;">
             <div class="p-2">
                 <table class="table table-hover mb-0">
                     <thead>
