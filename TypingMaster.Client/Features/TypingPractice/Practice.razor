@@ -267,8 +267,11 @@ visibility: hidden;
 
         if (index < _textInput.Length)
         {
-            return _textInput[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
-        }
+            if (index < Text.Length)
+            {
+                return _textInput[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
+            }
+       }
 
         return "";
     }
