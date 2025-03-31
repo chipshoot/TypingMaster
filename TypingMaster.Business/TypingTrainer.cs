@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
 using Serilog;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Utility;
-using TypingMaster.Core.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business;
 
@@ -18,7 +18,7 @@ public class TypingTrainer(ICourseService courseService, ILogger logger) : ITypi
     private readonly ICourseService _courseService = courseService ?? throw new AbandonedMutexException(nameof(courseService));
     private readonly ILogger _logger = logger ?? throw new ArgumentException(nameof(logger));
     private Account? _account;
-    private ICourse? _course;
+    private CourseDto? _course;
     private readonly TrainingType _trainingType = TrainingType.Course;
     private PracticeLog? _practiceLog;
 

@@ -4,47 +4,71 @@ using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Client.Services;
 
-public class CourseWebService(HttpClient httpClient) : ICourseWebService
+public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig, Serilog.ILogger logger) : ICourseWebService
 {
-    private const string BaseUrl = "api/account/course";
+    private const string BaseUrl = "api/course";
 
-    public async Task<CourseBase?> GetCourse(Guid id)
+    public async Task<CourseDto?> GetCourse(Guid id)
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<CourseBase>($"{BaseUrl}/{id}");
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/{id}");
+            return await httpClient.GetFromJsonAsync<CourseDto>(url);
         }
-        catch
+        catch (Exception ex)
         {
+            logger.Error(ex, "Failed to get course");
             return null;
         }
     }
 
-    public async Task<CourseBase?> GetAllKeysCourse(Guid? id)
+    public async Task<CourseDto?> GetAllKeysCourse(Guid? id)
     {
         try
         {
-            var url = id.HasValue ? $"{BaseUrl}/all-keys/{id}" : $"{BaseUrl}/all-keys";
-            return await httpClient.GetFromJsonAsync<CourseBase>(url);
+            var url = id.HasValue
+                ? apiConfig.BuildApiUrl($"{BaseUrl}/all-keys/{id}")
+                : apiConfig.BuildApiUrl($"{BaseUrl}/all-keys");
+            return await httpClient.GetFromJsonAsync<CourseDto>(url);
         }
-        catch
+        catch (Exception ex)
         {
+            logger.Error(ex, "Failed to get all key course");
             return null;
         }
     }
 
-    public async Task<CourseBase> GenerateBeginnerCourse(CourseSetting settings)
+    public async Task<CourseDto?> GenerateBeginnerCourse(CourseSetting settings)
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync($"{BaseUrl}/beginner", settings);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/beginner");
+            var response = await httpClient.PostAsJsonAsync(url, settings);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<CourseBase>()
+            return await response.Content.ReadFromJsonAsync<CourseDto>()
                 ?? throw new InvalidOperationException("Failed to deserialize course");
         }
-        catch
+        catch (Exception ex)
         {
-            throw;
+            logger.Error(ex, "Failed to generate beginner course");
+            return null;
+        }
+    }
+
+    public async Task<CourseDto?> CreateCourse(CourseDto courseDto)
+    {
+        try
+        {
+            var url = apiConfig.BuildApiUrl(BaseUrl);
+            var response = await httpClient.PostAsJsonAsync(url, courseDto);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<CourseDto>()
+                   ?? throw new InvalidOperationException("Failed to deserialize course");
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Failed to create course");
+            return null;
         }
     }
 
@@ -52,27 +76,30 @@ public class CourseWebService(HttpClient httpClient) : ICourseWebService
     {
         try
         {
-            return await httpClient.GetFromJsonAsync<DrillStats>($"{BaseUrl}/start-stats");
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/start-stats");
+            return await httpClient.GetFromJsonAsync<DrillStats>(url);
         }
-        catch
+        catch (Exception ex)
         {
-            throw;
+            logger.Error(ex, "Failed to generate start stats");
+            return null;
         }
     }
 
-    public async Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, CourseSetting settings)
+    public async Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats)
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync($"{BaseUrl}/course/{courseId}/{lessonId}", settings);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/practice-lesson/{courseId}/{lessonId}");
+            var response = await httpClient.PostAsJsonAsync(url, stats);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Lesson>()
                 ?? throw new InvalidOperationException("Failed to deserialize lesson");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Console.WriteLine(e);
-            throw;
+            logger.Error(ex, "Failed to get practice lesson");
+            return null;
         }
     }
 }

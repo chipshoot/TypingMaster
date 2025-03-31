@@ -1,33 +1,40 @@
 using System.Net.Http.Json;
-using TypingMaster.Client.Models;
 using TypingMaster.Core.Models;
-using AuthResponse = TypingMaster.Client.Models.AuthResponse;
 
 namespace TypingMaster.Client.Services;
 
-public class AuthWebService : IAuthWebService
+public class AuthWebService(HttpClient httpClient,
+    IApiConfiguration apiConfig,
+    IAccountWebService accountService,
+    ICourseWebService courseService,
+    ApplicationContext appState,
+    Serilog.ILogger logger) : IAuthWebService
 {
-    private readonly HttpClient _httpClient;
-    private readonly IApiConfiguration _apiConfig;
     private const string BaseUrl = "api/auth";
-
-    public AuthWebService(HttpClient httpClient, IApiConfiguration apiConfig)
-    {
-        _httpClient = httpClient;
-        _apiConfig = apiConfig;
-    }
 
     public async Task<AuthResponse> LoginAsync(string email, string password)
     {
         try
         {
             var loginRequest = new { Email = email, Password = password };
-            var url = _apiConfig.BuildApiUrl($"{BaseUrl}/login");
-            var response = await _httpClient.PostAsJsonAsync(url, loginRequest);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/login");
+            var response = await httpClient.PostAsJsonAsync(url, loginRequest);
 
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<AuthResponse>()
+            var authResponse =  await response.Content.ReadFromJsonAsync<AuthResponse>()
                    ?? new AuthResponse { Success = false, Message = "Failed to deserialize response" };
+            if (authResponse.Success)
+            {
+                var authResult= await AuthenticateUserAsync(authResponse);
+                if (!authResult.Success)
+                {
+                    authResponse.Success = false;
+                    authResponse.Message = authResult.Message;
+                    authResult.StatusCode = authResult.StatusCode;
+                }
+            }
+
+            return authResponse;
         }
         catch (Exception ex)
         {
@@ -44,8 +51,8 @@ public class AuthWebService : IAuthWebService
         try
         {
             var logoutRequest = new { AccountId = accountId, RefreshToken = refreshToken ?? string.Empty };
-            var url = _apiConfig.BuildApiUrl($"{BaseUrl}/logout");
-            var response = await _httpClient.PostAsJsonAsync(url, logoutRequest);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/logout");
+            var response = await httpClient.PostAsJsonAsync(url, logoutRequest);
 
             return new WebServiceResponse
             {
@@ -69,8 +76,8 @@ public class AuthWebService : IAuthWebService
     {
         try
         {
-            var url = _apiConfig.BuildApiUrl($"{BaseUrl}/register");
-            var response = await _httpClient.PostAsJsonAsync(url, request);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/register");
+            var response = await httpClient.PostAsJsonAsync(url, request);
 
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<AuthResponse>()
@@ -91,8 +98,8 @@ public class AuthWebService : IAuthWebService
         try
         {
             var refreshRequest = new { Token = token, RefreshToken = refreshToken };
-            var url = _apiConfig.BuildApiUrl($"{BaseUrl}/refresh-token");
-            var response = await _httpClient.PostAsJsonAsync(url, refreshRequest);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/refresh-token");
+            var response = await httpClient.PostAsJsonAsync(url, refreshRequest);
 
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<AuthResponse>()
@@ -119,11 +126,11 @@ public class AuthWebService : IAuthWebService
                 NewPassword = newPassword
             };
 
-            var url = _apiConfig.BuildApiUrl($"{BaseUrl}/change-password");
-            var response = await _httpClient.PostAsJsonAsync(url, changePasswordRequest);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/change-password");
+            var response = await httpClient.PostAsJsonAsync(url, changePasswordRequest);
 
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<SuccessResponse>();
+            var result = await response.Content.ReadFromJsonAsync<WebServiceResponse>();
             return result?.Success ?? false;
         }
         catch (Exception)
@@ -137,11 +144,11 @@ public class AuthWebService : IAuthWebService
         try
         {
             var resetRequest = new { Email = email };
-            var url = _apiConfig.BuildApiUrl($"{BaseUrl}/forgot-password");
-            var response = await _httpClient.PostAsJsonAsync(url, resetRequest);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/forgot-password");
+            var response = await httpClient.PostAsJsonAsync(url, resetRequest);
 
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<SuccessResponse>();
+            var result = await response.Content.ReadFromJsonAsync<WebServiceResponse>();
             return result?.Success ?? false;
         }
         catch (Exception)
@@ -155,11 +162,11 @@ public class AuthWebService : IAuthWebService
         try
         {
             var resetPasswordRequest = new { Token = token, NewPassword = newPassword };
-            var url = _apiConfig.BuildApiUrl($"{BaseUrl}/reset-password");
-            var response = await _httpClient.PostAsJsonAsync(url, resetPasswordRequest);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/reset-password");
+            var response = await httpClient.PostAsJsonAsync(url, resetPasswordRequest);
 
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<SuccessResponse>();
+            var result = await response.Content.ReadFromJsonAsync<WebServiceResponse>();
             return result?.Success ?? false;
         }
         catch (Exception)
@@ -168,9 +175,42 @@ public class AuthWebService : IAuthWebService
         }
     }
 
-    // Helper class for simple success responses
-    private class SuccessResponse
+    public async Task<WebServiceResponse> AuthenticateUserAsync(AuthResponse authResponse)
     {
-        public bool Success { get; set; }
+        try
+        {
+            // Store the authentication token
+            appState.Token = authResponse.Token;
+            appState.RefreshToken = authResponse.RefreshToken;
+
+            // Set the account in application state
+            var account = await accountService.GetAccountAsync(authResponse.AccountId);
+            if (account == null)
+            {
+                logger.Error("Cannot retrieve user information");
+                var response = new WebServiceResponse
+                {
+                    Success = false,
+                    Message = "Error retrieving user information"
+                };
+                return response;
+            }
+            appState.CurrentAccount = account;
+
+
+            // Load course information if available
+            if (appState.CurrentAccount.CourseId != Guid.Empty)
+            {
+                appState.CurrentCourse = await courseService.GetCourse(appState.CurrentAccount.CourseId);
+            }
+
+            appState.IsLoggedIn = true;
+            return new WebServiceResponse { Success = true };
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error during authentication");
+            return new WebServiceResponse { Success = false, Message = "An error occurred during login." };
+        }
     }
 }

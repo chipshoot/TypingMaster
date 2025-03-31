@@ -1,4 +1,3 @@
-using TypingMaster.Core.Models;
 
 namespace TypingMaster.Core.Models.Courses;
 

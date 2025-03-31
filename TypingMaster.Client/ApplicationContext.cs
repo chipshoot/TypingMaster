@@ -18,7 +18,7 @@ public class ApplicationContext(
     private const string RefreshTokenKey = "RefreshToken";
     private Account? _currentAccount;
     private Guid _currentCourseId;
-    private CourseBase? _currentCourse;
+    private CourseDto? _currentCourse;
     private bool _isLoggedIn;
     private string? _token;
     private string? _refreshToken;
@@ -92,7 +92,7 @@ public class ApplicationContext(
         }
     }
 
-    public CourseBase? CurrentCourse
+    public CourseDto? CurrentCourse
     {
         get => _currentCourse;
         set

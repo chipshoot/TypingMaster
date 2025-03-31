@@ -1,75 +1,21 @@
-﻿using System.Text.Json;
-using AutoMapper;
-using TypingMaster.Business.Contract;
-using TypingMaster.Business.Models.LessonData;
+﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using Serilog;
-using TypingMaster.Core.Contract;
+using TypingMaster.Business.Contract;
+using TypingMaster.Business.Course;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
-using ICourseRepository = TypingMaster.DataAccess.Data.ICourseRepository;
+using TypingMaster.DataAccess.Dao;
+using TypingMaster.DataAccess.Data;
 
 namespace TypingMaster.Business;
 
-public class CourseService(ICourseRepository courseRepository, IMapper mapper, ILogger logger)
+public class CourseService(ICourseRepository courseRepository, IAccountRepository accountRepository, IMapper mapper, ILogger logger, IConfiguration configuration)
     : ServiceBase(logger), ICourseService
 {
+    private readonly CourseFactory _courseFactory = new CourseFactory(logger);
     public static Guid CourseId1 = new("AB7E8988-4E54-435F-9DC3-25D3193EC378");
-    public static Guid AllKeyTestCourseId = new("B326B0D9-F44C-4206-BE3B-301824817EEA");
 
-    private readonly IMapper _mapper = mapper;
-    private readonly List<ICourse> _courses = [];
-    private BeginnerCourseLessonData? _beginnerCourseLessonData;
-
-    //var course = new AdvancedLevelCourse()
-    //{
-    //    Id = CourseId1,
-    //    Lessons =
-    //        [
-    //            new Lesson
-    //            {
-    //                Id = 1,
-    //                PracticeText = "This is the introductory material for typing.",
-    //                Point = 1,
-    //                Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
-    //            },
-    //            new Lesson
-    //            {
-    //                Id = 2,
-    //                PracticeText = "This is the introductory beginner material for typing.",
-    //                Point = 1,
-    //                Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
-    //            },
-    //            new Lesson
-    //            {
-    //                Id = 3,
-    //                PracticeText = "This is the introductory Novice material for typing.",
-    //                Point = 2,
-    //                Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
-    //            },
-    //            new Lesson
-    //            {
-    //                Id = 4,
-    //                PracticeText = "This is the introductory Intermediate material for typing.",
-    //                Point = 3,
-    //                Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
-    //            },
-    //            new Lesson
-    //            {
-    //                Id = 5,
-    //                PracticeText = "This is the introductory Advanced material for typing.",
-    //                Point = 4,
-    //                Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
-    //            },
-    //            new Lesson
-    //            {
-    //                Id = 6,
-    //                PracticeText = "This is the introductory Expert material for typing.",
-    //                Point = 5,
-    //                Description = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level."
-    //            },
-    //        ]
-    //};
-    //_courses.Add(course);
     // todo: create a new way to get speed test course
     // todo: move the text to a JSON data file
     //course = new AdvancedLevelCourse()
@@ -123,116 +69,150 @@ public class CourseService(ICourseRepository courseRepository, IMapper mapper, I
     //};
     //_courses.Add(course);
 
-    private BeginnerCourseLessonData LoadLessonData(ICourse course)
+    public async Task<CourseDto?> GetCourse(Guid id)
     {
-        if (_beginnerCourseLessonData != null)
-        {
-            return _beginnerCourseLessonData;
-        }
-
         try
         {
-            // Resolve the path relative to the executing assembly's location
-            var assemblyLocation = Path.GetDirectoryName(typeof(CourseService).Assembly.Location);
-            var fullPath = Path.Combine(assemblyLocation!, course.LessonDataUrl);
-
-            if (!File.Exists(fullPath))
-            {
-                throw new FileNotFoundException($"Lesson data file not found at: {fullPath}");
-            }
-
-            var jsonString = File.ReadAllText(fullPath);
-            _beginnerCourseLessonData = JsonSerializer.Deserialize<BeginnerCourseLessonData>(jsonString);
-
-            if (_beginnerCourseLessonData == null)
-            {
-                throw new InvalidOperationException("Failed to deserialize lesson data");
-            }
-
-            return _beginnerCourseLessonData;
+            var courseDao = await courseRepository.GetCourseByIdAsync(id);
+            var course = mapper.Map<CourseDto>(courseDao);
+            return course;
         }
         catch (Exception ex)
         {
             ProcessResult.AddException(ex);
+            return null;
+        }
+    }
+
+    public async Task<CourseDto?> GetAllKeysCourse(Guid id)
+    {
+        try
+        {
+            var courseDaos = await (courseRepository.GetCoursesByTypeAsync(TrainingType.AllKeysTest));
+            var courseDao = courseDaos.FirstOrDefault(c => c.Id == id);
+            if (courseDao != null)
+            {
+                var course = mapper.Map<CourseDto>(courseDao);
+                return course;
+            }
+
+            ProcessResult.AddError($"Course with ID {id} not found");
+            return null;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
             throw;
         }
     }
 
-    public Task<ICourse?> GetCourse(Guid id)
+    public async Task<CourseDto?> CreateCourse(CourseDto courseDto)
     {
-        var course = _courses.FirstOrDefault(c => c.Id == id);
-        return Task.FromResult<ICourse>(course);
-    }
-
-    public Task<ICourse?> GetAllKeysCourse(Guid? id)
-    {
-        var course = id == null ? _courses.FirstOrDefault(c => c.Type == TrainingType.AllKeysTest) : _courses.FirstOrDefault(c => c.Type == TrainingType.AllKeysTest && c.Id == id);
-
-        return Task.FromResult<ICourse>(course);
-    }
-
-    public Task<ICourse> GenerateBeginnerCourse(CourseSetting settings)
-    {
-        var course = new BeginnerCourse
+        // Validate courseDto is not null
+        if (courseDto == null)
         {
-            Id = Guid.NewGuid(),
-            Name = "Beginner Typing Course",
-            Settings = settings,
-
-            // Get complete text by combining all lesson texts
-            //CompleteText = string.Join("\n\n", Lessons.Select(l => l.PracticeTexts));
-        };
-
-        course.Lessons = GenerateBeginnerCourseLessons(course);
-        return Task.FromResult<ICourse>(course);
-    }
-
-    public async Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, CourseSetting settings)
-    {
-        if (settings.TargetStats == null)
-        {
-            ProcessResult.AddError($"Course target stats cannot found");
+            ProcessResult.AddError("Course data cannot be null");
             return null;
         }
 
         try
         {
-            // get course information
-            var courseDao = await courseRepository.GetCourseByIdAsync(courseId);
-            if (courseDao == null)
+            // Validate that Account exists in system
+            // Using dependency injection, we'd need an IAccountService, but it would cause circular dependency
+            // So we'll need to use ICourseRepository to verify AccountId directly
+            var account = await accountRepository.GetAccountByIdAsync(courseDto.AccountId);
+            if (account == null)
             {
-                ProcessResult.AddError($"Course: {courseId} not found");
+                ProcessResult.AddError($"Account with ID {courseDto.AccountId} not found");
                 return null;
             }
 
-            var userCourse = _mapper.Map<ICourse>(courseDao);
-            ICourse course;
-            switch (userCourse.Type)
+            // Validate that course ID is unique, ensuring we don't overwrite existing courses
+            if (courseDto.Id == Guid.Empty)
             {
-                case Core.Models.TrainingType.Course:
-                    course = new BeginnerCourse();
-                    break;
-
-                case Core.Models.TrainingType.AllKeysTest:
-                    course = new AdvancedLevelCourse();
-                    break;
-
-                case Core.Models.TrainingType.SpeedTest:
-                case Core.Models.TrainingType.Game:
-                default:
-                    ProcessResult.AddError($"Course type {userCourse.Type} not support");
-                    course = null;
-                    break;
+                // Generate a new ID if not provided
+                courseDto.Id = Guid.NewGuid();
+            }
+            else
+            {
+                // Check if the ID already exists
+                var existingCourse = await courseRepository.GetCourseByIdAsync(courseDto.Id);
+                if (existingCourse != null)
+                {
+                    ProcessResult.AddError($"A course with ID {courseDto.Id} already exists");
+                    return null;
+                }
             }
 
-            var lesson = course?.GetPracticeLesson(lessonId, settings.TargetStats);
-            return lesson;
+            // Validate that the course has a valid type
+            if (!Enum.IsDefined(typeof(TrainingType), courseDto.Type))
+            {
+                ProcessResult.AddError($"Invalid training type: {courseDto.Type}");
+                return null;
+            }
+
+            // Validate that settings is not null
+            if (courseDto.Settings == null)
+            {
+                ProcessResult.AddError("Course settings cannot be null");
+                return null;
+            }
+
+            // Additional validations for required fields
+            if (string.IsNullOrWhiteSpace(courseDto.Name))
+            {
+                ProcessResult.AddError("Course name is required");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(courseDto.LessonDataUrl))
+            {
+                var defaultUrl = GetDefaultLessonDataUrl(courseDto.Type, courseDto.Name);
+                if (string.IsNullOrWhiteSpace(defaultUrl))
+                {
+                    ProcessResult.AddError($"No default lesson data URL found for course type: {courseDto.Type} and name: {courseDto.Name}");
+                    return null;
+                }
+                courseDto.LessonDataUrl = defaultUrl;
+            }
+
+            if (courseDto.Lessons == null || !courseDto.Lessons.Any())
+            {
+                // Initialize with empty lesson collection if none provided
+                courseDto.Lessons = new List<Lesson>();
+            }
+
+            // Map the DTO to DAO and save it
+            var courseDao = mapper.Map<CourseDao>(courseDto);
+            var createdCourseDao = await courseRepository.CreateCourseAsync(courseDao);
+
+            // Map back to DTO and return
+            var createdCourseDto = mapper.Map<CourseDto>(createdCourseDao);
+
+            ProcessResult.AddSuccess();
+            return createdCourseDto;
         }
         catch (Exception ex)
         {
             ProcessResult.AddException(ex);
             return null;
         }
+    }
+
+    public Task<CourseDto> GenerateBeginnerCourse(CourseSetting settings)
+    {
+        var course = new CourseDto
+        {
+            Id = Guid.NewGuid(),
+            Name = "BeginnerCourse",
+            Settings = settings,
+            Lessons = new List<Lesson>(),
+            Type = TrainingType.Course,
+            LessonDataUrl = string.Empty,
+            Description = "This is a beginner course for new typists"
+        };
+
+        return Task.FromResult(course);
     }
 
     public Task<DrillStats> GenerateStartStats()
@@ -252,39 +232,97 @@ public class CourseService(ICourseRepository courseRepository, IMapper mapper, I
         return Task.FromResult(stats);
     }
 
-    private IEnumerable<Lesson> GenerateBeginnerCourseLessons(ICourse course)
+    public async Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats)
     {
+        if (stats == null)
+        {
+            ProcessResult.AddError($"Current stats cannot found");
+            return null;
+        }
+
         try
         {
-            var lessonData = LoadLessonData(course);
-            var lessons = new List<Lesson>();
-
-            foreach (var lessonInfo in lessonData.Lessons)
+            // get course information
+            var courseDao = await courseRepository.GetCourseByIdAsync(courseId);
+            if (courseDao == null)
             {
-                var lesson = new Lesson
-                {
-                    Id = lessonInfo.Id,
-                    Target = lessonInfo.Target.ToList(),
-                    Description = lessonInfo.Description,
-                    Point = lessonInfo.Point
-                };
-
-                // Build instruction from instruction keys and parameters
-                if (lessonInfo.InstructionKey != null)
-                {
-                    var instruction = lessonData.LessonInstructions[lessonInfo.InstructionKey];
-                    lesson.Instruction = instruction.Instruction;
-                }
-
-                lessons.Add(lesson);
+                ProcessResult.AddError($"Course: {courseId} not found");
+                return null;
             }
 
-            return lessons;
+            var courseDto = mapper.Map<CourseDto>(courseDao);
+
+            // Use the factory to create and initialize the appropriate course instance
+            var course = _courseFactory.GetInitializedCourse(courseDto);
+            if (course == null)
+            {
+                ProcessResult.AddError($"Unsupported course type: {courseDto.Type} with name: {courseDto.Name}");
+                return null;
+            }
+
+            // Process the course with the provided function
+            course.GetPracticeLesson(lessonId, stats);
         }
         catch (Exception ex)
         {
             ProcessResult.AddException(ex);
-            return new List<Lesson>();
+            return null;
+        }
+        return await ProcessCourse(courseId, stats, (course, targetStats) => course.GetPracticeLesson(lessonId, targetStats));
+    }
+
+    // Helper method to get default lesson data URL based on course type and name
+    private string GetDefaultLessonDataUrl(TrainingType type, string name)
+    {
+        var defaultUrlsSection = configuration.GetSection("CourseSettings:DefaultLessonUrls");
+        
+        // Try to get the URL based on the course name first
+        var url = defaultUrlsSection[name];
+        
+        // If not found, use a fallback approach based on type
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            url = (type, name) switch
+            {
+                (TrainingType.Course, "BeginnerCourse") => "Resources/LessonData/beginner-course-lessons.json",
+                (TrainingType.Course, "AdvancedLevelCourse") => "Resources/LessonData/advanced-level-course-lessons.json",
+                (TrainingType.AllKeysTest,"AllKeysTest" ) => "Resources/LessonData/all-keys-test-course-lessons.json",
+                _ => string.Empty
+            };
+        }
+
+        return url;
+    }
+
+    private async Task<T?> ProcessCourse<T>(Guid courseId, StatsBase stats, Func<ICourse, StatsBase, T?> processFunc)
+    {
+        try
+        {
+            // get course information
+            var courseDao = await courseRepository.GetCourseByIdAsync(courseId);
+            if (courseDao == null)
+            {
+                ProcessResult.AddError($"Course: {courseId} not found");
+                return default;
+            }
+
+            var courseDto = mapper.Map<CourseDto>(courseDao);
+
+            // Use the factory to create and initialize the appropriate course instance
+            var course = _courseFactory.GetInitializedCourse(courseDto);
+            if (course == null)
+            {
+                ProcessResult.AddError($"Unsupported course type: {courseDto.Type} with name: {courseDto.Name}");
+                return default;
+            }
+
+            // Process the course with the provided function
+            return processFunc(course, stats);
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return default;
         }
     }
 }

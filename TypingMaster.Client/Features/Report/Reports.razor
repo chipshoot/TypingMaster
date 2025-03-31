@@ -1,6 +1,6 @@
 ﻿@page "/reports"
 
-@inject ApplicationContext Context
+@inject ApplicationContext AppState
 @inject IReportWebService ReportService
 
 <style>
@@ -50,22 +50,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (Context?.CurrentAccount?.History == null)
+        if (AppState?.CurrentAccount?.History == null)
         {
             return;
         }
 
-        _keys ??= await ReportService.GetKeyLabels(Context.CurrentAccount.History);
-        _keyStats ??= await ReportService.GetKeyStats(Context.CurrentAccount.History, false);
+        _keys ??= await ReportService.GetKeyLabels(AppState.CurrentAccount.History);
+        _keyStats ??= await ReportService.GetKeyStats(AppState.CurrentAccount.History, false);
 
         _courseProgress = (await ReportService.GetProgressRecords(
-            Context.CurrentAccount.History,
-            Context.CurrentCourse,
+            AppState.CurrentAccount.History,
+            AppState.CurrentCourse,
             TrainingType.Course)).ToList();
 
         _testProgress = (await ReportService.GetProgressRecords(
-            Context.CurrentAccount.History,
-            Context.CurrentCourse,
+            AppState.CurrentAccount.History,
+            AppState.CurrentCourse,
             TrainingType.AllKeysTest)).ToList();
     }
 

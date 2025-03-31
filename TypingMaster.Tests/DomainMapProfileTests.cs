@@ -345,122 +345,6 @@ namespace TypingMaster.Tests
         }
 
         [Fact]
-        public void CourseDao_To_CourseBase_MapsCorrectly()
-        {
-            // Arrange
-            var courseDao = new CourseDao
-            {
-                Id = Guid.NewGuid(),
-                AccountId = 1,
-                Name = "BeginnerCourse",
-                Type = "0", // TrainingType.Course
-                SettingsJson = new CourseSettingDao
-                {
-                    Minutes = 30,
-                    NewKeysPerStep = 1,
-                    PracticeTextLength = 50,
-                    TargetStats = new StatsDao
-                    {
-                        Wpm = 50,
-                        Accuracy = 90
-                    }
-                }
-            };
-
-            // Act
-            var courseBase = _mapper.Map(courseDao, typeof(CourseDao), GetCourseTypeFromName(courseDao.Name));
-
-            // Assert
-            Assert.NotNull(courseBase);
-            Assert.IsType<BeginnerCourse>(courseBase);
-            var course = (BeginnerCourse)courseBase;
-            Assert.Equal(courseDao.Id, course.Id);
-            Assert.Equal(courseDao.Name, course.Name);
-            Assert.Equal(TrainingType.Course, course.Type);
-
-            // Test Settings mapping
-            Assert.NotNull(course.Settings);
-            Assert.Equal(courseDao.SettingsJson.Minutes, course.Settings.Minutes);
-            Assert.Equal(courseDao.SettingsJson.NewKeysPerStep, course.Settings.NewKeysPerStep);
-            Assert.Equal(courseDao.SettingsJson.PracticeTextLength, course.Settings.PracticeTextLength);
-            Assert.NotNull(course.Settings.TargetStats);
-            Assert.Equal(courseDao.SettingsJson.TargetStats.Wpm, course.Settings.TargetStats.Wpm);
-            Assert.Equal(courseDao.SettingsJson.TargetStats.Accuracy, course.Settings.TargetStats.Accuracy);
-        }
-
-        private Type GetCourseTypeFromName(string name)
-        {
-            return name switch
-            {
-                "BeginnerCourse" => typeof(BeginnerCourse),
-                "AdvancedLevelCourse" => typeof(AdvancedLevelCourse),
-                _ => typeof(AdvancedLevelCourse) // Default to AdvancedLevelCourse if name doesn't match
-            };
-        }
-
-        [Fact]
-        public void CourseBase_To_CourseDao_MapsCorrectly()
-        {
-            // Arrange
-            var course = new AdvancedLevelCourse
-            {
-                Id = Guid.NewGuid(),
-                Name = "AdvancedLevelCourse",
-                Settings = new CourseSetting
-                {
-                    Minutes = 30,
-                    NewKeysPerStep = 1,
-                    PracticeTextLength = 50,
-                    TargetStats = new StatsBase
-                    {
-                        Wpm = 50,
-                        Accuracy = 90
-                    }
-                }
-            };
-
-            // Act
-            var courseDao = _mapper.Map<CourseDao>(course);
-
-            // Assert
-            Assert.NotNull(courseDao);
-            Assert.Equal(course.Id, courseDao.Id);
-            Assert.Equal(course.Name, courseDao.Name);
-            Assert.Equal(((int)course.Type).ToString(), courseDao.Type);
-
-            // Test Settings mapping
-            Assert.NotNull(courseDao.SettingsJson);
-            Assert.Equal(course.Settings.Minutes, courseDao.SettingsJson.Minutes);
-            Assert.Equal(course.Settings.NewKeysPerStep, courseDao.SettingsJson.NewKeysPerStep);
-            Assert.Equal(course.Settings.PracticeTextLength, courseDao.SettingsJson.PracticeTextLength);
-            Assert.NotNull(courseDao.SettingsJson.TargetStats);
-            Assert.Equal(course.Settings.TargetStats.Wpm, courseDao.SettingsJson.TargetStats.Wpm);
-            Assert.Equal(course.Settings.TargetStats.Accuracy, courseDao.SettingsJson.TargetStats.Accuracy);
-        }
-
-        [Fact]
-        public void CourseBase_To_CourseDao_HandlesNullSettings()
-        {
-            // Arrange
-            var course = new AdvancedLevelCourse
-            {
-                Id = Guid.NewGuid(),
-                Name = "AdvancedLevelCourse",
-                Settings = null!
-            };
-
-            // Act
-            var courseDao = _mapper.Map<CourseDao>(course);
-
-            // Assert
-            Assert.NotNull(courseDao);
-            Assert.Equal(course.Id, courseDao.Id);
-            Assert.Equal(course.Name, courseDao.Name);
-            Assert.Equal(((int)course.Type).ToString(), courseDao.Type);
-            Assert.Null(courseDao.SettingsJson);
-        }
-
-        [Fact]
         public void KeyEventDao_To_KeyEvent_MapsCorrectly()
         {
             // Arrange
@@ -1021,21 +905,18 @@ namespace TypingMaster.Tests
             Assert.Equal(account.GameCourseId, gameCourse.Id);
         }
 
-        [Theory]
-        [InlineData("BeginnerCourse", typeof(BeginnerCourse))]
-        [InlineData("AdvancedLevelCourse", typeof(AdvancedLevelCourse))]
-        [InlineData("UnknownCourse", typeof(AdvancedLevelCourse))] // Should default to AdvancedLevelCourse
-        public void CourseDao_Maps_To_Correct_CourseType_Based_On_Name(string courseName, Type expectedType)
+        [Fact]
+        public void CourseDao_To_CourseDto_MapsCorrectly()
         {
             // Arrange
             var courseDao = new CourseDao
             {
                 Id = Guid.NewGuid(),
                 AccountId = 1,
-                Name = courseName,
+                Name = "Test Course",
                 Type = "0", // TrainingType.Course
-                Description = "Test course description",
                 LessonDataUrl = "https://example.com/lesson-data",
+                Description = "A test course description",
                 SettingsJson = new CourseSettingDao
                 {
                     Minutes = 30,
@@ -1050,29 +931,72 @@ namespace TypingMaster.Tests
             };
 
             // Act
-            var courseBase = _mapper.Map<CourseBase>(courseDao);
+            var courseDto = _mapper.Map<CourseDto>(courseDao);
 
             // Assert
-            Assert.NotNull(courseBase);
-            Assert.IsType(expectedType, courseBase);
+            Assert.NotNull(courseDto);
+            Assert.Equal(courseDao.Id, courseDto.Id);
+            Assert.Equal(courseDao.AccountId, courseDto.AccountId);
+            Assert.Equal(courseDao.Name, courseDto.Name);
+            Assert.Equal(TrainingType.Course, courseDto.Type);
+            Assert.Equal(courseDao.LessonDataUrl, courseDto.LessonDataUrl);
+            Assert.Equal(courseDao.Description, courseDto.Description);
 
-            // Verify common properties are mapped correctly
-            Assert.Equal(courseDao.Id, courseBase.Id);
-            Assert.Equal(courseDao.Name, courseBase.Name);
-            Assert.Equal(courseDao.Description, courseBase.Description);
-            Assert.Equal(courseDao.LessonDataUrl, courseBase.LessonDataUrl);
-            Assert.Equal(TrainingType.Course, courseBase.Type); // Verify Type is mapped as enum
+            // Test Settings mapping
+            Assert.NotNull(courseDto.Settings);
+            Assert.Equal(courseDao.SettingsJson.Minutes, courseDto.Settings.Minutes);
+            Assert.Equal(courseDao.SettingsJson.NewKeysPerStep, courseDto.Settings.NewKeysPerStep);
+            Assert.Equal(courseDao.SettingsJson.PracticeTextLength, courseDto.Settings.PracticeTextLength);
+            Assert.NotNull(courseDto.Settings.TargetStats);
+            Assert.Equal(courseDao.SettingsJson.TargetStats.Wpm, courseDto.Settings.TargetStats.Wpm);
+            Assert.Equal(courseDao.SettingsJson.TargetStats.Accuracy, courseDto.Settings.TargetStats.Accuracy);
+        }
 
-            // Verify settings are mapped correctly
-            Assert.NotNull(courseBase.Settings);
-            Assert.Equal(courseDao.SettingsJson.Minutes, courseBase.Settings.Minutes);
-            Assert.Equal(courseDao.SettingsJson.NewKeysPerStep, courseBase.Settings.NewKeysPerStep);
-            Assert.Equal(courseDao.SettingsJson.PracticeTextLength, courseBase.Settings.PracticeTextLength);
+        [Fact]
+        public void CourseDto_To_CourseDao_MapsCorrectly()
+        {
+            // Arrange
+            var courseDto = new CourseDto
+            {
+                Id = Guid.NewGuid(),
+                AccountId = 1,
+                Name = "Test Course",
+                Type = TrainingType.Course,
+                LessonDataUrl = "https://example.com/lesson-data",
+                Description = "A test course description",
+                Settings = new CourseSetting
+                {
+                    Minutes = 30,
+                    NewKeysPerStep = 1,
+                    PracticeTextLength = 50,
+                    TargetStats = new StatsBase
+                    {
+                        Wpm = 50,
+                        Accuracy = 90
+                    }
+                }
+            };
 
-            // Verify target stats are mapped correctly
-            Assert.NotNull(courseBase.Settings.TargetStats);
-            Assert.Equal(courseDao.SettingsJson.TargetStats.Wpm, courseBase.Settings.TargetStats.Wpm);
-            Assert.Equal(courseDao.SettingsJson.TargetStats.Accuracy, courseBase.Settings.TargetStats.Accuracy);
+            // Act
+            var courseDao = _mapper.Map<CourseDao>(courseDto);
+
+            // Assert
+            Assert.NotNull(courseDao);
+            Assert.Equal(courseDto.Id, courseDao.Id);
+            Assert.Equal(courseDto.AccountId, courseDao.AccountId);
+            Assert.Equal(courseDto.Name, courseDao.Name);
+            Assert.Equal(((int)courseDto.Type).ToString(), courseDao.Type);
+            Assert.Equal(courseDto.LessonDataUrl, courseDao.LessonDataUrl);
+            Assert.Equal(courseDto.Description, courseDao.Description);
+
+            // Test Settings mapping
+            Assert.NotNull(courseDao.SettingsJson);
+            Assert.Equal(courseDto.Settings.Minutes, courseDao.SettingsJson.Minutes);
+            Assert.Equal(courseDto.Settings.NewKeysPerStep, courseDao.SettingsJson.NewKeysPerStep);
+            Assert.Equal(courseDto.Settings.PracticeTextLength, courseDao.SettingsJson.PracticeTextLength);
+            Assert.NotNull(courseDao.SettingsJson.TargetStats);
+            Assert.Equal(courseDto.Settings.TargetStats.Wpm, courseDao.SettingsJson.TargetStats.Wpm);
+            Assert.Equal(courseDto.Settings.TargetStats.Accuracy, courseDao.SettingsJson.TargetStats.Accuracy);
         }
     }
 }

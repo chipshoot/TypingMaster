@@ -75,8 +75,7 @@ else
         _curLesson = course?.Lessons.FirstOrDefault();
         AppState.CurrentCourse = course;
         AppState.CurrentAccount.TestCourseId = course?.Id ?? Guid.Empty;
-        TypingTrainer.Account = AppState.CurrentAccount;
-        TypingTrainer.TrainingType = TrainingType.AllKeysTest;
+        TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
     }
 
     private async Task OnPracticeFinished(DrillStats stats)
@@ -99,13 +98,15 @@ else
         }
     }
 
-    private void ResetPractice()
+    private async Task ResetPractice()
     {
         if (AppState.CurrentAccount != null && AppState.CurrentAccount.History.PracticeStats.Any())
         {
             var stats = AppState.CurrentAccount.History.PracticeStats.Last();
-            _curLesson = AppState.CurrentCourse?.GetPracticeLesson(stats.LessonId, stats);
+            var courseId = AppState.CurrentAccount.TestCourseId;
+            _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
         }
+
         _practice?.HandleReset();
         StateHasChanged();
     }

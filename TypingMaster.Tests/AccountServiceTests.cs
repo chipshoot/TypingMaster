@@ -3,8 +3,8 @@ using Moq;
 using Serilog;
 using TypingMaster.Business;
 using TypingMaster.Business.Contract;
-using TypingMaster.Core.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 
@@ -516,7 +516,7 @@ namespace TypingMaster.Tests
 
             // Setup course service to return null for the invalid course ID
             _mockCourseService.Setup(cs => cs.GetCourse(invalidCourseId))
-                .ReturnsAsync((ICourse)null);
+                .ReturnsAsync((CourseDto)null);
 
             // Capture the mapped AccountDao for verification
             AccountDao capturedAccountDao = null;
@@ -598,7 +598,7 @@ namespace TypingMaster.Tests
 
             // Setup course service to return null for the invalid course ID
             _mockCourseService.Setup(cs => cs.GetCourse(invalidCourseId))
-                .ReturnsAsync((ICourse)null);
+                .ReturnsAsync((CourseDto)null);
 
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(accountId))
                 .ReturnsAsync(existingAccountDao);

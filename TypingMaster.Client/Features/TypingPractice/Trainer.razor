@@ -3,7 +3,7 @@
 @inject ILogger Logger
 @inject ICourseWebService CourseService
 @inject ITypingTrainer TypingTrainer
-@inject ApplicationContext Context
+@inject ApplicationContext AppState
 
 <Card class="mt-3">
     <HeaderTemplate>
@@ -23,9 +23,9 @@
     </HeaderTemplate>
     <BodyTemplate>
         <Practice CurrentLesson="@_curLesson"
-                  TrainingType="@TrainingType.Course"
-                  OnTypingCompleted="OnPracticeFinished"
-                  @ref="@_practice">
+        TrainingType="@TrainingType.Course"
+        OnTypingCompleted="OnPracticeFinished"
+        @ref="@_practice">
         </Practice>
     </BodyTemplate>
 </Card>
@@ -35,53 +35,68 @@
     private bool _isCompleted;
     private Lesson? _curLesson;
 
-    private IList<DrillStats> StatsList => Context.CurrentAccount?.History.PracticeStats.ToList() ?? [];
+    private IList<DrillStats> StatsList => AppState.CurrentAccount?.History.PracticeStats.ToList() ?? [];
 
 
     protected override async Task OnInitializedAsync()
     {
-        if (Context.CurrentAccount == null)
+        if (AppState.CurrentAccount == null)
         {
             return;
         }
 
-        var stats = Context.CurrentAccount.History.PracticeStats.LastOrDefault() ?? await CourseService.GenerateStartStats();
-        _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats.LessonId, stats);
-        TypingTrainer.Account = Context.CurrentAccount;
-        TypingTrainer.TrainingType = TrainingType.Course;
+        var stats = AppState.CurrentAccount.History.PracticeStats.LastOrDefault() ?? await CourseService.GenerateStartStats();
+        if (AppState.CurrentCourse != null)
+        {
+            var courseId = AppState.CurrentCourse.Id;
+            _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
+            TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
+
+            StateHasChanged();
+        }
+        else
+        {
+            Logger.Error("Cannot find current course");
+        }
     }
 
     private async Task OnPracticeFinished(DrillStats stats)
     {
-        if (Context.CurrentAccount == null || Context.CurrentCourse == null)
+        if (AppState.CurrentAccount == null || AppState.CurrentCourse == null)
         {
             return;
         }
 
-        stats.CourseId = Context.CurrentAccount.CourseId;
+        stats.CourseId = AppState.CurrentAccount.CourseId;
         TypingTrainer?.CheckPracticeResult(stats);
-        if (!Context.CurrentCourse.IsCompleted(stats.LessonId, stats))
+        var courseId = AppState.CurrentAccount.CourseId;
+        var nextLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
+        if (nextLesson != null)
         {
-            _curLesson = Context.CurrentCourse.GetPracticeLesson(stats.LessonId, stats);
-            _isCompleted = false;
-        }
-        else
-        {
-            _curLesson = null;
-            _isCompleted = true;
+            if (!nextLesson.IsCourseComplete)
+            {
+                _curLesson = nextLesson;
+                _isCompleted = false;
+            }
+            else
+            {
+                _curLesson = null;
+                _isCompleted = true;
+            }
         }
 
         Logger.Debug($"DrillStats: {JsonSerializer.Serialize(stats)}");
         _practice?.HandleReset(_isCompleted);
     }
 
-    private void ResetPractice()
+    private async Task ResetPractice()
     {
-        if (Context.CurrentAccount != null && Context.CurrentAccount.History.PracticeStats.Any())
+        if (AppState.CurrentAccount != null && AppState.CurrentAccount.History.PracticeStats.Any())
         {
-            var stats = Context.CurrentAccount.History.PracticeStats.Last();
+            var stats = AppState.CurrentAccount.History.PracticeStats.Last();
             _practice?.HandleReset();
-            _curLesson = Context.CurrentCourse?.GetPracticeLesson(stats.LessonId, stats);
+            var courseId = AppState.CurrentAccount.CourseId;
+            _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
             StateHasChanged();
         }
     }

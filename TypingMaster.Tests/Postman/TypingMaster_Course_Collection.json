@@ -7,6 +7,28 @@
   },
   "item": [
     {
+      "name": "Create Course",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"Id\": \"F87309FC-6E7B-4B25-B407-FF25975A86E3\",\n    \"accountId\": 8,\n    \"name\": \"BeginnerCourse\",\n    \"type\": 0,\n    \"lessonDataUrl\": \"\",\n    \"lessons\": [],\n    \"settings\": {\n        \"minutes\": 30,\n        \"targetStats\": {\n            \"wpm\": 50,\n            \"accuracy\": 95.5\n        },\n        \"newKeysPerStep\": 5,\n        \"practiceTextLength\": 1000\n    },\n    \"description\": \"A test course for typing practice\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/course",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course"]
+        },
+        "description": "Create a new course with specified details"
+      }
+    },
+    {
       "name": "Get Course by ID",
       "request": {
         "method": "GET",

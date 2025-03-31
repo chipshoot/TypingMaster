@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TypingMaster.Business.Contract;
-using TypingMaster.Core.Contract;
+using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Server.Controllers
@@ -20,8 +20,8 @@ namespace TypingMaster.Server.Controllers
             return Ok(course);
         }
 
-        [HttpGet("all-keys/{id?}")]
-        public async Task<ActionResult<ICourse>> GetAllKeysCourse(Guid? id)
+        [HttpGet("all-keys/{id}")]
+        public async Task<ActionResult<ICourse>> GetAllKeysCourse(Guid id)
         {
             var course = await courseService.GetAllKeysCourse(id);
             if (course == null)
@@ -30,6 +30,25 @@ namespace TypingMaster.Server.Controllers
             }
             return Ok(course);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<CourseDto>> CreateCourse([FromBody] CourseDto courseDto)
+        {
+            if (courseDto == null)
+            {
+                return BadRequest("Course data is required");
+            }
+
+            // Assuming we need to add a method to ICourseService for creating courses
+            var createdCourse = await courseService.CreateCourse(courseDto);
+            if (createdCourse == null)
+            {
+                return BadRequest("Failed to create the course");
+            }
+
+            return CreatedAtAction(nameof(GetCourse), new { id = createdCourse.Id }, createdCourse);
+        }
+
 
         [HttpPost("beginner")]
         public async Task<ActionResult<CourseDto>> GenerateBeginnerCourse([FromBody] CourseSetting settings)
@@ -46,9 +65,9 @@ namespace TypingMaster.Server.Controllers
         }
 
         [HttpPost("practice-lesson/{courseId}/{lessonId}")]
-        public async Task<ActionResult<Lesson>> GetPracticeLesson(Guid courseId, int lessonId, [FromBody] CourseSetting settings)
+        public async Task<ActionResult<Lesson>> GetPracticeLesson(Guid courseId, int lessonId, [FromBody] StatsBase stats)
         {
-            var lesson = await courseService.GetPracticeLesson(courseId, lessonId, settings);
+            var lesson = await courseService.GetPracticeLesson(courseId, lessonId, stats);
             if (lesson == null)
             {
                 return NotFound();

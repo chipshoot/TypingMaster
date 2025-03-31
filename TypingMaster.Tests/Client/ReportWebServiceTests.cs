@@ -144,7 +144,7 @@ namespace TypingMaster.Tests.Client
                 }
             };
 
-            var course = new TestCourse
+            var course = new CourseDto
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Course"
@@ -161,22 +161,6 @@ namespace TypingMaster.Tests.Client
             Assert.Equal("Test Course", record.Name);
             Assert.Equal(95.0, record.OverallAccuracy);
             Assert.Equal(60, record.OverallSpeed);
-        }
-
-        // Helper test class
-        private class TestCourse : CourseBase
-        {
-            public Guid Id { get; set; }
-            public string Name { get; set; }
-            public override Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool IsCompleted(int curLessonId, StatsBase stats)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

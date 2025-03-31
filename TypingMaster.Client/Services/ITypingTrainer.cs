@@ -1,12 +1,13 @@
 ﻿using TypingMaster.Core.Models;
+using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Client.Services
 {
     public interface ITypingTrainer
     {
-        Account? Account { get; set; }
+        Account? Account { get; }
 
-        TrainingType TrainingType { get; set; }
+        void SetupTrainer(Account account, CourseDto course);
 
         void CheckPracticeResult(DrillStats stats);
 

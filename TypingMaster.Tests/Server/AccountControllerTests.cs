@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TypingMaster.Business.Contract;
-using TypingMaster.Business.Utility;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 using TypingMaster.Server.Controllers;
 
 namespace TypingMaster.Tests.Server

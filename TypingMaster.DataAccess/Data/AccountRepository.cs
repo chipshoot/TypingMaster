@@ -35,6 +35,7 @@ public class AccountRepository(
             var accountDao = await context.Accounts
                 .Where(a => !a.IsDeleted)
                 .Include(a => a.User)
+                .Include(a=>a.Courses)
                 .Include(a => a.History)
                 .FirstOrDefaultAsync(a => a.Id == id);
             return accountDao;

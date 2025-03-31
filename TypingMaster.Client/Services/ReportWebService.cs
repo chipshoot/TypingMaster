@@ -51,7 +51,7 @@ namespace TypingMaster.Client.Services
             };
         }
 
-        public async Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseBase course, TrainingType type)
+        public async Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseDto course, TrainingType type)
         {
             if (history?.PracticeStats == null || course == null)
                 return Array.Empty<ProgressRecord>();

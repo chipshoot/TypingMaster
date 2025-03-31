@@ -1,6 +1,4 @@
-using TypingMaster.Client.Models;
 using TypingMaster.Core.Models;
-using AuthResponse = TypingMaster.Client.Models.AuthResponse;
 
 namespace TypingMaster.Client.Services
 {
@@ -19,5 +17,12 @@ namespace TypingMaster.Client.Services
         Task<bool> RequestPasswordResetAsync(string email);
 
         Task<bool> ResetPasswordAsync(string token, string newPassword);
+
+        /// <summary>
+        /// Authenticates a user and updates application state with user information
+        /// </summary>
+        /// <param name="authResponse">Response of authentication</param>
+        /// <returns>Tuple containing success status and error message if applicable</returns>
+        Task<WebServiceResponse> AuthenticateUserAsync(AuthResponse authResponse);
     }
 }

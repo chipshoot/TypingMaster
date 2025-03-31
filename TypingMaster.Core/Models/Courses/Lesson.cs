@@ -11,6 +11,8 @@ public class Lesson
 
     public string PracticeText { get; set; } = null!;
 
+    public bool IsCourseComplete { get; set; } = false;
+
     /// <summary>
     /// The point that measure the difficulty of the lesson
     /// </summary>

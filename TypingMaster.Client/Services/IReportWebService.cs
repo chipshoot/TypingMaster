@@ -27,6 +27,6 @@ namespace TypingMaster.Client.Services
         /// <param name="course">The course to get progress records for</param>
         /// <param name="type">The training type to filter progress records by</param>
         /// <returns>A collection of progress records</returns>
-        Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseBase course, TrainingType type);
+        Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseDto course, TrainingType type);
     }
 }

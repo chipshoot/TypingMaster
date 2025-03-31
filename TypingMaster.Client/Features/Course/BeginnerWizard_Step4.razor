@@ -1,5 +1,6 @@
 ﻿@inject ApplicationContext AppState
 @inject ICourseWebService CourseService
+@inject IAccountWebService AccountService
 @inject IApiConfiguration ApiConfig
 @inject NavigationManager Navigation
 @inject HttpClient HttpClient
@@ -108,11 +109,24 @@
         try
         {
             var course = await CourseService.GenerateBeginnerCourse(SettingResult);
-            AppState.CurrentCourse = course;
-            AppState.CurrentAccount.CourseId = course.Id;
-            AppState.CurrentAccount.History.CurrentCourseId = course.Id;
-            AppState.CurrentAccount.History.CurrentLessonId = 1;
-            AppState.CurrentAccount.GoalStats = SettingResult.TargetStats;
+            if (course != null)
+            {
+                if (course.Lessons == null)
+                {
+                    course.Lessons = new List<Lesson>();
+                }
+                AppState.CurrentCourse = course;
+
+                var account = AppState.CurrentAccount;
+                if (account != null)
+                {
+                    account.CourseId = course.Id;
+                    course.AccountId = account.Id;
+                    account.History.CurrentCourseId = course.Id;
+                    account.History.CurrentLessonId = 1;
+                    account.GoalStats = SettingResult.TargetStats;
+                }
+            }
 
             await UpdateAccount(AppState);
             Navigation.NavigateTo("/Trainer");
@@ -130,25 +144,29 @@
         {
             if (appState?.CurrentAccount == null)
             {
+                Logger.Error("Null Account Found");
                 return;
             }
 
-            var accountUrl = ApiConfig.BuildApiUrl($"api/account/{appState.CurrentAccount.Id}");
-            var response = await HttpClient.PutAsJsonAsync(accountUrl, appState.CurrentAccount);
-            if (response.IsSuccessStatusCode)
+            // save new added course to table
+            var createdCourse = await CourseService.CreateCourse(appState.CurrentCourse);
+            if (createdCourse == null)
+            {
+                Logger.Error($"Failed to create course. Details: {AppState?.CurrentCourse?.Id}");
+                return;
+            }
+
+            var updateSuccess = await AccountService.UpdateAccountAsync(appState.CurrentAccount);
+            if (updateSuccess)
             {
                 Logger.Information("Account updated successfully");
-                // Additional success handling if needed
             }
             else
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                Logger.Error($"Failed to update account: {response.StatusCode}. Details: {errorContent}");
+                Logger.Error($"Failed to update account. Details: {appState.CurrentAccount.Id}");
             }
 
-            Logger.Information(response.IsSuccessStatusCode 
-                ? "Account updated successfully" 
-                : "Failed to update account");
+            Logger.Information("Account updated successfully");
         }
         catch (Exception e)
         {
@@ -156,4 +174,5 @@
             throw;
         }
     }
+
 }

@@ -1,8 +1,8 @@
 ﻿using Serilog;
 using System.Globalization;
 using TypingMaster.Business.Contract;
-using TypingMaster.Core.Contract;
 using TypingMaster.Core.Models;
+using ICourse = TypingMaster.Business.Contract.ICourse;
 
 namespace TypingMaster.Business;
 

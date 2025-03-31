@@ -1,4 +1,7 @@
-﻿using TypingMaster.Core.Models;
+﻿using Moq;
+using Serilog;
+using TypingMaster.Business.Course;
+using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Tests
@@ -7,26 +10,33 @@ namespace TypingMaster.Tests
     {
         private const string ExpectDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
         private static readonly Guid CourseId = new Guid("1C7B4C4F-3114-43E4-B5E5-265BCDB6C5EE");
+        private readonly ILogger _logger;
+        private readonly AdvancedLevelCourse _course;
 
-        private readonly AdvancedLevelCourse _course = new()
+        public LevelIncCourseTests()
         {
-            Id = CourseId,
-            Lessons =
-            [
-                new Lesson
-                    { Id = 1, PracticeText = "Beginner Course.", Point = 1 },
-                new Lesson
-                    { Id = 2, PracticeText = "Novice Course.", Point = 2 },
-                new Lesson
-                    { Id = 3, PracticeText = "Intermediate Course.", Point = 3 },
-                new Lesson
-                    { Id = 4, PracticeText = "Advanced Course.", Point = 4 },
-                new Lesson
-                    { Id = 5, PracticeText = "Expert Course.", Point = 5 },
-                new Lesson
-                    { Id = 6, PracticeText = "Beginner Course2.", Point = 1 }
-            ]
-        };
+            var mockLogger = new Mock<ILogger>();
+            _logger = mockLogger.Object;
+            _course = new(_logger)
+            {
+                Id = CourseId,
+                Lessons =
+                [
+                    new Lesson
+                        { Id = 1, PracticeText = "Beginner Course.", Point = 1 },
+                    new Lesson
+                        { Id = 2, PracticeText = "Novice Course.", Point = 2 },
+                    new Lesson
+                        { Id = 3, PracticeText = "Intermediate Course.", Point = 3 },
+                    new Lesson
+                        { Id = 4, PracticeText = "Advanced Course.", Point = 4 },
+                    new Lesson
+                        { Id = 5, PracticeText = "Expert Course.", Point = 5 },
+                    new Lesson
+                        { Id = 6, PracticeText = "Beginner Course2.", Point = 1 }
+                ]
+            };
+        }
 
         [Theory]
         [InlineData(15, 80, SkillLevel.Beginner)]
@@ -134,7 +144,9 @@ namespace TypingMaster.Tests
             };
 
             // Act
-            var isCompleted = _course.IsCompleted(stats.LessonId, stats);
+            var nextLesson = _course.GetPracticeLesson(stats.LessonId, stats);
+            Assert.NotNull(nextLesson);
+            var isCompleted = nextLesson.IsCourseComplete;
 
             // Assert
             Assert.Equal(expectResult, isCompleted);
@@ -144,7 +156,7 @@ namespace TypingMaster.Tests
         public void CanGetDescription()
         {
             // Arrange
-            var course = new AdvancedLevelCourse();
+            var course = new AdvancedLevelCourse(_logger);
 
             // Act
             var description = course.Description;

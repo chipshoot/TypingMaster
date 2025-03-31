@@ -1,12 +1,22 @@
 ﻿@page "/"
 @using TypingMaster.Client.Features.Course
 
-@inject ApplicationContext Context
+@inject ApplicationContext AppState
+@inject NavigationManager Navigation
 
-@if (Context.IsLoggedIn)
+@if (AppState.IsLoggedIn)
 {
-    @* todo: only show this if the user has not completed the beginner plan *@
-    <BeginnerPlanWizard></BeginnerPlanWizard>
+    @if (AppState.CurrentCourse != null &&
+         AppState.CurrentAccount != null &&
+         AppState.CurrentAccount.CourseId == AppState.CurrentCourse.Id)
+    {
+        <Trainer></Trainer>
+    }
+    else
+    {
+        <BeginnerPlanWizard></BeginnerPlanWizard>
+    }
+
 }
 else
 {

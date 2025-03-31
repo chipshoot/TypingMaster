@@ -1,803 +1,635 @@
-{
-  "lessonInstructions": {
-    "homeRowIntro": {
-      "instruction": "Place your fingers on the home row keys. Left hand: A(pinky), S(ring), D(middle), F(index). Right hand: J(index), K(middle), L(ring), ;(pinky)"
-    },
-    "leftHomeKeys": {
-      "instruction": "Practice the left home row keys (A, S, D, F)"
-    },
-    "rightHomeKeys": {
-      "instruction": "Practice the right home row keys (J, K, L, ;)"
-    },
-    "allHomeKeys": {
-      "instruction": "Practice all home row keys (A, S, D, F, J, K, L, ;)"
-    },
-    "asdf": {
-      "instruction": "Lessons begin with the home keys for the left hands: 'ASDF' Place your left hand fingers over the 'A' key; ring finger over 'S'; middle finger over 'D'; and index finger over 'F'. Keep the fingers curved, relaxed and poised just over the home keys.",
-      "description": ""
-    },
-    "j": {
-      "instruction": "Use the index finger of the right hand to strike the 'J' key. ",
-      "description": ""
-    },
-    "k": {
-      "instruction": "Use the middle finger of the right hand to strike the 'K' key. ",
-      "description": ""
-    },
-    "l": {
-      "instruction": "Use the ring finger of the right hand to strike the 'L' key. ",
-      "description": ""
-    },
-    ";": {
-      "instruction": "Use the little finger of the right hand to strike the ';' key. ",
-      "description": ""
-    },
-    "rightHomeKeyBegin": {
-      "instruction": "The next lesson introduces a new home key '{0}'.",
-      "description": ""
-    },
-    "rightHomeKeysEnd": {
-      "instruction": "Remember to position your fingers over the home keys and reach from there to all other parts of the keyboard",
-      "description": ""
-    },
-    "capitalKey": {
-      "instruction": "So far, lessons have used lower case characters only. New lessons will use upper case letters as well. Upper case key letters are typed by holding down a Shift key at the same time the letter is pressed.\r\n\r\nThere are two Shift keys, one for each hand. Hold the Shift key down correct finger on the other hand.\r\n\r\nFor example, to type an upper case 'E', press the Shift key on the right side of the keyboard with the right little finger. While holding the Shift key down, press the 'E' key with the left middle finger.",
-      "description": ""
-    },
-    "e": {
-      "instruction": "Use your left middle finger to strike both the 'd' and 'e' keys.",
-      "description": ""
-    },
-    "i": {
-      "instruction": "Use your right middle finger to strike both the 'k' and 'i' keys.",
-      "description": ""
-    },
-    "r": {
-      "instruction": "Use your left index finger to reach up and strike the 'r' key.",
-      "description": ""
-    },
-    "u": {
-      "instruction": "Use your right index finger to reach up and strike the 'u' key.",
-      "description": ""
-    },
-    "t": {
-      "instruction": "Use your left index finger to reach up and strike the 't' key.",
-      "description": ""
-    },
-    "y": {
-      "instruction": "Use your right index finger to reach up and strike the 'y' key.",
-      "description": ""
-    },
-    "w": {
-      "instruction": "Use your left ring finger to reach up and strike the 'w' key.",
-      "description": ""
-    },
-    "o": {
-      "instruction": "Use your right ring finger to reach up and strike the 'o' key.",
-      "description": ""
-    },
-    "q": {
-      "instruction": "Use your left pinky finger to reach up and strike the 'q' key.",
-      "description": ""
-    },
-    "p": {
-      "instruction": "Use your right pinky finger to reach up and strike the 'p' key.",
-      "description": ""
-    },
-    "c": {
-      "instruction": "Use your left middle finger to reach down and strike the 'c' key.",
-      "description": ""
-    },
-    "n": {
-      "instruction": "Use your right index finger to reach down and strike the 'n' key.",
-      "description": ""
-    },
-    "v": {
-      "instruction": "Use your left index finger to reach down and strike the 'v' key.",
-      "description": ""
-    },
-    "m": {
-      "instruction": "Use your right index finger to reach down and strike the 'm' key.",
-      "description": ""
-    },
-    "x": {
-      "instruction": "Use your left ring finger to reach down and strike the 'x' key.",
-      "description": ""
-    },
-    ",": {
-      "instruction": "Use your right middle finger to reach down and strike the ',' key.",
-      "description": ""
-    },
-    "z": {
-      "instruction": "Use your left pinky finger to reach down and strike the 'z' key.",
-      "description": ""
-    },
-    ".": {
-      "instruction": "Use your right ring finger to reach down and strike the '.' key.",
-      "description": ""
-    },
-    "numbers": {
-      "instruction": "For numbers, use the number row at the top of the keyboard. Each finger is responsible for the number(s) directly above it from its home position.",
-      "description": ""
-    },
-    "1": {
-      "instruction": "Use your left pinky finger to reach up and strike the '1' key.",
-      "description": ""
-    },
-    "2": {
-      "instruction": "Use your left ring finger to reach up and strike the '2' key.",
-      "description": ""
-    },
-    "3": {
-      "instruction": "Use your left middle finger to reach up and strike the '3' key.",
-      "description": ""
-    },
-    "4": {
-      "instruction": "Use your left index finger to reach up and strike the '4' key.",
-      "description": ""
-    },
-    "5": {
-      "instruction": "Use your left index finger to reach up and strike the '5' key.",
-      "description": ""
-    },
-    "6": {
-      "instruction": "Use your right index finger to reach up and strike the '6' key.",
-      "description": ""
-    },
-    "7": {
-      "instruction": "Use your right index finger to reach up and strike the '7' key.",
-      "description": ""
-    },
-    "8": {
-      "instruction": "Use your right middle finger to reach up and strike the '8' key.",
-      "description": ""
-    },
-    "9": {
-      "instruction": "Use your right ring finger to reach up and strike the '9' key.",
-      "description": ""
-    },
-    "0": {
-      "instruction": "Use your right pinky finger to reach up and strike the '0' key.",
-      "description": ""
-    },
-    "!": {
-      "instruction": "To type '!', hold down the Shift key with your right pinky and press '1' with your left pinky.",
-      "description": ""
-    }
+[
+  {
+    "id": 1,
+    "target": [ "a", "s", "d", "f" ],
+    "description": "Learn the left hand home row keys",
+    "instruction": "Lessons begin with the home keys for the left hands: 'ASDF' Place your left hand fingers over the 'A' key; ring finger over 'S'; middle finger over 'D'; and index finger over 'F'. Keep the fingers curved, relaxed and poised just over the home keys.",
+    "point": 1
   },
-  "lessons": [
-    {
-      "id": 1,
-      "target": ["a", "s", "d", "f"],
-      "description": "Learn the left hand home row keys",
-      "instructionKey": "leftHomeKeys",
-      "point": 1
-    },
-    {
-      "id": 2,
-      "target": ["a", "s", "d", "f", "j"],
-      "description": "Learn the right hand home row keys",
-      "instructionKey": "j",
-      "point": 1
-    },
-    {
-      "id": 3,
-      "target": ["a", "s", "d", "f", "j", "k"],
-      "description": "Practice all home row keys together",
-      "instructionKey": "k",
-      "point": 2
-    },
-    {
-      "id": 4,
-      "target": ["a", "s", "d", "f", "j", "k", "l"],
-      "instructionKey": "l",
-      "description": "l",
-      "point": 5
-    },
-    {
-      "id": 5,
-      "target": ["a", "s", "d", "f", "j", "k", "l", ";"],
-      "instructionKey": ";",
-      "description": ";",
-      "point": 5
-    },
-    {
-      "id": 6,
-      "target": ["d", "e"],
-      "instructionKey": "e",
-      "description": "e",
-      "point": 5
-    },
-    {
-      "id": 7,
-      "target": ["k", "i"],
-      "instructionKey": "i",
-      "description": "i",
-      "point": 5
-    },
-    {
-      "id": 8,
-      "target": ["a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", ";"],
-      "instructionKey": "i",
-      "description": "keys together",
-      "point": 5
-    },
-    {
-      "id": 9,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "R",
-      "point": 5
-    },
-    {
-      "id": 10,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "U",
-      "point": 5
-    },
-    {
-      "id": 11,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "T",
-      "point": 5
-    },
-    {
-      "id": 12,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "Y",
-      "point": 5
-    },
-    {
-      "id": 13,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "W",
-      "point": 5
-    },
-    {
-      "id": 14,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "O",
-      "point": 5
-    },
-    {
-      "id": 15,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "Q",
-      "point": 5
-    },
-    {
-      "id": 16,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        ";"
-      ],
-      "instructionKey": "p",
-      "description": "P",
-      "point": 5
-    },
-    {
-      "id": 17,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        ";"
-      ],
-      "instructionKey": "c",
-      "description": "C",
-      "point": 5
-    },
-    {
-      "id": 18,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "N",
-      "point": 5
-    },
-    {
-      "id": 19,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        "v",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "V",
-      "point": 5
-    },
-    {
-      "id": 20,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        "v",
-        "m",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "M",
-      "point": 5
-    },
-    {
-      "id": 21,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        "v",
-        "m",
-        "x",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "X",
-      "point": 5
-    },
-    {
-      "id": 22,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        "v",
-        "m",
-        "x",
-        ",",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": ",",
-      "point": 5
-    },
-    {
-      "id": 23,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        "v",
-        "m",
-        "x",
-        ",",
-        "z",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": "Z",
-      "point": 5
-    },
-    {
-      "id": 24,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        "m",
-        "x",
-        ",",
-        "z",
-        ".",
-        ";"
-      ],
-      "instructionKey": "i",
-      "description": ".",
-      "point": 5
-    },
-    {
-      "id": 25,
-      "target": [
-        "a",
-        "s",
-        "d",
-        "f",
-        "j",
-        "k",
-        "l",
-        "d",
-        "e",
-        "k",
-        "i",
-        "r",
-        "u",
-        "t",
-        "y",
-        "w",
-        "o",
-        "q",
-        "p",
-        "c",
-        "n",
-        "m",
-        "x",
-        ",",
-        "x",
-        ".",
-        ";",
-        "A",
-        "S",
-        "D",
-        "F",
-        "J",
-        "K",
-        "L",
-        "D",
-        "E",
-        "K",
-        "I",
-        "R",
-        "U",
-        "T",
-        "Y",
-        "W",
-        "O",
-        "Q",
-        "P",
-        "C",
-        "N",
-        "M",
-        "X",
-        "Z"
-      ],
-      "instructionKey": "capitalKey",
-      "description": "Capital Letters",
-      "point": 5
-    },
-    {
-      "id": 26,
-      "target": ["1", "2", "3"],
-      "instructionKey": "numbers",
-      "description": "Number 1, 2, 3",
-      "point": 5
-    },
-    {
-      "id": 27,
-      "target": ["1", "2", "3", "4"],
-      "instructionKey": "4",
-      "description": "Number 1, 2, 3, 4",
-      "point": 5
-    },
-    {
-      "id": 28,
-      "target": ["1", "2", "3", "4", "5"],
-      "instructionKey": "5",
-      "description": "Number 1, 2, 3, 4, 5",
-      "point": 5
-    },
-    {
-      "id": 29,
-      "target": ["1", "2", "3", "4", "5", "6"],
-      "instructionKey": "6",
-      "description": "Number 1, 2, 3, 4, 5, 6",
-      "point": 5
-    },
-    {
-      "id": 30,
-      "target": ["1", "2", "3", "4", "5", "6", "7"],
-      "instructionKey": "7",
-      "description": "Number 1, 2, 3, 4, 5, 6, 7",
-      "point": 5
-    },
-    {
-      "id": 31,
-      "target": ["1", "2", "3", "4", "5", "6", "7", "8"],
-      "instructionKey": "8",
-      "description": "Number 1, 2, 3, 4, 5, 6, 7, 8",
-      "point": 5
-    },
-    {
-      "id": 32,
-      "target": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
-      "instructionKey": "9",
-      "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9",
-      "point": 5
-    },
-    {
-      "id": 33,
-      "target": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-      "instructionKey": "0",
-      "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9, 0",
-      "point": 5
-    },
-    {
-      "id": 34,
-      "target": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "!"],
-      "instructionKey": "!",
-      "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, !",
-      "point": 5
-    }
-  ]
-}
+  {
+    "id": 2,
+    "target": [ "a", "s", "d", "f", "j" ],
+    "description": "Learn the right hand home row keys",
+    "instruction": "Use the index finger of the right hand to strike the 'J' key. ",
+    "point": 1
+  },
+  {
+    "id": 3,
+    "target": [ "a", "s", "d", "f", "j", "k" ],
+    "description": "Practice all home row keys together",
+    "instruction": "k",
+    "point": 2
+  },
+  {
+    "id": 4,
+    "target": [ "a", "s", "d", "f", "j", "k", "l" ],
+    "instruction": "l",
+    "description": "l",
+    "point": 5
+  },
+  {
+    "id": 5,
+    "target": [ "a", "s", "d", "f", "j", "k", "l", ";" ],
+    "instruction": ";",
+    "description": ";",
+    "point": 5
+  },
+  {
+    "id": 6,
+    "target": [ "d", "e" ],
+    "instruction": "e",
+    "description": "e",
+    "point": 5
+  },
+  {
+    "id": 7,
+    "target": [ "k", "i" ],
+    "instruction": "i",
+    "description": "i",
+    "point": 5
+  },
+  {
+    "id": 8,
+    "target": [ "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", ";" ],
+    "instruction": "i",
+    "description": "keys together",
+    "point": 5
+  },
+  {
+    "id": 9,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "R",
+    "point": 5
+  },
+  {
+    "id": 10,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "U",
+    "point": 5
+  },
+  {
+    "id": 11,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "T",
+    "point": 5
+  },
+  {
+    "id": 12,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "Y",
+    "point": 5
+  },
+  {
+    "id": 13,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "W",
+    "point": 5
+  },
+  {
+    "id": 14,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "O",
+    "point": 5
+  },
+  {
+    "id": 15,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "Q",
+    "point": 5
+  },
+  {
+    "id": 16,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      ";"
+    ],
+    "instruction": "p",
+    "description": "P",
+    "point": 5
+  },
+  {
+    "id": 17,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      ";"
+    ],
+    "instruction": "c",
+    "description": "C",
+    "point": 5
+  },
+  {
+    "id": 18,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "N",
+    "point": 5
+  },
+  {
+    "id": 19,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      "v",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "V",
+    "point": 5
+  },
+  {
+    "id": 20,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      "v",
+      "m",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "M",
+    "point": 5
+  },
+  {
+    "id": 21,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      "v",
+      "m",
+      "x",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "X",
+    "point": 5
+  },
+  {
+    "id": 22,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      "v",
+      "m",
+      "x",
+      ",",
+      ";"
+    ],
+    "instruction": "i",
+    "description": ",",
+    "point": 5
+  },
+  {
+    "id": 23,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      "v",
+      "m",
+      "x",
+      ",",
+      "z",
+      ";"
+    ],
+    "instruction": "i",
+    "description": "Z",
+    "point": 5
+  },
+  {
+    "id": 24,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      "m",
+      "x",
+      ",",
+      "z",
+      ".",
+      ";"
+    ],
+    "instruction": "i",
+    "description": ".",
+    "point": 5
+  },
+  {
+    "id": 25,
+    "target": [
+      "a",
+      "s",
+      "d",
+      "f",
+      "j",
+      "k",
+      "l",
+      "d",
+      "e",
+      "k",
+      "i",
+      "r",
+      "u",
+      "t",
+      "y",
+      "w",
+      "o",
+      "q",
+      "p",
+      "c",
+      "n",
+      "m",
+      "x",
+      ",",
+      "x",
+      ".",
+      ";",
+      "A",
+      "S",
+      "D",
+      "F",
+      "J",
+      "K",
+      "L",
+      "D",
+      "E",
+      "K",
+      "I",
+      "R",
+      "U",
+      "T",
+      "Y",
+      "W",
+      "O",
+      "Q",
+      "P",
+      "C",
+      "N",
+      "M",
+      "X",
+      "Z"
+    ],
+    "instruction": "capitalKey",
+    "description": "Capital Letters",
+    "point": 5
+  },
+  {
+    "id": 26,
+    "target": [ "1", "2", "3" ],
+    "instruction": "numbers",
+    "description": "Number 1, 2, 3",
+    "point": 5
+  },
+  {
+    "id": 27,
+    "target": [ "1", "2", "3", "4" ],
+    "instruction": "Reach up with your left-hand fingers to type the numbers '1', '2', and '3'. Practice typing the numbers in sequence",
+    "description": "Number 1, 2, 3, 4",
+    "point": 5
+  },
+  {
+    "id": 28,
+    "target": [ "1", "2", "3", "4", "5" ],
+    "instruction": "Reach up with your left-hand index finger to type the number '4'. Practice typing the number sequences.",
+    "description": "Number 1, 2, 3, 4, 5",
+    "point": 5
+  },
+  {
+    "id": 29,
+    "target": [ "1", "2", "3", "4", "5", "6" ],
+    "instruction": "Reach up with your right-hand index finger to type the number '6'. Practice typing the number sequences.",
+    "description": "Number 1, 2, 3, 4, 5, 6",
+    "point": 5
+  },
+  {
+    "id": 30,
+    "target": [ "1", "2", "3", "4", "5", "6", "7" ],
+    "instruction": "Reach up with your right-hand index finger to type the number '7'. Practice typing the number sequences.",
+    "description": "Number 1, 2, 3, 4, 5, 6, 7",
+    "point": 5
+  },
+  {
+    "id": 31,
+    "target": [ "1", "2", "3", "4", "5", "6", "7", "8" ],
+    "instruction": "Reach up with your right-hand middle finger to type the number '8'. Practice typing the number sequences.",
+    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8",
+    "point": 5
+  },
+  {
+    "id": 32,
+    "target": [ "1", "2", "3", "4", "5", "6", "7", "8", "9" ],
+    "instruction": "9",
+    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9",
+    "point": 5
+  },
+  {
+    "id": 33,
+    "target": [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" ],
+    "instruction": "0",
+    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9, 0",
+    "point": 5
+  },
+  {
+    "id": 34,
+    "target": [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "!" ],
+    "instruction": "!",
+    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, !",
+    "point": 5
+  }
+]
