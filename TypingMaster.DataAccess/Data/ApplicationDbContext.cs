@@ -64,7 +64,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id)
                 .UseIdentityByDefaultColumn(); // PostgresSQL-specific identity column
-            entity.Property(e => e.KeyStatsJson).HasColumnName("key_stats_json").HasColumnType("jsonb").HasJsonConversion();
+
+            entity.Property(e => e.AccountId)
+                .HasColumnName("account_id")
+                .IsRequired();
+
+            entity.Property(e => e.KeyStatsJson)
+                .HasColumnName("key_stats_json")
+                .HasColumnType("jsonb")
+                .HasJsonConversion();
 
             // Configure one-to-many relationship with DrillStatsDao
             entity.HasMany(p => p.PracticeStats)
@@ -72,6 +80,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey(d => d.PracticeLogId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure one-to-one relationship with AccountDao
+            entity.HasOne(p => p.Account)
+                .WithOne(a => a.History)
+                .HasForeignKey<PracticeLogDao>(p => p.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure DrillStatsDao relationship with PracticeLogDao

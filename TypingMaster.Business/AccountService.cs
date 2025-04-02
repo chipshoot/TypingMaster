@@ -8,7 +8,12 @@ using TypingMaster.DataAccess.Data;
 
 namespace TypingMaster.Business;
 
-public class AccountService(IAccountRepository accountRepository, IMapper mapper, ILogger logger, ICourseService courseService) : ServiceBase(logger), IAccountService
+public class AccountService(
+    IAccountRepository accountRepository,
+    IPracticeLogService practiceLogService,
+    ICourseService courseService,
+    IMapper mapper,
+    ILogger logger) : ServiceBase(logger), IAccountService
 {
     public async Task<IEnumerable<Account>> GetAllAccounts()
     {
@@ -55,8 +60,19 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
 
         try
         {
+            // Initialize practice log for new account if not provided
+            if (account.History == null)
+            {
+                account.History = new PracticeLog();
+            }
+            else if (account.History.Id != 0)
+            {
+                ProcessResult.AddError("Cannot create a new account with an existing practice log");
+                return null;
+            }
+
             // Validate course ID in history before saving to database
-            if (account.History != null && account.History.CurrentCourseId != Guid.Empty)
+            if (account.History.CurrentCourseId != Guid.Empty)
             {
                 var course = await courseService.GetCourse(account.History.CurrentCourseId);
                 if (course == null)
@@ -69,9 +85,32 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
 
             var accountDao = mapper.Map<AccountDao>(account);
             var newAccountDao = await accountRepository.CreateAccountAsync(accountDao);
+            if (newAccountDao == null)
+            {
+                ProcessResult.AddError("Failed to create account");
+                return null;
+            }
+
+            // Update the practice log with the new account ID
+            account.History = new PracticeLog { AccountId = newAccountDao.Id };
+            var practiceLog = await practiceLogService.CreatePracticeLog(account.History);
+            if (practiceLog == null)
+            {
+                ProcessResult.AddError("Failed to create practice log");
+                return null;
+            }
+
+            // Update the account with the created practice log
+            newAccountDao.History = mapper.Map<PracticeLogDao>(practiceLog);
+            var updatedAccountDao = await accountRepository.UpdateAccountAsync(newAccountDao);
+            if (updatedAccountDao == null)
+            {
+                ProcessResult.AddError("Failed to update account with practice log");
+                return null;
+            }
+
             ProcessResult.AddSuccess();
-            var newAccount = mapper.Map<Account>(newAccountDao);
-            return newAccount;
+            return mapper.Map<Account>(updatedAccountDao);
         }
         catch (Exception ex)
         {
@@ -117,16 +156,60 @@ public class AccountService(IAccountRepository accountRepository, IMapper mapper
 
             try
             {
-                var accountDao = mapper.Map<AccountDao>(account);
-                var updatedAccountDao = await accountRepository.UpdateAccountAsync(accountDao);
-                if (updatedAccountDao == null)
+                // Update or create practice log if it exists
+                if (account.History != null)
                 {
-                    ProcessResult.AddError("Failed to update account");
-                    return null;
-                }
+                    // Check if practice log exists
+                    PracticeLog? practiceLogSaved;
+                    var existingPracticeLog = await practiceLogService.GetPracticeLogByAccountId(account.Id);
+                    if (existingPracticeLog != null)
+                    {
+                        // Update existing practice log
+                        account.History.Id = existingPracticeLog.Id;
+                        account.History.AccountId = account.Id;
+                        practiceLogSaved = await practiceLogService.UpdatePracticeLog(account.History);
+                    }
+                    else
+                    {
+                        // Create new practice log
+                        practiceLogSaved = await practiceLogService.CreatePracticeLog(account.History);
+                    }
 
-                var updatedAccount = mapper.Map<Account>(updatedAccountDao);
-                return updatedAccount;
+                    if (practiceLogSaved == null)
+                    {
+                        ProcessResult.AddError("Failed to update/create practice log");
+                        return null;
+                    }
+
+                    // Map the account with updated practice log
+                    var accountDao = mapper.Map<AccountDao>(account);
+                    var practiceLogDao = mapper.Map<PracticeLogDao>(practiceLogSaved);
+                    accountDao.History = practiceLogDao;
+
+                    var updatedAccountDao = await accountRepository.UpdateAccountAsync(accountDao);
+                    if (updatedAccountDao == null)
+                    {
+                        ProcessResult.AddError("Failed to update account");
+                        return null;
+                    }
+
+                    var updatedAccount = mapper.Map<Account>(updatedAccountDao);
+                    return updatedAccount;
+                }
+                else
+                {
+                    // No practice log to update, just update the account
+                    var accountDao = mapper.Map<AccountDao>(account);
+                    var updatedAccountDao = await accountRepository.UpdateAccountAsync(accountDao);
+                    if (updatedAccountDao == null)
+                    {
+                        ProcessResult.AddError("Failed to update account");
+                        return null;
+                    }
+
+                    var updatedAccount = mapper.Map<Account>(updatedAccountDao);
+                    return updatedAccount;
+                }
             }
             catch (DbUpdateConcurrencyException)
             {

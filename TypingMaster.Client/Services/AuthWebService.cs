@@ -6,6 +6,7 @@ namespace TypingMaster.Client.Services;
 public class AuthWebService(HttpClient httpClient,
     IApiConfiguration apiConfig,
     IAccountWebService accountService,
+    IPracticeLogWebService practiceLogService,
     ICourseWebService courseService,
     ApplicationContext appState,
     Serilog.ILogger logger) : IAuthWebService
@@ -197,7 +198,13 @@ public class AuthWebService(HttpClient httpClient,
             }
             appState.CurrentAccount = account;
 
-
+            // Load drill stats if available
+            var drillStats = await practiceLogService.GetPaginatedDrillStatsAsync(account.History.Id);
+            if (drillStats != null)
+            {
+                account.History.PracticeStats = drillStats.Items;
+            }
+            
             // Load course information if available
             if (appState.CurrentAccount.CourseId != Guid.Empty)
             {

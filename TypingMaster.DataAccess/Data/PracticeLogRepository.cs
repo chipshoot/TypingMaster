@@ -29,7 +29,7 @@ public class PracticeLogRepository(ApplicationDbContext context, Serilog.ILogger
         {
             var practiceLog = await context.PracticeLogs
                 .Include(p => p.PracticeStats)
-                .FirstOrDefaultAsync(p => EF.Property<int>(p, "AccountId") == accountId);
+                .FirstOrDefaultAsync(p => p.AccountId == accountId);
 
             return practiceLog;
         }
@@ -48,6 +48,21 @@ public class PracticeLogRepository(ApplicationDbContext context, Serilog.ILogger
             if (practiceLog.PracticeStats == null)
             {
                 practiceLog.PracticeStats = new List<DrillStatsDao>();
+            }
+
+            // Verify that AccountId is set
+            if (practiceLog.AccountId == 0)
+            {
+                ProcessResult.AddError("AccountId must be set when creating a practice log");
+                return null;
+            }
+
+            // Verify that the account exists
+            var accountExists = await context.Accounts.AnyAsync(a => a.Id == practiceLog.AccountId);
+            if (!accountExists)
+            {
+                ProcessResult.AddError($"Account with ID {practiceLog.AccountId} not found");
+                return null;
             }
 
             context.PracticeLogs.Add(practiceLog);
@@ -73,6 +88,13 @@ public class PracticeLogRepository(ApplicationDbContext context, Serilog.ILogger
             if (existingPracticeLog == null)
             {
                 ProcessResult.AddError($"Practice log with ID {practiceLog.Id} not found");
+                return null;
+            }
+
+            // Verify that AccountId matches and hasn't changed
+            if (existingPracticeLog.AccountId != practiceLog.AccountId)
+            {
+                ProcessResult.AddError("Cannot change the AccountId of a practice log");
                 return null;
             }
 

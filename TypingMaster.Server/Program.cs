@@ -75,6 +75,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IPracticeLogRepository, PracticeLogRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IDrillStatsRepository, DrillStatsRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
 builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository>();
@@ -82,6 +83,7 @@ builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository
 // Register business services
 builder.Services.AddScoped<MockIdpService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILoginLogService, LoginLogService>();
 builder.Services.AddScoped<ILoginCredentialService, LoginCredentialService>();

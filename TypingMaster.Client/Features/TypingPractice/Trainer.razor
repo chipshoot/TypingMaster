@@ -23,7 +23,7 @@
     </HeaderTemplate>
     <BodyTemplate>
         <Practice CurrentLesson="@_curLesson" TrainingType="@TrainingType.Course" OnTypingCompleted="OnPracticeFinished"
-            @ref="@_practice">
+        @ref="@_practice">
         </Practice>
     </BodyTemplate>
 </Card>
@@ -43,7 +43,8 @@
             return;
         }
 
-        var stats = AppState.CurrentAccount.History.PracticeStats.LastOrDefault() ?? await CourseService.GenerateStartStats();
+        // system get drill stats sorted by newest record by default, this let use get latest record at first record of the dataset
+        var stats = AppState.CurrentAccount.History.PracticeStats.FirstOrDefault() ?? await CourseService.GenerateStartStats();
         if (AppState.CurrentCourse != null)
         {
             var courseId = AppState.CurrentCourse.Id;
@@ -65,9 +66,18 @@
             return;
         }
 
-        stats.CourseId = AppState.CurrentAccount.CourseId;
-        TypingTrainer?.CheckPracticeResult(stats);
+        if (TypingTrainer == null)
+        {
+            Logger.Error("Null TypingTrainer found");
+            return;
+        }
+
         var courseId = AppState.CurrentAccount.CourseId;
+        stats.CourseId = courseId;
+        await TypingTrainer.SavePracticeHistoryAsync(stats);
+        AppState.CurrentAccount = TypingTrainer.Account;
+
+        // Get next lesson
         var nextLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
         if (nextLesson != null)
         {
@@ -75,6 +85,10 @@
             {
                 _curLesson = nextLesson;
                 _isCompleted = false;
+                if (_curLesson.Id != AppState.CurrentAccount.History.CurrentLessonId)
+                {
+                    AppState.CurrentAccount.History.CurrentLessonId = _curLesson.Id;
+                }
             }
             else
             {

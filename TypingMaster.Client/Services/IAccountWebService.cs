@@ -6,7 +6,7 @@ namespace TypingMaster.Client.Services
     {
         Task<Account?> GetAccountAsync(int accountId);
 
-        Task<bool> UpdateAccountAsync(Account account);
+        Task<AccountResponse> UpdateAccountAsync(Account account);
 
         Task<Account?> GetGuestAccount();
     }

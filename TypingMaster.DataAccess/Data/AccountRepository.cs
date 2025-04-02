@@ -69,23 +69,6 @@ public class AccountRepository(
     {
         try
         {
-            // Handle practice log history first if it exists
-            if (account.History != null)
-            {
-                // Create the practice log
-                var practiceLog = await practiceLogRepository.CreatePracticeLogAsync(account.History);
-                if (practiceLog == null)
-                {
-                    // Transfer any errors from the practice log repository
-                    if (practiceLogRepository.ProcessResult.HasErrors)
-                    {
-                        ProcessResult.PropagandaResult(practiceLogRepository.ProcessResult);
-                    }
-                    return null;
-                }
-                account.History = practiceLog;
-            }
-
             // Create the account
             context.Accounts.Add(account);
             await context.SaveChangesAsync();

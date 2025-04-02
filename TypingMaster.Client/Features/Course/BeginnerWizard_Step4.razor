@@ -111,10 +111,12 @@
             var course = await CourseService.GenerateBeginnerCourse(SettingResult);
             if (course != null)
             {
-                if (course.Lessons == null)
+                course.Lessons = course.Lessons switch
                 {
-                    course.Lessons = new List<Lesson>();
-                }
+                    null => new List<Lesson>(),
+                    _ => course.Lessons
+                };
+
                 AppState.CurrentCourse = course;
 
                 var account = AppState.CurrentAccount;
@@ -122,6 +124,12 @@
                 {
                     account.CourseId = course.Id;
                     course.AccountId = account.Id;
+                    account.History = account.History switch
+                    {
+                        null => new PracticeLog(),
+                        _ => account.History
+                    };
+                    account.History.AccountId = account.Id;
                     account.History.CurrentCourseId = course.Id;
                     account.History.CurrentLessonId = 1;
                     account.GoalStats = SettingResult.TargetStats;
@@ -156,9 +164,10 @@
                 return;
             }
 
-            var updateSuccess = await AccountService.UpdateAccountAsync(appState.CurrentAccount);
-            if (updateSuccess)
+            var updateResult = await AccountService.UpdateAccountAsync(appState.CurrentAccount);
+            if (updateResult.Success)
             {
+                appState.CurrentAccount = updateResult.AccountReturned;
                 Logger.Information("Account updated successfully");
             }
             else

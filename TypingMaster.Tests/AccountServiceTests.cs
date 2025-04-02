@@ -13,18 +13,20 @@ namespace TypingMaster.Tests
     public class AccountServiceTests
     {
         private readonly Mock<IAccountRepository> _mockRepository;
+        private readonly Mock<IPracticeLogService> _mockPracticeLogService;
+        private readonly Mock<ICourseService> _mockCourseService;
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<ILogger> _mockLogger;
-        private readonly Mock<ICourseService> _mockCourseService;
         private readonly AccountService _accountService;
 
         public AccountServiceTests()
         {
             _mockRepository = new Mock<IAccountRepository>();
+            _mockPracticeLogService = new Mock<IPracticeLogService>();
+            _mockCourseService = new Mock<ICourseService>();
             _mockMapper = new Mock<IMapper>();
             _mockLogger = new Mock<ILogger>();
-            _mockCourseService = new Mock<ICourseService>();
-            _accountService = new AccountService(_mockRepository.Object, _mockMapper.Object, _mockLogger.Object, _mockCourseService.Object);
+            _accountService = new AccountService(_mockRepository.Object, _mockPracticeLogService.Object, _mockCourseService.Object, _mockMapper.Object, _mockLogger.Object);
         }
 
         [Fact]

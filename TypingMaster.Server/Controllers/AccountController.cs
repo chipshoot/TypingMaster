@@ -12,35 +12,27 @@ namespace TypingMaster.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Policy = "IdPAuth")]
-    public class AccountController : ControllerBase
+    public class AccountController(IAccountService accountService, ILogger<AccountController> logger)
+        : ControllerBase
     {
-        private readonly IAccountService _accountService;
-        private readonly ILogger<AccountController> _logger;
-
-        public AccountController(IAccountService accountService, ILogger<AccountController> logger)
-        {
-            _accountService = accountService;
-            _logger = logger;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetAllAccounts()
         {
             try
             {
-                var accounts = await _accountService.GetAllAccounts();
+                var accounts = await accountService.GetAllAccounts();
 
                 // Check if there's an error message in the ProcessResult
-                if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
+                if (accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                 {
-                    return BadRequest(_accountService.ProcessResult.ErrorMessage);
+                    return BadRequest(accountService.ProcessResult.ErrorMessage);
                 }
 
                 return Ok(accounts);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving all accounts");
+                logger.LogError(ex, "Error retrieving all accounts");
                 string errorMessage = "An error occurred while retrieving accounts.";
 
                 if (ex is InvalidOperationException)
@@ -81,7 +73,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var account = await _accountService.GetAccountById(id);
+                var account = await accountService.GetAccountById(id);
                 if (account == null)
                 {
                     return NotFound();
@@ -91,7 +83,7 @@ namespace TypingMaster.Server.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving account {Id}", id);
+                logger.LogError(ex, "Error retrieving account {Id}", id);
                 return StatusCode(500, "An error occurred while retrieving the account");
             }
         }
@@ -101,7 +93,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var account = await _accountService.GetAccountByEmail(email);
+                var account = await accountService.GetAccountByEmail(email);
                 if (account == null)
                 {
                     return NotFound();
@@ -111,7 +103,7 @@ namespace TypingMaster.Server.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving account for email {Email}", email);
+                logger.LogError(ex, "Error retrieving account for email {Email}", email);
                 return StatusCode(500, "An error occurred while retrieving the account");
             }
         }
@@ -121,13 +113,13 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var createdAccount = await _accountService.CreateAccount(account);
+                var createdAccount = await accountService.CreateAccount(account);
                 if (createdAccount == null)
                 {
                     // Check if there's an error message in the ProcessResult
-                    if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
+                    if (accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                     {
-                        return BadRequest(_accountService.ProcessResult.ErrorMessage);
+                        return BadRequest(accountService.ProcessResult.ErrorMessage);
                     }
                     return BadRequest("Invalid account data or account creation failed");
                 }
@@ -136,7 +128,7 @@ namespace TypingMaster.Server.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating account");
+                logger.LogError(ex, "Error creating account");
                 string errorMessage = "An error occurred while creating the account.";
 
                 if (ex is ArgumentException)
@@ -167,26 +159,48 @@ namespace TypingMaster.Server.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAccount(int id, [FromBody] Account account)
         {
-            try
+            if (id != account.Id)
             {
-                if (id != account.Id)
+                return BadRequest(new AccountResponse
                 {
-                    return BadRequest("Account ID mismatch");
+                    Success = false,
+                    Message = "Account ID mismatch",
+                    StatusCode = System.Net.HttpStatusCode.BadRequest
+                });
+            }
+
+            var updatedAccount = await accountService.UpdateAccount(account);
+            if (updatedAccount == null)
+            {
+                // Check if there's an error message in the ProcessResult
+                if (accountService.ProcessResult.Status == ProcessResultStatus.Failure)
+                {
+                    return BadRequest(new AccountResponse
+                    {
+                        Success = false,
+                        Message = accountService.ProcessResult.ErrorMessage,
+                        StatusCode = System.Net.HttpStatusCode.BadRequest
+                    });
                 }
 
-                var updatedAccount = await _accountService.UpdateAccount(account);
-                if (updatedAccount == null)
+                return NotFound(new AccountResponse
                 {
-                    return NotFound();
-                }
+                    Success = false,
+                    Message = $"Account with ID {id} not found",
+                    StatusCode = System.Net.HttpStatusCode.NotFound
+                });
+            }
 
-                return Ok(updatedAccount);
-            }
-            catch (Exception ex)
+            // Create and return AccountResponse with the updated account
+            var response = new AccountResponse
             {
-                _logger.LogError(ex, "Error updating account {Id}", id);
-                return StatusCode(500, "An error occurred while updating the account");
-            }
+                Success = true,
+                Message = "Account updated successfully",
+                StatusCode = System.Net.HttpStatusCode.OK,
+                AccountReturned = updatedAccount
+            };
+
+            return Ok(response);
         }
 
         [HttpDelete("{id}")]
@@ -194,13 +208,13 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var result = await _accountService.DeleteAccount(id);
+                var result = await accountService.DeleteAccount(id);
                 if (!result)
                 {
                     // Check if there's an error message in the ProcessResult
-                    if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
+                    if (accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                     {
-                        return BadRequest(_accountService.ProcessResult.ErrorMessage);
+                        return BadRequest(accountService.ProcessResult.ErrorMessage);
                     }
                     return NotFound($"Account with ID {id} not found");
                 }
@@ -209,7 +223,7 @@ namespace TypingMaster.Server.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting account with ID {Id}", id);
+                logger.LogError(ex, "Error deleting account with ID {Id}", id);
                 string errorMessage = $"An error occurred while deleting account with ID {id}.";
 
                 if (ex is ArgumentException)
@@ -245,12 +259,12 @@ namespace TypingMaster.Server.Controllers
                 if (patchDoc == null)
                     return BadRequest("Patch document is required");
 
-                var existingAccount = await _accountService.GetAccountById(id);
+                var existingAccount = await accountService.GetAccountById(id);
 
                 // Check if there's an error message in the ProcessResult after GetAccountById
-                if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
+                if (accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                 {
-                    return BadRequest(_accountService.ProcessResult.ErrorMessage);
+                    return BadRequest(accountService.ProcessResult.ErrorMessage);
                 }
 
                 if (existingAccount == null)
@@ -266,13 +280,13 @@ namespace TypingMaster.Server.Controllers
                 }
 
                 // Update the account with the patched changes
-                var updatedAccount = await _accountService.UpdateAccount(existingAccount);
+                var updatedAccount = await accountService.UpdateAccount(existingAccount);
                 if (updatedAccount == null)
                 {
                     // Check if there's an error message in the ProcessResult
-                    if (_accountService.ProcessResult.Status == ProcessResultStatus.Failure)
+                    if (accountService.ProcessResult.Status == ProcessResultStatus.Failure)
                     {
-                        return BadRequest(_accountService.ProcessResult.ErrorMessage);
+                        return BadRequest(accountService.ProcessResult.ErrorMessage);
                     }
                     return BadRequest("Failed to update account, but no specific error was provided");
                 }
@@ -281,7 +295,7 @@ namespace TypingMaster.Server.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error patching account with ID {Id}", id);
+                logger.LogError(ex, "Error patching account with ID {Id}", id);
                 string errorMessage = "An error occurred while patching the account.";
 
                 // Adding more specific error messages based on exception type

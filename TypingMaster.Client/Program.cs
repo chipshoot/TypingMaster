@@ -31,6 +31,7 @@ builder.Services.AddSingleton<IClientStorageService, SessionStorageService>();
 builder.Services.AddScoped<IAuthWebService, AuthWebService>();
 builder.Services.AddScoped<IAccountWebService, AccountWebService>();
 builder.Services.AddScoped<ICourseWebService, CourseWebService>();
+builder.Services.AddScoped<IPracticeLogWebService, PracticeLogWebService>();
 builder.Services.AddScoped<ITypingTrainer, TypingTrainer>();
 builder.Services.AddScoped<IReportWebService, ReportWebService>();
 builder.Services.AddScoped<ApplicationContext>(sp =>

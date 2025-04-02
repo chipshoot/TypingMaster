@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
+using TypingMaster.Core.Utility;
 using ILogger = Serilog.ILogger;
 
 namespace TypingMaster.Client.Services;
 
-public class TypingTrainer(ILogger logger) : ITypingTrainer
+public class TypingTrainer(IAccountWebService accountService, ILogger logger) : ITypingTrainer
 {
     private const string NoCourse = "Cannot find course.";
     private const string NoPracticeLog = "Cannot find practice log.";
@@ -60,21 +61,51 @@ public class TypingTrainer(ILogger logger) : ITypingTrainer
                 throw new ArgumentOutOfRangeException(nameof(stats.CourseId));
             }
 
-            //if (_course.Lessons.All(l => l.Id != stats.LessonId))
-            //{
-            //    ProcessResult.AddError(NoLesson);
-            //    throw new ArgumentOutOfRangeException(nameof(stats.LessonId));
-            //}
-
+            ConvertKeyEventToKeyStats(stats.KeyEvents);
             var practiceStatsList = _practiceLog.PracticeStats.ToList();
             practiceStatsList.Add(stats);
             _practiceLog.PracticeStats = practiceStatsList;
-            ConvertKeyEventToKeyStats(stats.KeyEvents);
         }
         catch (Exception ex)
         {
             ProcessResult.AddException(ex);
             _logger.Error(ex, "Error checking practice result");
+        }
+    }
+    public async Task<bool> SavePracticeHistoryAsync(DrillStats stats)
+    {
+        try
+        {
+            // First update the in-memory account data
+            CheckPracticeResult(stats);
+        
+            if (_account == null)
+            {
+                ProcessResult.AddError("Cannot save practice history: No account is set");
+                return false;
+            }
+        
+            // Now persist the updated account to the database
+            _account.History = _practiceLog;
+            var updateResult = await accountService.UpdateAccountAsync(_account);
+
+            if (!updateResult.Success)
+            {
+                ProcessResult.AddError("Failed to save practice history");
+                return false;
+            }
+
+            // Update the local account reference with the latest version from the database
+            _account = updateResult.AccountReturned;
+            _practiceLog = _account?.History;
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            _logger.Error(ex, "Error saving practice history");
+            return false;
         }
     }
 
@@ -89,8 +120,15 @@ public class TypingTrainer(ILogger logger) : ITypingTrainer
 
         foreach (var keyEvent in keyEvents)
         {
+            // Skip null characters or other problematic control characters
+            if (keyEvent.Key == '\0' || char.IsControl(keyEvent.Key))
+            {
+                continue;
+            }
+
             if (!keyStats.ContainsKey(keyEvent.Key))
             {
+
                 keyStats[keyEvent.Key] = new KeyStats
                 {
                     Key = keyEvent.Key.ToString(),
@@ -107,6 +145,7 @@ public class TypingTrainer(ILogger logger) : ITypingTrainer
             {
                 stats.CorrectCount++;
             }
+
             stats.PressDuration += (keyEvent.KeyUpTime - keyEvent.KeyDownTime).TotalMilliseconds;
             stats.Latency += keyEvent.Latency;
         }

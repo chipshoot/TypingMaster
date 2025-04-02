@@ -4,6 +4,8 @@ public class PracticeLogDao
 {
     public int Id { get; set; }
 
+    public int AccountId { get; set; }
+
     public Guid CurrentCourseId { get; set; }
 
     public int CurrentLessonId { get; set; }
@@ -13,4 +15,6 @@ public class PracticeLogDao
     public Dictionary<char, KeyStatsDao> KeyStatsJson { get; set; }
 
     public long PracticeDuration { get; set; }
+
+    public AccountDao? Account { get; set; }
 }
