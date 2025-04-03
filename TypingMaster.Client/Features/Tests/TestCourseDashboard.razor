@@ -1,0 +1,305 @@
+﻿@page "/tests"
+@using TypingMaster.Core.Models.Courses
+@using TypingMaster.Core.Models
+@inject ICourseWebService CourseService
+@inject ApplicationContext AppState
+@inject NavigationManager NavManager
+@inject ILogger Logger
+
+<style>
+    .course-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .lesson-item {
+        transition: background-color 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+
+    .lesson-item:hover {
+        background-color: #f8f9fa;
+        border-left-color: #007bff;
+    }
+
+    .lesson-item.selected {
+        background-color: #e9f5ff;
+        border-left-color: #007bff;
+    }
+
+    .collapsible-section {
+        overflow: hidden;
+    }
+
+    .description-text {
+        max-height: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        position: relative;
+    }
+
+    .description-text.expanded {
+        max-height: none;
+    }
+
+    .read-more {
+        cursor: pointer;
+        color: #007bff;
+        font-weight: 500;
+    }
+</style>
+
+<h3 class="mb-4">Typing Tests</h3>
+
+@if (_isLoading)
+{
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (_allKeysCourse == null && _distTestCourse == null)
+{
+    <div class="alert alert-warning">
+        <h5>No test courses available</h5>
+        <p>There are no test courses available at this moment. Please try again later or contact support.</p>
+    </div>
+}
+else
+{
+    <div class="row">
+        <!-- All Keys Test Course -->
+        @if (_allKeysCourse != null)
+        {
+            <div class="col-md-6 mb-4">
+                <Card class="course-card h-100">
+                    <HeaderTemplate>
+                        <h4 class="mb-0">All Keys Test</h4>
+                    </HeaderTemplate>
+                    <BodyTemplate>
+                        <div class="mb-3 collapsible-section">
+                            <div class="description-text @(_expandedDescriptions.Contains(_allKeysCourse.Id) ? "expanded" : "")">
+                                <p>@(_allKeysCourse.Description ?? "Test your typing skills across all keyboard keys. This course evaluates how well you can type with all keys on the keyboard.")</p>
+                            </div>
+                            @if (!string.IsNullOrEmpty(_allKeysCourse.Description) && _allKeysCourse.Description.Length > 150)
+                            {
+                                <small class="read-more" @onclick="() => ToggleDescription(_allKeysCourse.Id)">
+                                    @(_expandedDescriptions.Contains(_allKeysCourse.Id) ? "Read less" : "Read more")
+                                </small>
+                            }
+                        </div>
+
+                        <h5 class="mb-3">Available Lessons</h5>
+                        <div class="list-group mb-3" style="max-height: 300px; overflow-y: auto;">
+                            @foreach (var lesson in _allKeysCourse.Lessons)
+                            {
+                                <div class="list-group-item lesson-item @(IsSelectedLesson(_allKeysCourse.Id, lesson.Id) ? "selected" : "")"
+                                     @onclick="() => SelectLesson(_allKeysCourse.Id, lesson.Id)">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1">Lesson @lesson.Id</h6>
+                                        <span class="badge bg-primary rounded-pill">@GetTargetKeys(lesson)</span>
+                                    </div>
+                                    <p class="mb-1 small">@(lesson.Description ?? "Practice typing with a selection of keys.")</p>
+                                    <small>Difficulty: @GetDifficultyText(lesson.Point)</small>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <Button Color="Color.Primary" 
+                                    Disabled="@(!IsAnyCourseSelected(_allKeysCourse.Id))"
+                                    OnClick="@(() => StartPractice(_allKeysCourse.Id))">
+                                Start Practice
+                            </Button>
+                        </div>
+                    </BodyTemplate>
+                </Card>
+            </div>
+        }
+
+        <!-- Distance Test Course -->
+        @if (_distTestCourse != null)
+        {
+            <div class="col-md-6 mb-4">
+                <Card class="course-card h-100">
+                    <HeaderTemplate>
+                        <h4 class="mb-0">Distance Test</h4>
+                    </HeaderTemplate>
+                    <BodyTemplate>
+                        <div class="mb-3 collapsible-section">
+                            <div class="description-text @(_expandedDescriptions.Contains(_distTestCourse.Id) ? "expanded" : "")">
+                                <p>@(_distTestCourse.Description ?? "Test your typing speed and accuracy with distance-based exercises. These tests focus on keys that require finger stretching and movement.")</p>
+                            </div>
+                            @if (!string.IsNullOrEmpty(_distTestCourse.Description) && _distTestCourse.Description.Length > 150)
+                            {
+                                <small class="read-more" @onclick="() => ToggleDescription(_distTestCourse.Id)">
+                                    @(_expandedDescriptions.Contains(_distTestCourse.Id) ? "Read less" : "Read more")
+                                </small>
+                            }
+                        </div>
+
+                        <h5 class="mb-3">Available Lessons</h5>
+                        <div class="list-group mb-3" style="max-height: 300px; overflow-y: auto;">
+                            @foreach (var lesson in _distTestCourse.Lessons)
+                            {
+                                <div class="list-group-item lesson-item @(IsSelectedLesson(_distTestCourse.Id, lesson.Id) ? "selected" : "")"
+                                     @onclick="() => SelectLesson(_distTestCourse.Id, lesson.Id)">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1">Lesson @lesson.Id</h6>
+                                        <span class="badge bg-primary rounded-pill">@GetTargetKeys(lesson)</span>
+                                    </div>
+                                    <p class="mb-1 small">@(lesson.Description ?? "Practice typing with distance-based key combinations.")</p>
+                                    <small>Difficulty: @GetDifficultyText(lesson.Point)</small>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <Button Color="Color.Primary" 
+                                    Disabled="@(!IsAnyCourseSelected(_distTestCourse.Id))"
+                                    OnClick="@(() => StartPractice(_distTestCourse.Id))">
+                                Start Practice
+                            </Button>
+                        </div>
+                    </BodyTemplate>
+                </Card>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _isLoading = true;
+    private CourseDto? _allKeysCourse;
+    private CourseDto? _distTestCourse;
+    private Dictionary<Guid, int> _selectedLessons = new();
+    private HashSet<Guid> _expandedDescriptions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load the All Keys Test course
+            _allKeysCourse = await CourseService.GetAllKeysCourse(AppState.CurrentAccount?.TestCourseId);
+
+            // Load the Distance Test course - assuming it's identified by its name or a specific ID
+            // You might need to adjust this based on your actual implementation
+            if (AppState.CurrentAccount?.GameCourseId != Guid.Empty)
+            {
+                _distTestCourse = await CourseService.GetCourse(AppState.CurrentAccount.GameCourseId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to load test courses");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string GetTargetKeys(Lesson lesson)
+    {
+        if (lesson.Target == null || !lesson.Target.Any())
+            return "All Keys";
+
+        // Join the target keys or display a summary if there are too many
+        var targets = lesson.Target.ToList();
+        if (targets.Count <= 5)
+            return string.Join(", ", targets);
+        else
+            return $"{targets.Count} keys";
+    }
+
+    private string GetDifficultyText(int point)
+    {
+        return point switch
+        {
+            < 30 => "Easy",
+            < 60 => "Medium",
+            < 90 => "Hard",
+            _ => "Expert"
+        };
+    }
+
+    private void SelectLesson(Guid courseId, int lessonId)
+    {
+        _selectedLessons[courseId] = lessonId;
+    }
+
+    private bool IsSelectedLesson(Guid courseId, int lessonId)
+    {
+        return _selectedLessons.TryGetValue(courseId, out var selectedId) && selectedId == lessonId;
+    }
+
+    private bool IsAnyCourseSelected(Guid courseId)
+    {
+        return _selectedLessons.ContainsKey(courseId);
+    }
+
+    private void ToggleDescription(Guid courseId)
+    {
+        if (_expandedDescriptions.Contains(courseId))
+            _expandedDescriptions.Remove(courseId);
+        else
+            _expandedDescriptions.Add(courseId);
+    }
+
+    private async Task StartPractice(Guid courseId)
+    {
+        if (!_selectedLessons.TryGetValue(courseId, out var lessonId))
+            return;
+
+        try
+        {
+            // Get the course based on the selected courseId
+            CourseDto? selectedCourse = null;
+            if (courseId == _allKeysCourse?.Id)
+                selectedCourse = _allKeysCourse;
+            else if (courseId == _distTestCourse?.Id)
+                selectedCourse = _distTestCourse;
+
+            if (selectedCourse == null)
+            {
+                Logger.Error($"Selected course not found: {courseId}");
+                return;
+            }
+
+            // Set the current course for the training session
+            AppState.CurrentCourse = selectedCourse;
+
+            // Generate starting stats for the lesson
+            var startStats = await CourseService.GenerateStartStats() ?? new DrillStats
+            {
+                LessonId = lessonId,
+                CourseId = courseId,
+                StartTime = DateTime.Now
+            };
+
+            // Update the lesson ID in the stats
+            startStats.LessonId = lessonId;
+
+            // Get the practice lesson data
+            var lesson = await CourseService.GetPracticeLesson(courseId, lessonId, startStats);
+            if (lesson == null)
+            {
+                Logger.Error($"Failed to get practice lesson for course {courseId}, lesson {lessonId}");
+                return;
+            }
+
+            // Navigate to the trainer page
+            NavManager.NavigateTo("/trainer");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error starting practice session");
+        }
+    }
+}

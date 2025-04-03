@@ -105,6 +105,27 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
             throw;
         }
     }
+    public async Task<CourseDto?> GetDiskTestCourse(Guid id)
+    {
+        try
+        {
+            var courseDaos = await (courseRepository.GetCoursesByTypeAsync(TrainingType.SpeedTest));
+            var courseDao = courseDaos.FirstOrDefault(c => c.Id == id);
+            if (courseDao != null)
+            {
+                var course = mapper.Map<CourseDto>(courseDao);
+                return course;
+            }
+
+            ProcessResult.AddError($"Course with ID {id} not found");
+            return null;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 
     public async Task<CourseDto?> CreateCourse(CourseDto courseDto)
     {
@@ -197,6 +218,22 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
             ProcessResult.AddException(ex);
             return null;
         }
+    }
+
+    public Task<CourseDto> GenerateDiskTestCourse(CourseSetting settings)
+    {
+        var course = new CourseDto
+        {
+            Id = Guid.NewGuid(),
+            Name = "DiskTestCourse",
+            Settings = settings,
+            Lessons = new List<Lesson>(),
+            Type = TrainingType.Course,
+            LessonDataUrl = string.Empty,
+            Description = "This is a disk test (speed test) course for new typists"
+        };
+
+        return Task.FromResult(course);
     }
 
     public Task<CourseDto> GenerateBeginnerCourse(CourseSetting settings)
