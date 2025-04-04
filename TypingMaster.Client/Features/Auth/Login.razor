@@ -3,37 +3,33 @@
 @inject IAuthWebService AuthService
 @inject ILogger Logger
 
-<style>
-    .login-container {
-        max-width: 400px;
-        margin: 50px auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-    }
-</style>
-
 <div class="login-container">
+    <div class="login-header">
+        <h3>Welcome Back</h3>
+        <p>Enter your credentials to access your account</p>
+    </div>
+
     <ValidateForm Model="@_loginModel" OnValidSubmit="@HandleLogin">
         <EditorForm Model="@_loginModel" LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
             <FieldItems>
                 <EditorItem @bind-Field="@context.Account">
                     <EditTemplate Context="value">
-                        <BootstrapInput @ref="_emailInput" TValue="string" PlaceHolder="Email" type="email"
-                            maxLength="254" @bind-value="@value.Account" ShowLabel="true" DisplayText="Account" />
+                        <BootstrapInput @ref="_emailInput" TValue="string" PlaceHolder="youremail@example.com" type="email"
+                            maxLength="254" @bind-value="@value.Account" ShowLabel="true" DisplayText="Email" />
                     </EditTemplate>
                 </EditorItem>
                 <EditorItem @bind-Field="@context.Password">
                     <EditTemplate Context="value">
-                        <BootstrapInput TValue="string" PlaceHolder="Password" type="password" maxlength="128"
+                        <BootstrapInput TValue="string" PlaceHolder="Your password" type="password" maxlength="128"
                             @bind-value="@value.Password" ShowLabel="true" DisplayText="Password" />
                     </EditTemplate>
                 </EditorItem>
             </FieldItems>
             <Buttons>
-                <Button ButtonType="ButtonType.Submit" class="btn btn-primary" disabled="@(_isLoading)">Login</Button>
-                <Button ButtonType="ButtonType.Button" class="btn btn-primary" disabled="@(_isLoading)"
+                <Button ButtonType="ButtonType.Submit" class="btn btn-primary btn-login" icon="@_icon" disabled="@(_isLoading)">
+                    LogIn
+                </Button>
+                <Button ButtonType="ButtonType.Button" class="btn btn-outline-secondary btn-register" disabled="@(_isLoading)"
                     OnClick="@NavigateToRegister">
                     Sign Up
                 </Button>
@@ -43,7 +39,15 @@
 
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
-        <div class="alert alert-danger mt-3">@_errorMessage</div>
+        <div class="error-container">
+            <div class="d-flex align-items-center">
+                <i class="fa fa-exclamation-circle error-icon"></i>
+                <div>
+                    <div class="error-title">Login Failed</div>
+                    <p class="error-message">@_errorMessage</p>
+                </div>
+            </div>
+        </div>
     }
 </div>
 
@@ -53,6 +57,7 @@
     private string? _errorMessage;
     private string? _returnUrl;
     private BootstrapInput<string>? _emailInput;
+    private string _icon = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,21 +76,21 @@
 
     private async Task HandleLogin(EditContext context)
     {
-        _isLoading = true;
+        SetLoading(true);
         _errorMessage = null;
 
         // Check if Account or Password is null or empty
         if (string.IsNullOrEmpty(_loginModel.Account))
         {
             _errorMessage = "Please enter your email address.";
-            _isLoading = false;
+            SetLoading(false);
             return;
         }
 
         if (string.IsNullOrEmpty(_loginModel.Password))
         {
             _errorMessage = "Please enter your password.";
-            _isLoading = false;
+            SetLoading(false);
             return;
         }
 
@@ -98,24 +103,35 @@
             }
             else
             {
-                Logger.Error($"Auth API error: {authResponse}");
-                _errorMessage = "Login failed. Please check your credentials.";
+                Logger.Error($"Auth API error: {authResponse.Message}");
+                
+                // Use the specific error message from the server when available
+                _errorMessage = string.IsNullOrEmpty(authResponse.Message) 
+                    ? "Login failed. Please check your credentials." 
+                    : authResponse.Message;
+                StateHasChanged();
             }
         }
         catch (Exception ex)
         {
             Logger.Error(ex, "Error during login");
-            _errorMessage = "An error occurred during login.";
+            _errorMessage = "An unexpected error occurred. Please try again later or contact support.";
         }
         finally
         {
-            _isLoading = false;
+            SetLoading(false);
         }
     }
 
     private void NavigateToRegister()
     {
         Navigation.NavigateTo("/register");
+    }
+
+    private void SetLoading(bool isLoading)
+    {
+        _isLoading = isLoading;
+        _icon = isLoading ? "fa-solid fa-spinner fa-spin fa-fw" : "";
     }
 
     public class LoginModel

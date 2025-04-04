@@ -6,7 +6,7 @@
 
 @if (AppState.IsLoggedIn)
 {
-    @if (AppState.CurrentCourse != null &&
+@*     @if (AppState.CurrentCourse != null &&
          AppState.CurrentAccount != null &&
          AppState.CurrentAccount.CourseId == AppState.CurrentCourse.Id)
     {
@@ -16,7 +16,8 @@
     {
         <BeginnerPlanWizard></BeginnerPlanWizard>
     }
-
+ *@
+        <BeginnerPlanWizard></BeginnerPlanWizard>
 }
 else
 {

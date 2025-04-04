@@ -1,9 +1,9 @@
 ﻿<style>
     .center-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%; /* Adjust as needed */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%; /* Adjust as needed */
     }
 </style>
 <Card>
@@ -11,7 +11,7 @@
         <div>Beginner's Typing Training Schedule Setup Wizard</div>
     </HeaderTemplate>
     <BodyTemplate>
-        <Step @ref="@_step1">
+        <Step @ref="@_step">
             <StepItem Title="Set Your Typing Goals">
                 <div class="center-content">
                     <BeginnerWizard_Step1 OnTargetStatsChanged="HandleTargetStatsChanged"></BeginnerWizard_Step1>
@@ -22,7 +22,7 @@
                     <BeginnerWizard_Step2 OnTargetTimeChanged="HandleTargetTimeChanged"></BeginnerWizard_Step2>
                 </div>
             </StepItem>
-            <StepItem Title="Your Course is Ready!">
+            <StepItem Title="Your course is ready!">
                 <div class="center-content">
                     <BeginnerWizard_Step4 SettingResult="@_courseSetting"></BeginnerWizard_Step4>
                 </div>
@@ -30,47 +30,59 @@
         </Step>
     </BodyTemplate>
     <FooterTemplate>
-        <Button Color="Color.Primary" OnClick="()=>PrevStep(_step1)">Back</Button>
-        <Button Color="Color.Primary" OnClick="()=>NextStep(_step1)">Next</Button>
-        <Button Color="Color.Primary" OnClick="()=>Reset(_step1)">Reset</Button>
+        <Button Color="Color.Primary" OnClick="()=>PrevStep(_step)" IsDisabled="@_isFirstStep">Back</Button>
+        <Button Color="Color.Primary" OnClick="()=>NextStep(_step)" IsDisabled="@_isFinished">Next</Button>
+        <Button Color="Color.Primary" OnClick="()=>Reset(_step)">Reset</Button>
     </FooterTemplate>
 </Card>
 @code
 {
-    private Step? _step1;
+    private Step? _step;
+    private bool _isFirstStep;
+    private bool _isFinished;
 
     private CourseSetting _courseSetting = new()
-    {
-        Minutes = 210,
-        NewKeysPerStep = 1,
-        TargetStats = new StatsBase
         {
-            Accuracy = 85,
-            Wpm = 25
-        },
-        PracticeTextLength = 30
-    };
+            Minutes = 210,
+            NewKeysPerStep = 1,
+            TargetStats = new StatsBase
+            {
+                Accuracy = 85,
+                Wpm = 25
+            },
+            PracticeTextLength = 30
+        };
 
 
     protected override void OnInitialized()
     {
-        _step1 = new Step();
+        _step = new Step();
+        _isFirstStep = true;
+        _isFinished = false;
     }
 
     private void PrevStep(Step step)
     {
         step?.Prev();
+        step.StepIndex = step.StepIndex == 0 ? 0 : step.StepIndex - 1;
+        _isFirstStep = step?.StepIndex == 0;
+        _isFinished = false;
     }
 
     private void NextStep(Step step)
     {
-        // todo: disable next button if the current step is not valid or complete
         step?.Next();
+        step.StepIndex = step.StepIndex == 2 ? 2 : step.StepIndex + 1;
+        _isFirstStep = false;
+        _isFinished = step?.StepIndex == 2;
     }
 
     private void Reset(Step step)
     {
         step?.Reset();
+        step.StepIndex = 0;
+        _isFirstStep = true;
+        _isFinished = false;
     }
     private void HandleTargetStatsChanged(StatsBase targetStats)
     {
@@ -85,5 +97,5 @@
     private void HandleNewKeysChanged(int newKeys)
     {
         _courseSetting.NewKeysPerStep = newKeys;
-    } 
+    }
 }

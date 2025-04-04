@@ -4,23 +4,21 @@
 @inject IAuthWebService AuthService
 @inject ILogger Logger
 
-<style>
-    .register-container {
-        max-width: 500px;
-        margin: 50px auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-    }
-</style>
-
 <div class="register-container">
-    <h3 class="mb-4">Create Account</h3>
+    <div class="register-header">
+        <h3>Create Account</h3>
+        <p>Join us to start your typing journey</p>
+    </div>
 
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
-        <div class="alert alert-danger">@_errorMessage</div>
+        <div class="error-container">
+            <div class="error-title">
+                <i class="error-icon fas fa-exclamation-circle"></i>
+                Registration Error
+            </div>
+            <p class="error-message">@_errorMessage</p>
+        </div>
     }
 
     <ValidateForm Model="@_registerModel" OnValidSubmit="@HandleRegister">
@@ -64,9 +62,11 @@
                 </EditorItem>
             </FieldItems>
             <Buttons>
-                <Button ButtonType="ButtonType.Submit" class="btn btn-primary"
-                    disabled="@(_isLoading)">Register</Button>
-                <Button ButtonType="ButtonType.Button" class="btn btn-secondary" OnClick="@NavigateToLogin"
+                <Button ButtonType="ButtonType.Submit" class="btn btn-primary btn-register" Icon="@_icon"
+                    disabled="@(_isLoading)">
+                    Register
+                </Button>
+                <Button ButtonType="ButtonType.Button" class="btn btn-login" OnClick="@NavigateToLogin"
                     disabled="@(_isLoading)">Back to Login</Button>
             </Buttons>
         </EditorForm>
@@ -77,10 +77,11 @@
     private readonly RegisterRequest _registerModel = new();
     private bool _isLoading = false;
     private string? _errorMessage;
+    private string _icon = "";
 
     private async Task HandleRegister(EditContext context)
     {
-        _isLoading = true;
+        SetLoading(true);
         _errorMessage = null;
 
         try
@@ -110,6 +111,7 @@
             {
                 Logger.Error($"Registration API error: {response.Message}");
                 _errorMessage = "Registration failed. Please check your information and try again.";
+                StateHasChanged();
             }
         }
         catch (Exception ex)
@@ -119,8 +121,14 @@
         }
         finally
         {
-            _isLoading = false;
+            SetLoading(false);
         }
+    }
+
+    private void SetLoading(bool isLoading)
+    {
+        _isLoading = isLoading;
+        _icon = isLoading ? "fa-solid fa-spinner fa-spin fa-fw" : "";
     }
 
     private void NavigateToLogin()
