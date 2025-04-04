@@ -1,5 +1,4 @@
-﻿
-.w-full {
+﻿.w-full {
     width: 100%;
 }
 
@@ -59,7 +58,21 @@
 }
 
 .monospace-font {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', 'DejaVu Sans Mono', 'Roboto Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+    font-feature-settings: "calt" 1, "ss01" 1, "ss02" 1;  /* Enable font features for better readability */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure consistent character width for input area */
+#typingInput {
+    font-family: inherit;  /* Inherit the monospace font from parent */
+    font-size: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
 }
 
 .arrowUp {
