@@ -1,28 +1,4 @@
-﻿@* PracticeHistory.razor *@
-<style>
-    .history-dropdown-menu {
-        max-height: 100px;
-        overflow-y: auto;
-    }
-
-    .table {
-        margin-bottom: 0;
-    }
-
-        .table th {
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 1;
-        }
-
-    .no-history {
-        text-align: center;
-        padding: 10px;
-    }
-</style>
-
-<div class="dropdown">
+﻿<div class="dropdown">
     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownTable"
             data-bs-toggle="dropdown" aria-expanded="@_isOpen">
         Practice History

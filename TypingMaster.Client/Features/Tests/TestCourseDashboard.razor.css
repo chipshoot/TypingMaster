@@ -1,0 +1,128 @@
+﻿.test-dashboard {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    height: calc(100vh - 100px);
+}
+
+.categories-panel {
+    flex: 0 0 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.category-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .category-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .category-card.active {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+    }
+
+.category-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #007bff;
+}
+
+.category-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.category-description {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.lessons-panel {
+    flex: 0 0 400px;
+    border-right: 1px solid #e0e0e0;
+    padding-right: 1rem;
+}
+
+.lesson-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.lesson-item {
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .lesson-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .lesson-item.active {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+    }
+
+.details-panel {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.lesson-details {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.lesson-header {
+    margin-bottom: 2rem;
+}
+
+.lesson-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.lesson-stats {
+    display: flex;
+    gap: 2rem;
+    margin: 1.5rem 0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stat-icon {
+    color: #007bff;
+}
+
+.start-button {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background-color: #007bff;
+    color: white;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.start-button:hover {
+        background-color: #0056b3;
+}

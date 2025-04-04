@@ -1,14 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject ApplicationContext AppState
-<style>
-    .nav-link-white {
-        color: white !important;
-    }
 
-    .auth-link {
-        margin-left: auto;
-    }
-</style>
 <div>
     <Layout ShowFooter="true" AdditionalAssemblies="[typeof(MainLayout).Assembly]" IsPage="true">
         <Header>
@@ -16,8 +8,8 @@
                 <div class="container-fluid">
                     <a class="navbar-brand" href="#">Typing Master</a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false"
-                        aria-label="Toggle navigation">
+                            data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false"
+                            aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNavDropdown">
@@ -27,15 +19,9 @@
                                 <li class="nav-item">
                                     <a class="nav-link active" aria-current="page" href="trainer">Lessons</a>
                                 </li>
-                            } 
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                   aria-expanded="false">
-                                    Tests
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                   <li><a class="dropdown-item" href="allkeytest">All Key</a></li>
-                                </ul>
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="tests">Test</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="reports">Report</a>
@@ -52,7 +38,7 @@
                             {
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                        aria-expanded="false">
+                                       aria-expanded="false">
                                         @AppState.CurrentAccount?.AccountName
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end">

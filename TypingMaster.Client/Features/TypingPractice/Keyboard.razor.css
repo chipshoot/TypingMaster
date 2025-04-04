@@ -1,0 +1,51 @@
+﻿.w-10 {
+    width: 2.5rem;
+}
+
+.w-16 {
+    width: 4rem;
+}
+
+.w-40 {
+    width: 15rem;
+}
+
+.h-10 {
+    height: 2.5rem;
+}
+
+.space-x-1 > *:not(:last-child) {
+    margin-right: 0.25rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.border {
+    border: 1px solid #ccc;
+}
+
+.rounded {
+    border-radius: 0.25rem;
+}
+
+.bg-primary {
+    background-color: #007bff;
+}
+
+.text-white {
+    color: white;
+}
+
+.bg-body-secondary {
+    background-color: #f8f9fa;
+}
