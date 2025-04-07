@@ -1,4 +1,81 @@
-﻿
+﻿<style>
+    .keyboard-w-10 {
+        width: 2.5rem;
+    }
+
+    .keyboard-w-16 {
+        width: 4rem;
+    }
+
+    .keyboard-w-40 {
+        width: 15rem;
+    }
+
+    .keyboard-h-10 {
+        height: 2.5rem;
+    }
+
+    .space-x-1 > *:not(:last-child) {
+        margin-right: 0.25rem;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .items-center {
+        align-items: center;
+    }
+
+    .justify-center {
+        justify-content: center;
+    }
+
+    .border {
+        border: 1px solid #ccc;
+    }
+
+    .rounded {
+        border-radius: 0.25rem;
+    }
+
+    .bg-primary {
+        background-color: #007bff;
+    }
+
+    .keyboard-text-white {
+        color: white;
+    }
+
+    .bg-body-secondary {
+        background-color: #f8f9fa;
+    }
+
+    /* New styles for focused keys */
+    .keyboard-key-focus {
+        background-color: #ffc107;
+        border: 2px solid #ff9800;
+        color: #212529;
+        box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+        animation: pulse-focus 1.5s infinite;
+    }
+
+    @@keyframes pulse-focus {
+        0%
+
+    {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 193, 7, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+
+    }</style>
 <div class="d-flex flex-column items-center space-y-2">
     @for (var rowIndex = 0; rowIndex < _keyboardLayout.Length; rowIndex++)
     {
@@ -33,9 +110,12 @@
     [Parameter]
     public bool RightShiftPressed { get; set; }
 
+    [Parameter]
+    public List<string> FocusKeys { get; set; } = [];
+
     private readonly string[][] _keyboardLayout =
-    [
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+                [
+                    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
     ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
     ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
     ["z", "x", "c", "v", "b", "n", "m"]
@@ -48,9 +128,25 @@
         displayKey = key is "ShiftLeft" or "ShiftRight" ? "Shift" : displayKey;
         var isShiftKey = key is "ShiftLeft" or "ShiftRight";
         var isSpaceKey = key == "Space";
+        var isFocused = FocusKeys.Contains(key.ToLower());
+
+        // Determine key class based on state
+        string keyClass;
+        if (isPressed || (key == "ShiftLeft" && LeftShiftPressed) || (key == "ShiftRight" && RightShiftPressed))
+        {
+            keyClass = "bg-primary keyboard-text-white";
+        }
+        else if (isFocused)
+        {
+            keyClass = "keyboard-key-focus";
+        }
+        else
+        {
+            keyClass = "bg-body-secondary";
+        }
 
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", $"{(isShiftKey ? "w-16" : isSpaceKey ? "w-40" : "w-10")} h-10 flex items-center justify-center border rounded {(isPressed || (key == "ShiftLeft" && LeftShiftPressed) || (key == "ShiftRight" && RightShiftPressed) ? "bg-primary text-white" : "bg-body-secondary")}");
+        builder.AddAttribute(1, "class", $"{(isShiftKey ? "keyboard-w-16" : isSpaceKey ? "keyboard-w-40" : "keyboard-w-10")} keyboard-h-10 flex items-center justify-center border rounded {keyClass}");
         builder.AddContent(2, isSpaceKey ? " " : displayKey);
         builder.CloseElement();
     };

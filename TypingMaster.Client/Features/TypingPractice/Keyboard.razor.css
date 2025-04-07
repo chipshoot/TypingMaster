@@ -1,16 +1,16 @@
-﻿.w-10 {
+﻿.keyboard-w-10 {
     width: 2.5rem;
 }
 
-.w-16 {
+.keyboard-w-16 {
     width: 4rem;
 }
 
-.w-40 {
+.keyboard-w-40 {
     width: 15rem;
 }
 
-.h-10 {
+.keyboard-h-10 {
     height: 2.5rem;
 }
 
@@ -42,7 +42,7 @@
     background-color: #007bff;
 }
 
-.text-white {
+.keyboard-text-white {
     color: white;
 }
 

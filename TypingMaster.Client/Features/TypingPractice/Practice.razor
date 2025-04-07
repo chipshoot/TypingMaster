@@ -5,10 +5,10 @@
     <BodyTemplate>
         <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative">
             <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
-                @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
-                class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-                style="color: transparent; caret-color: transparent; overflow:hidden"
-                disabled="@_isCompleted"></textarea>
+            @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
+            class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
+            style="color: transparent; caret-color: transparent; overflow:hidden"
+            disabled="@_isCompleted"></textarea>
             <div class="pointer-events-none">
                 @for (var i = 0; i < Text.Length; i++)
                 {
@@ -39,10 +39,13 @@
         {
             <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false" TextType="MessageTextType.Markdown" />
         }
-        <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
-            RightShiftPressed="@_rightShiftPressed" />
+        <Keyboard LastKeyPressed="@_lastKeyPressed"
+        LeftShiftPressed="@_leftShiftPressed"
+        RightShiftPressed="@_rightShiftPressed" 
+        FocusKeys="@_focusKeys"
+        />
         <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated"
-            CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs"></KeyEventGenerator>
+        CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs"></KeyEventGenerator>
     </BodyTemplate>
     <FooterTemplate>
         <div class="d-flex justify-between items-center mb-4">
@@ -51,7 +54,7 @@
     </FooterTemplate>
 </Card>
 <TypingStatsCalculator Text="@Text" UserInput="@_textInput" OnWpmChanged="@(wpm => _wpm = wpm)"
-    OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></TypingStatsCalculator>
+OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></TypingStatsCalculator>
 
 @code {
     [Parameter]
@@ -69,6 +72,7 @@
     private string Text => CurrentLesson?.PracticeText ?? string.Empty;
     private string _textInput = string.Empty;
     private string _inputChars = string.Empty;
+    private List<string> _focusKeys = [];
     private char _nextKeyExpected;
     private string? _lastKeyPressed;
     private bool _leftShiftPressed = false;
@@ -92,6 +96,7 @@
         _keyEventGenerator = new KeyEventGenerator();
         _nextKeyExpected = string.IsNullOrEmpty(Text) ? '\0' : Text[_textInput.Length];
         _lessonHeader = $"Lesson: {CurrentLesson?.Id}";
+        _focusKeys = CurrentLesson == null ? [] : CurrentLesson.Target.ToList();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -232,6 +237,7 @@
         _keyEvents.Clear();
         _nextKeyExpected = Text[0];
         _keyEventGenerator?.Reset();
+        _focusKeys = [];
         if (courseFinished)
         {
             _isCompleted = true;

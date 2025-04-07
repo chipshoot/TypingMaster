@@ -1,11 +1,12 @@
 ﻿@page "/tests"
+@inject ApplicationContext AppState
 @inject ICourseWebService CourseService
 @inject NavigationManager NavigationManager
 
 <div class="test-dashboard">
     <div class="categories-panel">
         <div class="category-card @(SelectedCategory == "allkeys" ? "active" : "")"
-             @onclick='() => SelectCategory("allkeys")'>
+        @onclick='() => SelectCategory("allkeys")'>
             <div class="category-icon">
                 <i class="fas fa-keyboard"></i>
             </div>
@@ -13,7 +14,7 @@
             <div class="category-description">Test your typing skills across all keys on the keyboard</div>
         </div>
         <div class="category-card @(SelectedCategory == "speed" ? "active" : "")"
-             @onclick='() => SelectCategory("speed")'>
+        @onclick='() => SelectCategory("speed")'>
             <div class="category-icon">
                 <i class="fas fa-tachometer-alt"></i>
             </div>
@@ -30,8 +31,8 @@
                 @foreach (var lesson in GetLessonsForCategory(SelectedCategory))
                 {
                     <div class="lesson-item @(SelectedLesson?.Id == lesson.Id ? "active" : "")"
-                         @onclick="() => SelectLesson(lesson)">
-                        <h4>@lesson.Title</h4>
+                    @onclick="() => SelectLesson(lesson)">
+                        <h4>@lesson.Description</h4>
                         <p class="text-muted mb-0">@lesson.Description</p>
                     </div>
                 }
@@ -44,28 +45,28 @@
         <div class="details-panel">
             <div class="lesson-details">
                 <div class="lesson-header">
-                    <h2 class="lesson-title">@SelectedLesson.Title</h2>
+                    <h2 class="lesson-title">@SelectedLesson.Description</h2>
                     <p class="text-muted">@SelectedLesson.Description</p>
                 </div>
 
                 <div class="lesson-stats">
                     <div class="stat-item">
                         <i class="fas fa-clock stat-icon"></i>
-                        <span>Duration: @SelectedLesson.Duration min</span>
+                        @* <span>Duration: @SelectedLesson.Duration min</span> *@
                     </div>
                     <div class="stat-item">
                         <i class="fas fa-chart-line stat-icon"></i>
-                        <span>Target WPM: @SelectedLesson.TargetWpm</span>
+                        <span>Target WPM: @AppState.CurrentAccount.GoalStats.Wpm</span>
                     </div>
                     <div class="stat-item">
                         <i class="fas fa-bullseye stat-icon"></i>
-                        <span>Target Accuracy: @SelectedLesson.TargetAccuracy%</span>
+                        <span>Target Accuracy: @AppState.CurrentAccount.GoalStats.Accuracy%</span> 
                     </div>
                 </div>
 
                 <div class="mt-4">
                     <h4>Instructions</h4>
-                    <p>@SelectedLesson.Instructions</p>
+                    <p>@SelectedLesson.Instruction</p>
                 </div>
 
                 <div class="mt-5 text-center">
@@ -80,82 +81,37 @@
 </div>
 
 @code {
-    public class TestLesson
-    {
-        public Guid Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Duration { get; set; }
-        public int TargetWpm { get; set; }
-        public int TargetAccuracy { get; set; }
-        public string Instructions { get; set; } = string.Empty;
-    }
 
     private string SelectedCategory { get; set; } = string.Empty;
-    private TestLesson? SelectedLesson { get; set; }
-    private List<TestLesson> AllKeyLessons { get; set; } = new();
-    private List<TestLesson> SpeedLessons { get; set; } = new();
+    private Lesson? SelectedLesson { get; set; }
+    private List<Lesson> AllKeyLessons { get; set; } = new();
+    private List<Lesson> SpeedLessons { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         // Initialize with some sample lessons
-        // In a real application, these would come from your CourseService
-        AllKeyLessons = new List<TestLesson>
+        var AllKeycCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.AllKeysTest);
+        if (AllKeycCourses.FirstOrDefault() != null)
         {
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Basic Keys Test",
-                Description = "Test your proficiency with home row keys",
-                Duration = 5,
-                TargetWpm = 30,
-                TargetAccuracy = 95,
-                Instructions = "Type the text as accurately as possible. Focus on maintaining proper finger positioning."
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Full Keyboard Test",
-                Description = "Comprehensive test covering all keys",
-                Duration = 10,
-                TargetWpm = 40,
-                TargetAccuracy = 90,
-                Instructions = "This test will evaluate your typing skills across all keys on the keyboard."
-            }
-        };
+            AllKeyLessons = AllKeycCourses.FirstOrDefault().Lessons.ToList();
+        }
 
-        SpeedLessons = new List<TestLesson>
+        var SpeedCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.SpeedTest);
+        if (SpeedCourses.FirstOrDefault() != null)
         {
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Speed Challenge 1",
-                Description = "Basic speed typing test",
-                Duration = 3,
-                TargetWpm = 50,
-                TargetAccuracy = 90,
-                Instructions = "Type as fast as you can while maintaining accuracy. Focus on speed and rhythm."
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Advanced Speed Test",
-                Description = "High-speed typing challenge",
-                Duration = 5,
-                TargetWpm = 70,
-                TargetAccuracy = 95,
-                Instructions = "Challenge yourself with this advanced speed typing test. Aim for both speed and accuracy."
-            }
-        };
+            SpeedLessons = SpeedCourses.FirstOrDefault().Lessons.ToList();
+        }
+
+        StateHasChanged();
     }
 
-    private List<TestLesson> GetLessonsForCategory(string category)
+    private List<Lesson> GetLessonsForCategory(string category)
     {
         return category switch
         {
             "allkeys" => AllKeyLessons,
             "speed" => SpeedLessons,
-            _ => new List<TestLesson>()
+            _ => new List<Lesson>()
         };
     }
 
@@ -165,7 +121,7 @@
         SelectedLesson = null;
     }
 
-    private void SelectLesson(TestLesson lesson)
+    private void SelectLesson(Lesson lesson)
     {
         SelectedLesson = lesson;
     }
