@@ -1,5 +1,4 @@
 ﻿using TypingMaster.Business.Contract;
-using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 
@@ -9,15 +8,15 @@ namespace TypingMaster.Business.Course
     /// The course that increase the level of lesson based on the user's performance.
     /// If the user performs is better than advanced level, the lesson level will be increased.
     /// </summary>
-    public class AdvancedLevelCourse : ServiceBase, ICourse
+    public class PracticeCourse : ServiceBase, ICourse
     {
-        public AdvancedLevelCourse(Serilog.ILogger logger,  string lessonDataFileUrl = "") : base(logger)
+        public PracticeCourse(string name, Serilog.ILogger logger, string lessonDataFileUrl, string description) : base(logger)
         {
-            LessonDataUrl = string.IsNullOrEmpty(lessonDataFileUrl)
-                ? "Resources/LessonData/advanced-level-course-lessons.json"
-                : lessonDataFileUrl;
+            Type = TrainingType.Course;
+            LessonDataUrl = lessonDataFileUrl;
             CompleteText = CourseCompleteText;
-            Description = CourseDescription;
+            Name = name;
+            Description = description;
             Settings = new CourseSetting
             {
                 Minutes = 0,
@@ -31,15 +30,13 @@ namespace TypingMaster.Business.Course
             };
         }
 
-        private const string CourseDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
-
         private const string CourseCompleteText = "Congratulation, You have completed all lessons in this course.";
 
         public Guid Id { get; set; }
 
-        public string Name { get; set; } = TypingMasterConstants.AdvancedLevelCourseName;
+        public string Name { get; set; }
 
-        public TrainingType Type { get; } = TrainingType.Course;
+        public TrainingType Type { get; }
 
         public string LessonDataUrl { get; }
 
@@ -49,7 +46,7 @@ namespace TypingMaster.Business.Course
 
         public CourseSetting Settings { get; set; }
 
-        public string Description { get; } = CourseDescription;
+        public string Description { get; } = string.Empty;
 
         public Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
         {
@@ -73,7 +70,6 @@ namespace TypingMaster.Business.Course
                     nextLesson = Lessons.FirstOrDefault(l => l.Point == curLessonPoint && l.Id > curLessonId)
                                  ?? Lessons.FirstOrDefault(l => l.Point == curLessonPoint && l.Id == curLessonId);
                 }
-
             }
 
             // get next lesson of the current level

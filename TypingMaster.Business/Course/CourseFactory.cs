@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Serilog;
 using TypingMaster.Business.Contract;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 
@@ -20,21 +21,37 @@ namespace TypingMaster.Business.Course
 
             return (courseDto.Type, courseDto.Name) switch
             {
-                (TrainingType.Course, "BeginnerCourse") => new BeginnerCourse(logger)
+                (TrainingType.Course, TypingMasterConstants.BeginnerCourseName) => new BeginnerCourse(logger,
+                    courseDto.LessonDataUrl)
                 {
                     Id = courseDto.Id,
                     Name = courseDto.Name,
                     Settings = courseDto.Settings
                 },
 
-                (TrainingType.Course, "AdvancedLevelCourse") => new AdvancedLevelCourse(logger)
+                (TrainingType.Course, TypingMasterConstants.AdvancedLevelCourseName) => new AdvancedLevelCourse(logger,
+                    courseDto.LessonDataUrl)
                 {
                     Id = courseDto.Id,
                     Name = courseDto.Name,
                     Settings = courseDto.Settings
                 },
 
-                // Add more course types as needed
+                (TrainingType.AllKeysTest, TypingMasterConstants.AllKeysCourseName) => new PracticeCourse(
+                    TypingMasterConstants.AllKeysCourseName, logger, courseDto.LessonDataUrl, "")
+                {
+                    Id = courseDto.Id,
+                    Name = courseDto.Name,
+                    Settings = courseDto.Settings
+                },
+
+                (TrainingType.SpeedTest, TypingMasterConstants.SpeedTestCourseName) => new PracticeCourse(
+                    TypingMasterConstants.SpeedTestCourseName, logger, courseDto.LessonDataUrl, "")
+                {
+                    Id = courseDto.Id,
+                    Name = courseDto.Name,
+                    Settings = courseDto.Settings
+                },
 
                 _ => null // Return null for unsupported combinations
             };
@@ -51,12 +68,14 @@ namespace TypingMaster.Business.Course
             switch (course)
             {
                 case BeginnerCourse beginnerCourse:
-                    beginnerCourse.Lessons = GetCachedBeginnerCourseLessons(beginnerCourse, logger);
+                    beginnerCourse.Lessons = GetCachedCourseLessons(beginnerCourse);
                     break;
 
                 case AdvancedLevelCourse advancedCourse:
-                    // Initialize advanced course lessons if needed
-                    // advancedCourse.Lessons = GenerateAdvancedCourseLessons(advancedCourse, _logger);
+                    advancedCourse.Lessons = GetCachedCourseLessons(advancedCourse);
+                    break;
+                case PracticeCourse practiceCourse:
+                    practiceCourse.Lessons = GetCachedCourseLessons(practiceCourse);
                     break;
             }
 
@@ -66,7 +85,7 @@ namespace TypingMaster.Business.Course
         /// <summary>
         /// Gets the beginner course lessons, either from cache or by loading them from the file
         /// </summary>
-        private List<Lesson> GetCachedBeginnerCourseLessons(BeginnerCourse course, ILogger logger)
+        private List<Lesson> GetCachedCourseLessons(ICourse course)
         {
             // Use course's LessonDataUrl as the cache key
             var cacheKey = course.LessonDataUrl;
@@ -76,7 +95,7 @@ namespace TypingMaster.Business.Course
             {
                 if (LessonCache.TryGetValue(cacheKey, out var cachedLessons))
                 {
-                    logger.Information($"Retrieved lessons from cache for {cacheKey}");
+                    ProcessResult.AddInformation($"Retrieved lessons from cache for {cacheKey}");
                     return [.. cachedLessons]; // Return a copy to prevent modification of cached data
                 }
 
@@ -87,7 +106,7 @@ namespace TypingMaster.Business.Course
                 if (lessons.Count > 0)
                 {
                     LessonCache[cacheKey] = new List<Lesson>(lessons); // Store a copy in the cache
-                    logger.Information($"Added lessons to cache for {cacheKey}");
+                    ProcessResult.AddInformation($"Added lessons to cache for {cacheKey}");
                 }
 
                 return lessons;
@@ -126,10 +145,10 @@ namespace TypingMaster.Business.Course
                 {
                     Id = lessonData.Id,
                     Target = lessonData.Target,
+                    PracticeText = lessonData.PracticeText,
                     Description = lessonData.Description,
                     Instruction = lessonData.Instruction,
                     Point = lessonData.Point,
-                    PracticeText = string.Empty // Will be generated dynamically by BeginnerCourse.GetPracticeLesson
                 }).ToList();
 
                 return lessons;

@@ -1,22 +1,13 @@
 using System.Text;
 using TypingMaster.Business.Contract;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Business.Course;
 
-public class BeginnerCourse : ServiceBase, ICourse
+public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "") : ServiceBase(logger), ICourse
 {
-    public BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "") : base(logger)
-    {
-        Type = TrainingType.Course;
-        LessonDataUrl = string.IsNullOrEmpty(lessonDataFileUrl)
-            ? "Resources/LessonData/beginner-course-lessons.json"
-            : lessonDataFileUrl;
-        CompleteText = "";
-        Description = CourseDescription;
-    }
-
     private const string CourseDescription =
         "Master Touch Typing from Scratch: This structured beginner's course guides you from the home row keys (a, s, d, f, j, k, l, ;) to full keyboard proficiency. Starting with your finger placement on home keys, each lesson gradually introduces new keys while reinforcing previously learned ones. Progress at your own pace through interactive exercises designed to build muscle memory, improve accuracy, and increase typing speed. Perfect for new typists or anyone looking to develop proper touch typing technique without looking at the keyboard. Track your WPM and accuracy as you transform from hunt-and-peck to confident touch typing.";
 
@@ -31,23 +22,25 @@ public class BeginnerCourse : ServiceBase, ICourse
         // Additional dictionaries will be populated dynamically as needed
     };
 
-    private static readonly Random Random = new Random();
+    private static readonly Random Random = new();
 
     public Guid Id { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = TypingMasterConstants.BeginnerCourseName;
 
-    public TrainingType Type { get; }
+    public TrainingType Type { get; } = TrainingType.Course;
 
-    public string LessonDataUrl { get; }
+    public string LessonDataUrl { get; } = string.IsNullOrEmpty(lessonDataFileUrl)
+        ? "Resources/LessonData/beginner-course-lessons.json"
+        : lessonDataFileUrl;
 
     public IEnumerable<Lesson> Lessons { get; set; }
 
-    public string CompleteText { get; }
+    public string CompleteText { get; } = "";
 
     public CourseSetting Settings { get; set; }
 
-    public string Description { get; }
+    public string Description { get; } = CourseDescription;
 
     public Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
     {
