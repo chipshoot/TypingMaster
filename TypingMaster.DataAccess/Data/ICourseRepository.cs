@@ -15,7 +15,7 @@ public interface ICourseRepository
 
     Task<bool> DeleteCourseAsync(Guid id);
 
-    Task<IEnumerable<CourseDao>> GetCoursesByTypeAsync(TrainingType type);
+    Task<IEnumerable<CourseDao>> GetCoursesByTypeAsync(int accountId, TrainingType type);
 
     Task<CourseDao?> GetCourseByNameAsync(string name);
 }

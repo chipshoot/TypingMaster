@@ -22,18 +22,17 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
         }
     }
 
-    public async Task<CourseDto?> GetAllKeysCourse(Guid? id)
+    public async Task<IEnumerable<CourseDto>> GetCoursesByType(int accountId, TrainingType type)
     {
         try
         {
-            var url = id.HasValue
-                ? apiConfig.BuildApiUrl($"{BaseUrl}/all-keys/{id}")
-                : apiConfig.BuildApiUrl($"{BaseUrl}/all-keys");
-            return await httpClient.GetFromJsonAsync<CourseDto>(url);
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/by-type?accountId={accountId}&type={(int)type}");
+            var response = await httpClient.GetFromJsonAsync<IEnumerable<CourseDto>>(url);
+            return response;
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Failed to get all key course");
+            logger.Error(ex, "Failed to generate beginner course");
             return null;
         }
     }

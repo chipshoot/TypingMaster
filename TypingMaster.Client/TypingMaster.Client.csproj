@@ -27,11 +27,13 @@
 
 	<ItemGroup>
 		<None Remove="Features\Auth\Login.razor.css" />
+		<None Remove="Features\TypingPractice\Keyboard.razor.css" />
 		<None Remove="Features\TypingPractice\Practice.razor.css" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="Features\Auth\Login.razor.css" />
+		<Content Include="Features\TypingPractice\Keyboard.razor.css" />
 		<Content Include="Features\TypingPractice\Practice.razor.css" />
 	</ItemGroup>
 

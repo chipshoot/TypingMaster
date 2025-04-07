@@ -7,7 +7,7 @@ public interface ICourseWebService
 {
     Task<CourseDto?> GetCourse(Guid id);
 
-    Task<CourseDto?> GetAllKeysCourse(Guid? id);
+    Task<IEnumerable<CourseDto>> GetCoursesByType(int accountId, TrainingType type);
 
     Task<CourseDto?> CreateCourse(CourseDto courseDto);
 
