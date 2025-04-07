@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Serilog;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 
-namespace TypingMaster.Tests;
+namespace TypingMaster.Tests.Course;
 
 public class CourseRepositoryTests : IDisposable
 {
@@ -259,7 +260,7 @@ public class CourseRepositoryTests : IDisposable
            new CourseDao
            {
                Id = Guid.NewGuid(),
-               AccountId = 2,
+               AccountId = 1,
                Name = "Sample Course 2",
                Description = "Description for Sample Course 2",
                Type = TrainingType.Game.ToString(),
@@ -281,7 +282,7 @@ public class CourseRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetCoursesByTypeAsync(TrainingType.Game);
+        var result = await _repository.GetCoursesByTypeAsync(1, TrainingType.Game);
 
         // Assert
         Assert.NotNull(result);
@@ -370,7 +371,7 @@ public class CourseRepositoryTests : IDisposable
         {
             Id = Guid.Parse("AB7E8988-4E54-435F-9DC3-25D3193EC378"),
             AccountId = 1,
-            Name = "Beginner Typing Course",
+            Name = TypingMasterConstants.AllKeysCourseName,
             LessonDataUrl = "Resources/LessonData/beginner-course-lessons.json",
             Description = "A course for beginners to learn touch typing from scratch",
             Type = TrainingType.Course.ToString(),
@@ -381,7 +382,7 @@ public class CourseRepositoryTests : IDisposable
         {
             Id = Guid.Parse("B326B0D9-F44C-4206-BE3B-301824817EEA"),
             AccountId = 1,
-            Name = "All Keys Test Course",
+            Name = TypingMasterConstants.AllKeysCourseName,
             LessonDataUrl = "Resources/LessonData/all-keys-test-lessons.json",
             Description = "A comprehensive test for all keyboard keys and typing proficiency",
             Type = TrainingType.AllKeysTest.ToString(),
