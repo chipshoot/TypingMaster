@@ -2,7 +2,7 @@
   {
     "id": 1,
     "target": [],
-    "PracticeText": "Taking a test will give this program a basic for customizing individual lessons. Don't be concerned if you aren't typing as quickly as you can; you will soon excel.  Everyone has a quandary with number and symbol keys.  Don't expect to zoom through these next sentences - just do your best! \"Her birthday is 08/154/53.\"  Does 73% of $546.00 = $98.58? Item #32 (jonquils)  sold 2 units @ $6 & 1 @ $73. *+* That's all folks! +*+",
+    "practiceText": "Taking a test will give this program a basic for customizing individual lessons. Don't be concerned if you aren't typing as quickly as you can; you will soon excel.  Everyone has a quandary with number and symbol keys.  Don't expect to zoom through these next sentences - just do your best! \"Her birthday is 08/154/53.\"  Does 73% of $546.00 = $98.58? Item #32 (jonquils)  sold 2 units @ $6 & 1 @ $73. *+* That's all folks! +*+",
     "description": "Initial Test",
     "instruction": "",
     "point": 1
@@ -10,7 +10,7 @@
   {
     "id": 2,
     "target": [],
-    "PracticeText": "Fate chooses our relatives, we choose our friends. - Jacques Delille, 1738-1813.  'Tis not the dying for a faith that's so hard, ... 'tis the living up to it that's difficult. - William Makepeace Thackeray 1811-1863.  Truth has no special time of its own.  Its hour is now - always. - Albert Schweitzer, 1875-1965.  A good listener is not only popular everywhere, but after a while he gets to know something. - Wilson Mizner, 1876-1933.  No sooner said than done - so acts your man of worth. - Quintus Ennius, 239-169 B.C.  Absence makes the heart grow fonder. - Sextus Aurelius Propertius, 54 B.C. - A.D. 2.  All excellent things are as difficult as they are rare. - Benedict Spinoza, 1632-1677.  Experience keeps a dear school, but fools will learn in no other. - Benjamin Franklin, 1706-1790.",
+    "practiceText": "Fate chooses our relatives, we choose our friends. - Jacques Delille, 1738-1813.  'Tis not the dying for a faith that's so hard, ... 'tis the living up to it that's difficult. - William Makepeace Thackeray 1811-1863.  Truth has no special time of its own.  Its hour is now - always. - Albert Schweitzer, 1875-1965.  A good listener is not only popular everywhere, but after a while he gets to know something. - Wilson Mizner, 1876-1933.  No sooner said than done - so acts your man of worth. - Quintus Ennius, 239-169 B.C.  Absence makes the heart grow fonder. - Sextus Aurelius Propertius, 54 B.C. - A.D. 2.  All excellent things are as difficult as they are rare. - Benedict Spinoza, 1632-1677.  Experience keeps a dear school, but fools will learn in no other. - Benjamin Franklin, 1706-1790.",
     "description": "Quotes Test",
     "instruction": "",
     "point": 1
@@ -18,7 +18,7 @@
   {
     "id": 3,
     "target": [],
-    "PracticeText": "A queen once asked her advisor, the grand vizier, why she never seemed able to find mental contentment.  The vizier spoke to her, \"Your excellency, it is because your mind is constantly occupied with your many exquisite possessions.  When your mind is absorbed with thoughts of jewels, palaces, and gold it cannot find equilibrium.\"  The queen pondered the vizier's words, and realized that he had spoken the truth.  She decided to renounce her wealth and go live in the forest.  She passed many years of simple living but still did not find inner peace.  One day as she was gathering firewood she met the vizier on the road and told him of her plight.  \", \"My lady, \" he said, \", \"even though you live simply, your mind still hankers for your lost wealth.  Your mind is even more absorbed with riches than before, and so you have not found peace.",
+    "practiceText": "A queen once asked her advisor, the grand vizier, why she never seemed able to find mental contentment.  The vizier spoke to her, \"Your excellency, it is because your mind is constantly occupied with your many exquisite possessions.  When your mind is absorbed with thoughts of jewels, palaces, and gold it cannot find equilibrium.\"  The queen pondered the vizier's words, and realized that he had spoken the truth.  She decided to renounce her wealth and go live in the forest.  She passed many years of simple living but still did not find inner peace.  One day as she was gathering firewood she met the vizier on the road and told him of her plight.  \", \"My lady, \" he said, \", \"even though you live simply, your mind still hankers for your lost wealth.  Your mind is even more absorbed with riches than before, and so you have not found peace.",
     "description": "Story Test",
     "instruction": "",
     "point": 1
@@ -26,7 +26,7 @@
   {
     "id": 4,
     "target": [],
-    "PracticeText": "The bright morning sun blazed through the kitchen window, forcing Alex to squint. Coffee brewed, filling the air with a rich, inviting aroma. Just five minutes before the big video call! Keys jingled, the dog whined by the back door, and a quick check confirmed – yes, the important file was saved correctly. Grabbing a piece of toast, Alex juggled a mug, a laptop bag, and the buzzing phone. It was going to be one of those hectic, yet exciting, Mondays. \"Okay Zoomer\", let's conquer this week!\"",
+    "practiceText": "The bright morning sun blazed through the kitchen window, forcing Alex to squint. Coffee brewed, filling the air with a rich, inviting aroma. Just five minutes before the big video call! Keys jingled, the dog whined by the back door, and a quick check confirmed – yes, the important file was saved correctly. Grabbing a piece of toast, Alex juggled a mug, a laptop bag, and the buzzing phone. It was going to be one of those hectic, yet exciting, Mondays. \"Okay Zoomer\", let's conquer this week!\"",
     "description": "The Morning Rush",
     "instruction": "",
     "point": 1
@@ -34,7 +34,7 @@
   {
     "id": 5,
     "target": [],
-    "PracticeText": "Zippy the squirrel scampered quickly along the old fence, his fluffy tail held high like a question mark. He paused, twitching his nose, catching the faint scent of walnuts hidden somewhere nearby. Suddenly, a flash of blue caught his eye – a jay feather! He grabbed the prize, examining its vibrant color. Just then, a large, lazy cat yawned nearby. Zipping up the nearest oak tree, feather safely tucked away, Zippy decided the walnuts could wait for a less hazardous moment. Safety first!",
+    "practiceText": "Zippy the squirrel scampered quickly along the old fence, his fluffy tail held high like a question mark. He paused, twitching his nose, catching the faint scent of walnuts hidden somewhere nearby. Suddenly, a flash of blue caught his eye – a jay feather! He grabbed the prize, examining its vibrant color. Just then, a large, lazy cat yawned nearby. Zipping up the nearest oak tree, feather safely tucked away, Zippy decided the walnuts could wait for a less hazardous moment. Safety first!",
     "description": "Zippy's Discovery'",
     "instruction": "",
     "point": 1
@@ -42,7 +42,7 @@
   {
     "id": 6,
     "target": [],
-    "PracticeText": "Rain pattered softly against the tall, arched windows of the public library. Inside, the only sounds were the quiet rustle of turning pages and the occasional soft click of a keyboard. Rows upon rows of books stood silent, holding endless knowledge and amazing adventures. Maya found her favorite cozy armchair in a quiet corner, opened her chosen novel, and quickly became lost in a world of dragons and magic. Libraries offered such a peaceful escape from the often noisy, complex outside world.",
+    "practiceText": "Rain pattered softly against the tall, arched windows of the public library. Inside, the only sounds were the quiet rustle of turning pages and the occasional soft click of a keyboard. Rows upon rows of books stood silent, holding endless knowledge and amazing adventures. Maya found her favorite cozy armchair in a quiet corner, opened her chosen novel, and quickly became lost in a world of dragons and magic. Libraries offered such a peaceful escape from the often noisy, complex outside world.",
     "description": "The Quite Library",
     "instruction": "",
     "point": 1
@@ -50,7 +50,7 @@
   {
     "id": 7,
     "target": [],
-    "PracticeText": "Jaxxon hummed a zero-gravity tune while polishing the viewport of Star Cruiser 7. His job wasn't glamorous, mostly just cleaning up after messy space tourists, but the view was unbeatable. Today, the Nebula Quasar V-42 glowed a brilliant purple and gold just outside. He spotted a small, fuzzy alien creature attempting to 'help' by smudging the glass he'd just cleaned. \"Hey! Get your six fuzzy paws off there!\" Jaxxon chuckled, grabbing his sonic squeegee. Just another Tuesday in quadrant five.",
+    "practiceText": "Jaxxon hummed a zero-gravity tune while polishing the viewport of Star Cruiser 7. His job wasn't glamorous, mostly just cleaning up after messy space tourists, but the view was unbeatable. Today, the Nebula Quasar V-42 glowed a brilliant purple and gold just outside. He spotted a small, fuzzy alien creature attempting to 'help' by smudging the glass he'd just cleaned. \"Hey! Get your six fuzzy paws off there!\" Jaxxon chuckled, grabbing his sonic squeegee. Just another Tuesday in quadrant five.",
     "description": "The Space Janitor",
     "instruction": "",
     "point": 1
@@ -58,7 +58,7 @@
   {
     "id": 8,
     "target": [],
-    "PracticeText": "Flour dusted Grandpa Joe's apron like fresh snow. The kitchen buzzed with quiet energy. Sugar, eggs, vanilla, and chocolate chips waited patiently in their respective bowls. \"Ready for the magic?\" he asked Lily, his granddaughter. She nodded eagerly, gripping the wooden spoon. Together, they mixed the cookie dough, laughing as a bit flew onto Lily's nose. The warm, sweet smell soon filled the house as the first batch baked in the oven – a perfect recipe for a happy, cozy afternoon. 12 minutes exactly!",
+    "practiceText": "Flour dusted Grandpa Joe's apron like fresh snow. The kitchen buzzed with quiet energy. Sugar, eggs, vanilla, and chocolate chips waited patiently in their respective bowls. \"Ready for the magic?\" he asked Lily, his granddaughter. She nodded eagerly, gripping the wooden spoon. Together, they mixed the cookie dough, laughing as a bit flew onto Lily's nose. The warm, sweet smell soon filled the house as the first batch baked in the oven – a perfect recipe for a happy, cozy afternoon. 12 minutes exactly!",
     "instruction": "Baking Day",
     "description": "keys together",
     "point": 1
@@ -66,17 +66,17 @@
   {
     "id": 9,
     "target": [],
-    "PracticeText": "Deep in the emerald-green forest, the hikers realized their mistake. The familiar trail markers had vanished quite some time ago. Judging by the sun's position, they'd been walking in circles for nearly an hour. \"Okay, let's not panic,\" Brenda said, pulling out her slightly crumpled map and compass. \"GPS signal is zero, naturally.\" Kevin sighed, adjusting his backpack. \"Maybe we follow that stream? Water usually leads somewhere civilized, right?\" Exploring was fun, but getting home before dark was the priority now.",
-    "instruction": "The Lost Path",
-    "description": "",
+    "practiceText": "Deep in the emerald-green forest, the hikers realized their mistake. The familiar trail markers had vanished quite some time ago. Judging by the sun's position, they'd been walking in circles for nearly an hour. \"Okay, let's not panic,\" Brenda said, pulling out her slightly crumpled map and compass. \"GPS signal is zero, naturally.\" Kevin sighed, adjusting his backpack. \"Maybe we follow that stream? Water usually leads somewhere civilized, right?\" Exploring was fun, but getting home before dark was the priority now.",
+    "description": "The Lost Path",
+    "instruction": "",
     "point": 5
   },
   {
     "id": 10,
     "target": [ ],
-    "PracticeText": "From the high-rise balcony, the city sprawled below like a vast, glittering carpet woven with millions of lights. Yellow taxi streaks zipped along busy avenues, red taillights pulsed in slow traffic, and office windows glowed like distant stars. The constant, low hum of urban life provided a unique soundtrack. Even amidst the immense size and complex energy, there was a strange kind of beauty and order. A quick glance at the clock showed 10:37 PM – the city was still very much awake and buzzing with life.",
-    "instruction": "City Lights",
-    "description": "",
+    "practiceText": "From the high-rise balcony, the city sprawled below like a vast, glittering carpet woven with millions of lights. Yellow taxi streaks zipped along busy avenues, red taillights pulsed in slow traffic, and office windows glowed like distant stars. The constant, low hum of urban life provided a unique soundtrack. Even amidst the immense size and complex energy, there was a strange kind of beauty and order. A quick glance at the clock showed 10:37 PM – the city was still very much awake and buzzing with life.",
+    "description": "City Lights",
+    "instruction": "",
     "point": 5
   }
 ]
