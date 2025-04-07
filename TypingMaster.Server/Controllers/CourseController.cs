@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TypingMaster.Business;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
@@ -20,15 +21,15 @@ namespace TypingMaster.Server.Controllers
             return Ok(course);
         }
 
-        [HttpGet("all-keys/{id}")]
-        public async Task<ActionResult<ICourse>> GetAllKeysCourse(Guid id)
+        [HttpGet("by-type")]
+        public async Task<ActionResult<IEnumerable<ICourse>>> GetCoursesByType([FromQuery] int accountId, [FromQuery] TrainingType type)
         {
-            var course = await courseService.GetAllKeysCourse(id);
-            if (course == null)
+            var courses = await courseService.GetCoursesByType(accountId, type);
+            if (courses == null || !courses.Any())
             {
                 return NotFound();
             }
-            return Ok(course);
+            return Ok(courses);
         }
 
         [HttpPost]
@@ -68,6 +69,11 @@ namespace TypingMaster.Server.Controllers
         public async Task<ActionResult<Lesson>> GetPracticeLesson(Guid courseId, int lessonId, [FromBody] StatsBase stats)
         {
             var lesson = await courseService.GetPracticeLesson(courseId, lessonId, stats);
+            if (courseService is ServiceBase { ProcessResult.HasErrors: true } serviceBase)
+            {
+                return BadRequest(serviceBase.ProcessResult.ErrorMessage);
+            }
+
             if (lesson == null)
             {
                 return NotFound();
