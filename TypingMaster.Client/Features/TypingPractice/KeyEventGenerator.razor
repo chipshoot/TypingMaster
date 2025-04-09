@@ -1,9 +1,6 @@
 ﻿@inject ILogger Logger;
 
 @code {
-
-
-
     private KeyboardEventArgs? _previousKeyEventArgs;
     private Queue<KeyEvent> _keyEvents = new();
     public KeyEvent? KeyEvent { get; set; }
