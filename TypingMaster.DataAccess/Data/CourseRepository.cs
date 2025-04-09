@@ -48,7 +48,7 @@ public class CourseRepository(
 
     public async Task<IEnumerable<CourseDao>> GetCoursesByTypeAsync(int accountId, TrainingType type)
     {
-        var typeString = type.ToString();
+        var typeString = ((int)type).ToString();
 
         return await context.Courses
             .Where(c => c.AccountId == accountId && c.Type == typeString)

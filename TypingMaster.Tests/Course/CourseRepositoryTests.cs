@@ -45,7 +45,7 @@ public class CourseRepositoryTests : IDisposable
             AccountId = 1,
             Name = "Generated Test Course",
             Description = "Generated Test Description",
-            Type = TrainingType.Course.ToString(),
+            Type = ((int)TrainingType.Course).ToString(),
             SettingsJson = new CourseSettingDao
             {
                 Minutes = 60,
@@ -75,6 +75,44 @@ public class CourseRepositoryTests : IDisposable
         Assert.Equal(course.SettingsJson.PracticeTextLength, savedCourse.SettingsJson.PracticeTextLength);
         Assert.Equal(course.SettingsJson.TargetStats.Wpm, savedCourse.SettingsJson.TargetStats.Wpm);
         Assert.Equal(course.SettingsJson.TargetStats.Accuracy, savedCourse.SettingsJson.TargetStats.Accuracy);
+    }
+
+    [Fact]
+    public async Task GetCourseDaoByIdAsync_WhenCourseExists_ReturnsCourse()
+    {
+        // Arrange
+        var course = new CourseDao
+        {
+            Id = Guid.NewGuid(),
+            AccountId = 1,
+            Name = "Test Course",
+            Description = "Description for Test Course",
+            Type = ((int)TrainingType.Course).ToString(),
+            SettingsJson = new CourseSettingDao
+            {
+                Minutes = 60,
+                NewKeysPerStep = 1,
+                PracticeTextLength = 50,
+                TargetStats = new StatsDao
+                {
+                    Wpm = 25,
+                    Accuracy = 85
+                }
+            }
+        };
+
+        _context.Courses.Add(course);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetCourseByIdAsync(course.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(course.Id, result.Id);
+        Assert.Equal(course.Name, result.Name);
+        Assert.Equal(course.Description, result.Description);
+        Assert.Equal(course.Type, result.Type);
     }
 
     [Fact]
@@ -115,7 +153,7 @@ public class CourseRepositoryTests : IDisposable
             AccountId = 1,
             Name = "Test Created Course",
             Description = "A course created for testing the repository",
-            Type = TrainingType.Course.ToString(),
+            Type = ((int)TrainingType.Course).ToString(),
             LessonDataUrl = "Resources/LessonData/test-course-lessons.json",
             SettingsJson = new CourseSettingDao
             {
@@ -151,7 +189,7 @@ public class CourseRepositoryTests : IDisposable
             AccountId = 1,
             Name = "Sample Course",
             Description = "Sample Description",
-            Type = TrainingType.Course.ToString(),
+            Type = ((int)TrainingType.Course).ToString(),
             SettingsJson = new CourseSettingDao
             {
                 Minutes = 30,
@@ -193,7 +231,7 @@ public class CourseRepositoryTests : IDisposable
             AccountId = 1,
             Name = "Sample Course",
             Description = "Sample Description",
-            Type = TrainingType.Course.ToString(),
+            Type = ((int)TrainingType.Course).ToString(),
             SettingsJson = new CourseSettingDao
             {
                 Minutes = 30,
@@ -238,13 +276,13 @@ public class CourseRepositoryTests : IDisposable
         // Arrange
         var courses = new List<CourseDao>
        {
-           new CourseDao
+           new()
            {
                Id = Guid.NewGuid(),
                AccountId = 1,
                Name = "Sample Course 1",
                Description = "Description for Sample Course 1",
-               Type = TrainingType.Game.ToString(),
+               Type = ((int)TrainingType.Game).ToString(),
                SettingsJson = new CourseSettingDao
                {
                    Minutes = 60,
@@ -257,13 +295,13 @@ public class CourseRepositoryTests : IDisposable
                    }
                }
            },
-           new CourseDao
+           new()
            {
                Id = Guid.NewGuid(),
                AccountId = 1,
                Name = "Sample Course 2",
                Description = "Description for Sample Course 2",
-               Type = TrainingType.Game.ToString(),
+               Type = ((int)TrainingType.Game).ToString(),
                SettingsJson = new CourseSettingDao
                {
                    Minutes = 90,
@@ -288,7 +326,7 @@ public class CourseRepositoryTests : IDisposable
         Assert.NotNull(result);
         var courseDaos = result as CourseDao[] ?? result.ToArray();
         Assert.Equal(2, courseDaos.Count());
-        Assert.All(courseDaos, c => Assert.Equal(TrainingType.Game.ToString(), c.Type));
+        Assert.All(courseDaos, c => Assert.Equal(((int)TrainingType.Game).ToString(), c.Type));
     }
 
     [Fact]
@@ -301,7 +339,7 @@ public class CourseRepositoryTests : IDisposable
             AccountId = 1,
             Name = "Test Course",
             Description = "Description for Test Course",
-            Type = TrainingType.Course.ToString(),
+            Type = ((int)TrainingType.Course).ToString(),
             SettingsJson = new CourseSettingDao
             {
                 Minutes = 60,
@@ -339,6 +377,56 @@ public class CourseRepositoryTests : IDisposable
         Assert.Null(result);
     }
 
+    [Fact]
+    public async Task UpdateCourseDaoAsync_WhenCourseExists_UpdatesCourse()
+    {
+        // Arrange
+        var course = new CourseDao
+        {
+            Id = Guid.NewGuid(),
+            AccountId = 1,
+            Name = "Original Course Name",
+            Description = "Original Description",
+            Type = ((int)TrainingType.Course).ToString(),
+            SettingsJson = new CourseSettingDao
+            {
+                Minutes = 60,
+                NewKeysPerStep = 1,
+                PracticeTextLength = 50,
+                TargetStats = new StatsDao
+                {
+                    Wpm = 25,
+                    Accuracy = 85
+                }
+            }
+        };
+
+        _context.Courses.Add(course);
+        await _context.SaveChangesAsync();
+
+        // Update the course
+        course.Name = "Updated Course Name";
+        course.Description = "Updated Description";
+        course.SettingsJson.Minutes = 90;
+
+        // Act
+        var result = await _repository.UpdateCourseAsync(course);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(course.Id, result.Id);
+        Assert.Equal("Updated Course Name", result.Name);
+        Assert.Equal("Updated Description", result.Description);
+        Assert.Equal(90, result.SettingsJson.Minutes);
+
+        // Verify the changes are persisted in the database
+        var updatedCourse = await _context.Courses.FindAsync(course.Id);
+        Assert.NotNull(updatedCourse);
+        Assert.Equal("Updated Course Name", updatedCourse.Name);
+        Assert.Equal("Updated Description", updatedCourse.Description);
+        Assert.Equal(90, updatedCourse.SettingsJson.Minutes);
+    }
+
     private void SeedTestData()
     {
         // Create CourseSettingDao objects for each course
@@ -374,7 +462,7 @@ public class CourseRepositoryTests : IDisposable
             Name = TypingMasterConstants.AllKeysCourseName,
             LessonDataUrl = "Resources/LessonData/beginner-course-lessons.json",
             Description = "A course for beginners to learn touch typing from scratch",
-            Type = TrainingType.Course.ToString(),
+            Type = ((int)TrainingType.Course).ToString(),
             SettingsJson = settings1
         };
 
@@ -385,7 +473,7 @@ public class CourseRepositoryTests : IDisposable
             Name = TypingMasterConstants.AllKeysCourseName,
             LessonDataUrl = "Resources/LessonData/all-keys-test-lessons.json",
             Description = "A comprehensive test for all keyboard keys and typing proficiency",
-            Type = TrainingType.AllKeysTest.ToString(),
+            Type = ((int)TrainingType.AllKeysTest).ToString(),
             SettingsJson = settings2
         };
 
