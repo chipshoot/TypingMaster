@@ -1,10 +1,11 @@
 ﻿@page "/allkeytest"
+@page "/allkeytest/{LessonId:int}"
 
 @inject ILogger Logger
 @inject ITypingTrainer TypingTrainer
 @inject ICourseWebService CourseService
 @inject ApplicationContext AppState
-@inject IAccountWebService AccountService
+@inject IAccountClientService AccountService
 @inject NavigationManager NavigationManager
 
 @if (!_isCompleted)
@@ -40,6 +41,9 @@ else
 }
 
 @code {
+    [Parameter]
+    public int LessonId { get; set; }
+
     private const string NullAccountFound = "Null account found in AllKeyTest component Initialized method";
     private Practice? _practice;
     private bool _isCompleted;
@@ -66,15 +70,13 @@ else
         }
 
         // setup testing course to be used
-        var courses = await CourseService.GetCoursesByType(0, TrainingType.AllKeysTest);
-        if (courses.FirstOrDefault() == null)
+        if (AppState.CurrentCourse == null)
         {
             Logger.Error("Null course found in AllKeyTest component Initialized method");
         }
 
-        var course = courses.FirstOrDefault();
-        _curLesson = course?.Lessons.FirstOrDefault();
-        AppState.CurrentCourse = course;
+        var course = AppState.CurrentCourse;
+        _curLesson = course?.Lessons.FirstOrDefault(l => l.Id == LessonId);
         AppState.CurrentAccount.TestCourseId = course?.Id ?? Guid.Empty;
         TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
     }
@@ -91,6 +93,7 @@ else
         _practice?.HandleReset(_isCompleted);
         if (AppState.IsLoggedIn)
         {
+            await AccountService.AddCourseToAccountAsync(AppState);
             NavigationManager.NavigateTo("/reports");
         }
         else

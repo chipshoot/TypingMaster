@@ -1,7 +1,7 @@
 ﻿@page "/tests"
 @inject ApplicationContext AppState
 @inject ICourseWebService CourseService
-@inject NavigationManager NavigationManager
+@inject NavigationManager Navigation
 
 <div class="test-dashboard">
     <div class="categories-panel">
@@ -70,10 +70,10 @@
                 </div>
 
                 <div class="mt-5 text-center">
-                    <a href="@GetTestUrl()" class="start-button">
+                    <button @onclick="StartTest" class="start-button">
                         <i class="fas fa-play me-2"></i>
                         Start Test
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -86,20 +86,24 @@
     private Lesson? SelectedLesson { get; set; }
     private List<Lesson> AllKeyLessons { get; set; } = new();
     private List<Lesson> SpeedLessons { get; set; } = new();
+    private CourseDto? _allKeyTestCourse = null;
+    private CourseDto? _speedTestCourse = null;
 
     protected override async Task OnInitializedAsync()
     {
         // Initialize with some sample lessons
-        var AllKeycCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.AllKeysTest);
-        if (AllKeycCourses.FirstOrDefault() != null)
+        var allKeyTestCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.AllKeysTest);
+        _allKeyTestCourse = allKeyTestCourses.FirstOrDefault();
+        if (_allKeyTestCourse != null)
         {
-            AllKeyLessons = AllKeycCourses.FirstOrDefault().Lessons.ToList();
+            AllKeyLessons = _allKeyTestCourse.Lessons.ToList();
         }
 
-        var SpeedCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.SpeedTest);
-        if (SpeedCourses.FirstOrDefault() != null)
+        var SpeedTestCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.SpeedTest);
+        _speedTestCourse = SpeedTestCourses.FirstOrDefault();
+        if (_speedTestCourse != null)
         {
-            SpeedLessons = SpeedCourses.FirstOrDefault().Lessons.ToList();
+            SpeedLessons = _speedTestCourse.Lessons.ToList();
         }
 
         StateHasChanged();
@@ -126,15 +130,24 @@
         SelectedLesson = lesson;
     }
 
-    private string GetTestUrl()
-    {
-        if (SelectedLesson == null) return "#";
 
-        return SelectedCategory switch
+    private void StartTest()
+    {
+        if (SelectedLesson == null) return;
+
+        AppState.CurrentCourse = SelectedCategory switch
         {
-            "allkeys" => $"/allkeytest",
-            "speed" => $"/speedtest",
-            _ => "#"
+            // Set the current course in AppState based on selected category
+            "allkeys" when _allKeyTestCourse != null => _allKeyTestCourse,
+            "speed" when _speedTestCourse != null => _speedTestCourse,
+            _ => AppState.CurrentCourse
         };
+        if (AppState.CurrentAccount != null)
+        {
+            AppState.CurrentAccount.TestCourseId = AppState.CurrentCourse?.Id ?? Guid.Empty;
+        }
+
+        // Navigate to the test page with the lesson ID
+        Navigation.NavigateTo($"/allkeytest/{SelectedLesson.Id}");
     }
 }
