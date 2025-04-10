@@ -7,20 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TypingMaster.Core\TypingMaster.Core.csproj" />
+    <None Remove="appsettings.development.json" />
+    <None Remove="appsettings.development.json.example" />
+    <None Remove="appsettings.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.development.json.example">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+    <ProjectReference Include="..\TypingMaster.Core\TypingMaster.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
