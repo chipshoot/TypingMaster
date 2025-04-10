@@ -1,0 +1,125 @@
+# .github/workflows/deploy.yml
+# Workflow to build and deploy the Blazor WASM frontend and ASP.NET Core API
+# to AWS S3/CloudFront and Elastic Beanstalk respectively.
+
+name: Deploy Typing Practice App to AWS
+
+# Trigger deployment on push events to the main branch
+on:
+  push:
+    branches: [main-demo]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  # --- Configuration: Set these variables ---
+  DOTNET_VERSION: "9.0.x" # Specify your target .NET version (update if needed)
+  SOLUTION_FILE: "TypingMaster.sln" # Path to your solution file
+  BLAZOR_PROJECT_PATH: "TypingMaster/TypingMaster.Client.csproj" # Path to Blazor project
+  API_PROJECT_PATH: "TypingMaster/TypingMaster.Server.csproj" # Path to API project
+  AWS_REGION: ${{ secrets.AWS_REGION }} # Use GitHub secret for region (e.g., us-east-1)
+
+  # --- AWS Resource Names: Set these values ---
+  S3_BUCKET_NAME: "typing-master"
+  CLOUDFRONT_DISTRIBUTION_ID: "E2OTCOTJLZDGJ5"
+  EB_ENVIRONMENT_NAME: "demonstration"
+  EB_APPLICATION_NAME: "YourApiApplicationName" # Replace with your Elastic Beanstalk application name
+  API_DEPLOYMENT_PACKAGE_NAME: "api-deployment-package.zip" # Name for the deployment zip file
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to AWS
+    runs-on: ubuntu-latest # Use a standard Linux runner
+
+    steps:
+      # 1. Checkout Repository Code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Setup .NET Environment
+      - name: Setup .NET SDK ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      # 3. Restore .NET Dependencies
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      # 4. Build and Publish Blazor WASM Frontend
+      - name: Publish Blazor WASM
+        run: dotnet publish ${{ env.BLAZOR_PROJECT_PATH }} --configuration Release --output ./publish-blazor
+        # Publishes the Blazor app to the ./publish-blazor directory
+
+      # 5. Build and Publish ASP.NET Core API Backend
+      - name: Publish API
+        run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --output ./publish-api
+        # Publishes the API app to the ./publish-api directory
+
+     # 6. Configure AWS Credentials using OIDC
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # ARN of the IAM role to assume
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 7. Deploy Blazor WASM files to S3
+      - name: Deploy Blazor WASM to S3
+        run: |
+          aws s3 sync ./publish-blazor/wwwroot s3://${{ env.S3_BUCKET_NAME }} --delete
+        # Syncs the contents of the Blazor wwwroot folder to S3
+        # The --delete flag removes files in S3 that are no longer in wwwroot
+
+      # 8. Invalidate CloudFront Cache
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+        # Creates an invalidation for all files ("/*") to force CloudFront
+        # to fetch the latest versions from S3
+
+      # # 9. Prepare API Deployment Package for Elastic Beanstalk
+      # - name: Generate API Deployment Package
+      #   run: |
+      #     cd publish-api
+      #     zip -r ../${{ env.API_DEPLOYMENT_PACKAGE_NAME }} .
+      #     cd ..
+      #   # Creates a zip archive of the published API files
+
+      # # 10. Upload API Package to S3 (for Elastic Beanstalk versioning)
+      # - name: Upload API package to S3
+      #   id: upload_s3 # Give this step an ID to reference its output
+      #   run: |
+      #     timestamp=$(date +%Y%m%d%H%M%S)
+      #     # Define a unique key in S3 for this deployment package
+      #     s3_key="eb-deploy-packages/${{ env.EB_APPLICATION_NAME }}/api-${timestamp}-${{ github.sha }}.zip"
+      #     aws s3 cp ${{ env.API_DEPLOYMENT_PACKAGE_NAME }} s3://${{ env.S3_BUCKET_NAME }}/$s3_key
+      #     echo "s3_key=$s3_key" >> $GITHUB_OUTPUT # Make the S3 key available to subsequent steps
+      #   # Elastic Beanstalk requires the deployment package to be in S3
+
+      # # 11. Create New Application Version in Elastic Beanstalk
+      # - name: Create Elastic Beanstalk Application Version
+      #   id: create_version # Give this step an ID
+      #   run: |
+      #     timestamp=$(date +%Y%m%d%H%M%S)
+      #     # Create a unique version label using timestamp and commit SHA
+      #     version_label="v${timestamp}-${{ github.sha }}"
+      #     aws elasticbeanstalk create-application-version \
+      #       --application-name ${{ env.EB_APPLICATION_NAME }} \
+      #       --version-label $version_label \
+      #       --source-bundle S3Bucket="${{ env.S3_BUCKET_NAME }}",S3Key="${{ steps.upload_s3.outputs.s3_key }}" \
+      #       --auto-create-application \
+      #       --description "Deployed commit ${{ github.sha }} via GitHub Actions"
+      #     echo "version_label=$version_label" >> $GITHUB_OUTPUT # Make the version label available
+
+      # # 12. Deploy New Version to Elastic Beanstalk Environment
+      # - name: Deploy to Elastic Beanstalk Environment
+      #   run: |
+      #     aws elasticbeanstalk update-environment \
+      #       --application-name ${{ env.EB_APPLICATION_NAME }} \
+      #       --environment-name ${{ env.EB_ENVIRONMENT_NAME }} \
+      #       --version-label ${{ steps.create_version.outputs.version_label }}
+      #   # Instructs Elastic Beanstalk to update the environment with the new version
+
+      # # 13. Deployment Notification (Optional)
+      # - name: Deployment successful
+      #   run: echo "Deployment to AWS completed successfully for commit ${{ github.sha }}!"
