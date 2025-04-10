@@ -15,8 +15,8 @@ env:
   # --- Configuration: Set these variables ---
   DOTNET_VERSION: "9.0.x" # Specify your target .NET version (update if needed)
   SOLUTION_FILE: "TypingMaster.sln" # Path to your solution file
-  BLAZOR_PROJECT_PATH: "TypingMaster/TypingMaster.Client/TypingMaster.Client.csproj" # Path to Blazor project
-  API_PROJECT_PATH: "TypingMaster/TypingMaster.Server/TypingMaster.Server.csproj" # Path to API project
+  BLAZOR_PROJECT_PATH: "TypingMaster.Client/TypingMaster.Client.csproj" # Path to Blazor project
+  API_PROJECT_PATH: "TypingMaster.Server/TypingMaster.Server.csproj" # Path to API project
   AWS_REGION: ${{ secrets.AWS_REGION }} # Use GitHub secret for region (e.g., us-east-1)
 
   # --- AWS Resource Names: Set these values ---
