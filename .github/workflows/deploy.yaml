@@ -66,6 +66,9 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # ARN of the IAM role to assume
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-actions
+        permissions:
+            id-token: write # Required for OIDC authentication
 
       # 8. Deploy Blazor WASM files to S3
       - name: Deploy Blazor WASM to S3
