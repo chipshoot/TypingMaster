@@ -8,7 +8,7 @@ namespace TypingMaster.Client.Services
         ICourseWebService courseService,
         Serilog.ILogger logger) : IAccountClientService
     {
-        public async Task AddCourseToAccountAsync(ApplicationContext applicationState)
+        public async Task UpdateAccountWithCourseAsync(ApplicationContext applicationState)
         {
             try
             {

@@ -136,7 +136,7 @@
                 }
             }
 
-            await AccountService.AddCourseToAccountAsync(AppState);
+            await AccountService.UpdateAccountWithCourseAsync(AppState);
             Navigation.NavigateTo("/Trainer");
         }
         catch (Exception e)

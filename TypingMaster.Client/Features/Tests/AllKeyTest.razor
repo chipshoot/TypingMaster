@@ -97,7 +97,7 @@ else
         _practice?.HandleReset(_isCompleted);
         if (AppState.IsLoggedIn)
         {
-            await AccountService.AddCourseToAccountAsync(AppState);
+            await AccountService.UpdateAccountWithCourseAsync(AppState);
             NavigationManager.NavigateTo("/reports");
         }
         else

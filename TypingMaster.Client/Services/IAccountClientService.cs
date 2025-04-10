@@ -7,7 +7,7 @@ namespace TypingMaster.Client.Services
     {
         Task<Account?> GetGuestAccount();
 
-        Task AddCourseToAccountAsync(ApplicationContext applicationState);
+        Task UpdateAccountWithCourseAsync(ApplicationContext applicationState);
 
     }
 }
