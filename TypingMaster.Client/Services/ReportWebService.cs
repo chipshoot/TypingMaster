@@ -51,7 +51,7 @@ namespace TypingMaster.Client.Services
             };
         }
 
-        public async Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseDto course, TrainingType type)
+        public async Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseDto course, params TrainingType[] types)
         {
             if (history?.PracticeStats == null || course == null)
                 return Array.Empty<ProgressRecord>();
@@ -61,12 +61,14 @@ namespace TypingMaster.Client.Services
             foreach (var item in history.PracticeStats)
             {
                 // Only process items matching the requested type
-                if (item.Type != type)
+                if (!types.Contains(item.Type))
+                {
                     continue;
+                }
 
                 var record = new ProgressRecord
                 {
-                    Type = type.ToString(),
+                    Type = item.Type.ToString(),
                     Name = course.Name,
                     Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(),
                     GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),

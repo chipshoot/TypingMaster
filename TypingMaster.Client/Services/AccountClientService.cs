@@ -23,15 +23,16 @@ namespace TypingMaster.Client.Services
                 if (existingCourse != null)
                 {
                     logger.Error($"The course: {applicationState.CurrentCourse.Id} already exists in database");
-
                 }
-
-                // save new added course to table
-                var createdCourse = await courseService.CreateCourse(applicationState.CurrentCourse);
-                if (createdCourse == null)
+                else
                 {
-                    logger.Error($"Failed to create course. Details: {applicationState?.CurrentCourse?.Id}");
-                    return;
+                    // save new added course to table
+                    var createdCourse = await courseService.CreateCourse(applicationState.CurrentCourse);
+                    if (createdCourse == null)
+                    {
+                        logger.Error($"Failed to create course. Details: {applicationState?.CurrentCourse?.Id}");
+                        return;
+                    }
                 }
 
                 var updateResult = await accountService.UpdateAccountAsync(applicationState.CurrentAccount);

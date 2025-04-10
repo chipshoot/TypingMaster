@@ -66,7 +66,7 @@
         _testProgress = (await ReportService.GetProgressRecords(
             AppState.CurrentAccount.History,
             AppState.CurrentCourse,
-            TrainingType.AllKeysTest)).ToList();
+            TrainingType.AllKeysTest, TrainingType.SpeedTest)).ToList();
     }
 
     private List<ChartDataset> GetSpeedData()

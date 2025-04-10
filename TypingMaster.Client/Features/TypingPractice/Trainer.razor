@@ -40,23 +40,33 @@
     {
         if (AppState.CurrentAccount == null)
         {
+            Logger.Error("Cannot find current Account");
             return;
+        }
+
+        if (AppState.CurrentCourse == null)
+        {
+            Logger.Error("Cannot find current Course");
+            return;
+        }
+
+        // first make sure user's current course is right type
+        if (AppState.CurrentCourse.Type != TrainingType.Course)
+        {
+            var course = await CourseService.GetCourse(AppState.CurrentAccount.CourseId);
+            if (course != null)
+            {
+                AppState.CurrentCourse = course;
+            }
         }
 
         // system get drill stats sorted by newest record by default, this let use get latest record at first record of the dataset
         var stats = AppState.CurrentAccount.History.PracticeStats.FirstOrDefault() ?? await CourseService.GenerateStartStats();
-        if (AppState.CurrentCourse != null)
-        {
-            var courseId = AppState.CurrentCourse.Id;
-            _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
-            TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
+        var courseId = AppState.CurrentCourse.Id;
+        _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
+        TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
 
-            StateHasChanged();
-        }
-        else
-        {
-            Logger.Error("Cannot find current course");
-        }
+        StateHasChanged();
     }
 
     private async Task OnPracticeFinished(DrillStats stats)

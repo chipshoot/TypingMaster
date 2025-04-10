@@ -18,7 +18,7 @@
                 </div>
                 <div class="d-flex">
                     <div class="me-2">
-                        <PracticeHistory StatsList="@StatsList"></PracticeHistory>
+                        <PracticeHistory StatsList="@_statsList"></PracticeHistory>
                     </div>
                     <div>
                         <Button Color="Color.Primary" OnClick="ResetPractice">RePractise</Button>
@@ -28,7 +28,7 @@
         </HeaderTemplate>
         <BodyTemplate>
             <Practice CurrentLesson="@_curLesson"
-            TrainingType="@TrainingType.AllKeysTest"
+            TrainingType="@_trainingType"
             OnTypingCompleted="OnPracticeFinished"
             @ref="@_practice">
             </Practice>
@@ -45,39 +45,43 @@ else
     public int LessonId { get; set; }
 
     private const string NullAccountFound = "Null account found in AllKeyTest component Initialized method";
+    private const string NullCourseFound = "Null course found in AllKeyTest component Initialized method";
     private Practice? _practice;
     private bool _isCompleted;
     private Lesson? _curLesson;
 
-    private IList<DrillStats> StatsList => [];
+    private IList<DrillStats> _statsList = [];
+    private TrainingType _trainingType;
 
 
     protected override async Task OnInitializedAsync()
     {
-        AppState.InitializeAccount();
         if (!AppState.IsLoggedIn && AppState.CurrentAccount == null)
         {
             AppState.CurrentAccount = await AccountService.GetGuestAccount();
         }
-        else if(AppState.CurrentAccount == null)
+        else if (AppState.CurrentAccount == null)
         {
             await AppState.GetCourse();
-            if (AppState.CurrentCourse == null)
-            {
-                Logger.Error(NullAccountFound);
-                throw new Exception(NullAccountFound);
-            }
         }
 
-        // setup testing course to be used
+        if (AppState.CurrentAccount == null)
+        {
+            Logger.Error(NullAccountFound);
+            throw new Exception(NullAccountFound);
+        }
+
         if (AppState.CurrentCourse == null)
         {
-            Logger.Error("Null course found in AllKeyTest component Initialized method");
+            Logger.Error(NullCourseFound);
+            throw new Exception(NullCourseFound);
         }
 
         var course = AppState.CurrentCourse;
         _curLesson = course?.Lessons.FirstOrDefault(l => l.Id == LessonId);
-        AppState.CurrentAccount.TestCourseId = course?.Id ?? Guid.Empty;
+        AppState.CurrentAccount.TestCourseId = course.Id;
+        _trainingType = course.Type;
+        _statsList = AppState.CurrentAccount.History.PracticeStats.Where(s => s.Type == course.Type).ToList();
         TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
     }
 
