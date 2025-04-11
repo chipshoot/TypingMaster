@@ -37,6 +37,8 @@ namespace TypingMaster.Core.Constants
         #endregion
         
         #region Default Values
+
+        public const int GuestAccountId = -1;
         public const string DefaultCompleteText = "";
         #endregion
     }

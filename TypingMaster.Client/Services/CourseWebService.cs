@@ -37,6 +37,21 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
         }
     }
 
+    public async Task<CourseDto?> GetCoursesByTypeForGuest(TrainingType type)
+    {
+        try
+        {
+            var url = apiConfig.BuildApiUrl($"{BaseUrl}/by-type-guest?type={(int)type}");
+            var response = await httpClient.GetFromJsonAsync<CourseDto>(url);
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Failed to generate beginner course");
+            return null;
+        }
+    }
+
     public async Task<CourseDto?> GenerateBeginnerCourse(CourseSetting settings)
     {
         try

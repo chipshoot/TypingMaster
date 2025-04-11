@@ -47,6 +47,12 @@ namespace TypingMaster.Tests.Course
             );
         }
 
+        private string GetDataFileUrl()
+        {
+            var testDataDir = Path.Combine(Directory.GetCurrentDirectory(), "TestData");
+            var testFilePath = Path.Combine(testDataDir, "test-practice-lessons.json");
+            return testFilePath;
+        }
         [Fact]
         public async Task GetCourse_WhenCourseExists_ReturnsCourseDtoSuccessfully()
         {
@@ -151,7 +157,7 @@ namespace TypingMaster.Tests.Course
                 Name = "New Course",
                 Type = TrainingType.Course,
                 Settings = new CourseSetting(),
-                LessonDataUrl = "test-url"
+                LessonDataUrl = GetDataFileUrl()
             };
             var courseDao = new CourseDao { Id = courseDto.Id, Name = courseDto.Name };
             var accountDao = new AccountDao { Id = courseDto.AccountId };
@@ -268,6 +274,71 @@ namespace TypingMaster.Tests.Course
             result.Should().NotBeNull();
             _courseRepositoryMock.Verify(x => x.GetCourseByIdAsync(courseId), Times.AtLeastOnce);
             _mapperMock.Verify(x => x.Map<CourseDto>(courseDao), Times.AtLeastOnce);
+        }
+
+        [Fact]
+        public async Task GetCoursesByTypeForGuest_WithSupportedType_ReturnsCourse()
+        {
+            // Arrange
+            var type = TrainingType.AllKeysTest;
+            var expectedCourse = new CourseDto
+            {
+                Id = Guid.NewGuid(),
+                Name = TypingMasterConstants.AllKeysCourseName,
+                Type = type,
+                Settings = new CourseSetting(),
+                LessonDataUrl = GetDataFileUrl()
+            };
+
+            _mapperMock.Setup(x => x.Map<CourseDto>(It.IsAny<CourseDao>()))
+                .Returns(expectedCourse);
+
+            // Act
+            var result = await _courseService.GetCoursesByTypeForGuest(type);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Lessons.Should().NotBeNull();
+            result.Lessons.Should().HaveCountGreaterThanOrEqualTo(1, "Speed test courses should have at least one lesson");
+        }
+
+        [Fact]
+        public async Task GetCoursesByTypeForGuest_WithUnsupportedType_ReturnsNull()
+        {
+            // Arrange
+            var type = TrainingType.Course;
+
+            // Act
+            var result = await _courseService.GetCoursesByTypeForGuest(type);
+
+            // Assert
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetCoursesByTypeForGuest_WithSpeedTestType_ReturnsCourse()
+        {
+            // Arrange
+            var type = TrainingType.SpeedTest;
+            var expectedCourse = new CourseDto
+            {
+                Id = Guid.NewGuid(),
+                Name = TypingMasterConstants.SpeedTestCourseName,
+                Type = type,
+                Settings = new CourseSetting(),
+                LessonDataUrl = GetDataFileUrl()
+            };
+
+            _mapperMock.Setup(x => x.Map<CourseDto>(It.IsAny<CourseDao>()))
+                .Returns(expectedCourse);
+
+            // Act
+            var result = await _courseService.GetCoursesByTypeForGuest(type);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Lessons.Should().NotBeNull();
+            result.Lessons.Should().HaveCountGreaterThanOrEqualTo(1, "Speed test courses should have at least one lesson");
         }
     }
 }

@@ -394,5 +394,93 @@ namespace TypingMaster.Tests.Course
         }
 
         #endregion GetPracticeLesson Tests
+
+        #region GetCoursesByTypeForGuest Tests
+
+        [Fact]
+        public async Task GetCoursesByTypeForGuest_WithSupportedType_ReturnsOkResult()
+        {
+            // Arrange
+            var type = TrainingType.AllKeysTest;
+            var expectedCourse = new CourseDto
+            {
+                Id = Guid.NewGuid(),
+                Name = TypingMasterConstants.AllKeysCourseName,
+                Type = type,
+                Settings = new CourseSetting()
+            };
+
+            _mockCourseService.Setup(s => s.GetCoursesByTypeForGuest(type))
+                .ReturnsAsync(expectedCourse);
+
+            // Act
+            var result = await _controller.GetCoursesByType(type);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedCourse = Assert.IsType<CourseDto>(okResult.Value);
+            Assert.Equal(expectedCourse.Id, returnedCourse.Id);
+            Assert.Equal(expectedCourse.Name, returnedCourse.Name);
+            Assert.Equal(expectedCourse.Type, returnedCourse.Type);
+        }
+
+        [Fact]
+        public async Task GetCoursesByTypeForGuest_WithUnsupportedType_ReturnsNotFound()
+        {
+            // Arrange
+            var type = TrainingType.Course;
+            _mockCourseService.Setup(s => s.GetCoursesByTypeForGuest(type))
+                .ReturnsAsync((CourseDto)null);
+
+            // Act
+            var result = await _controller.GetCoursesByType(type);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetCoursesByTypeForGuest_WithSpeedTestType_ReturnsOkResult()
+        {
+            // Arrange
+            var type = TrainingType.SpeedTest;
+            var expectedCourse = new CourseDto
+            {
+                Id = Guid.NewGuid(),
+                Name = TypingMasterConstants.SpeedTestCourseName,
+                Type = type,
+                Settings = new CourseSetting()
+            };
+
+            _mockCourseService.Setup(s => s.GetCoursesByTypeForGuest(type))
+                .ReturnsAsync(expectedCourse);
+
+            // Act
+            var result = await _controller.GetCoursesByType(type);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedCourse = Assert.IsType<CourseDto>(okResult.Value);
+            Assert.Equal(expectedCourse.Id, returnedCourse.Id);
+            Assert.Equal(expectedCourse.Name, returnedCourse.Name);
+            Assert.Equal(expectedCourse.Type, returnedCourse.Type);
+        }
+
+        [Fact]
+        public async Task GetCoursesByTypeForGuest_ServiceThrowsException_ReturnsBadRequest()
+        {
+            // Arrange
+            var type = TrainingType.AllKeysTest;
+            _mockCourseService.Setup(s => s.GetCoursesByTypeForGuest(type))
+                .ThrowsAsync(new Exception("Test exception"));
+
+            // Act
+            var result = await _controller.GetCoursesByType(type);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result.Result);
+        }
+
+        #endregion GetCoursesByTypeForGuest Tests
     }
 }

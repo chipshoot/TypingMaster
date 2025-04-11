@@ -60,7 +60,7 @@ else
         {
             AppState.CurrentAccount = await AccountService.GetGuestAccount();
         }
-        else if (AppState.CurrentAccount == null)
+        else if (AppState.CurrentCourse == null)
         {
             await AppState.GetCourse();
         }

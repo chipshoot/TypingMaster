@@ -1,5 +1,6 @@
 ﻿@inject IReportWebService ReportService
 @inject ApplicationContext Context
+@inject NavigationManager Navigation
 @inject ILogger Logger
 
 <style>
@@ -54,7 +55,7 @@
                             </div>
                         </BodyTemplate>
                         <FooterTemplate>
-                            <button class="cta-btn w-100">Join Now & Improve 🚀</button>
+                            <button class="cta-btn w-100" @onclick="NavigateToRegister">Join Now & Improve 🚀</button>
                         </FooterTemplate>
                     </Card>
                 </DockComponent>
@@ -83,6 +84,8 @@
     private List<ChartDataset> _accuracyData = [];
     private SkillLevel Level => (_curStats.Wpm, _curStats.Accuracy).GetSkillLevel();
 
+    // todo: show red color for wrong typed characters
+    // todo: add button to navigate user back to test dashboard
     protected override async Task OnInitializedAsync()
     {
         if (Context.CurrentAccount == null)
@@ -148,5 +151,13 @@
         };
 
         return data;
+    }
+
+    /// <summary>
+    /// Navigates to the registration page when the user clicks the "Join Now & Improve" button
+    /// </summary>
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
     }
 }

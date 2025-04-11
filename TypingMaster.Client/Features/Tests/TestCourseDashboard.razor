@@ -56,11 +56,11 @@
                     </div>
                     <div class="stat-item">
                         <i class="fas fa-chart-line stat-icon"></i>
-                        <span>Target WPM: @AppState.CurrentAccount.GoalStats.Wpm</span>
+                        <span>Target WPM: @_target.Wpm</span>
                     </div>
                     <div class="stat-item">
                         <i class="fas fa-bullseye stat-icon"></i>
-                        <span>Target Accuracy: @AppState.CurrentAccount.GoalStats.Accuracy%</span> 
+                        <span>Target Accuracy: @_target.Accuracy%</span> 
                     </div>
                 </div>
 
@@ -86,24 +86,49 @@
     private Lesson? SelectedLesson { get; set; }
     private List<Lesson> AllKeyLessons { get; set; } = new();
     private List<Lesson> SpeedLessons { get; set; } = new();
-    private CourseDto? _allKeyTestCourse = null;
-    private CourseDto? _speedTestCourse = null;
+    private CourseDto? _allKeyTestCourse;
+    private CourseDto? _speedTestCourse;
+    private StatsBase _target = null!;
 
+    // todo: show green color for lessons which are already completed
     protected override async Task OnInitializedAsync()
     {
-        // Initialize with some sample lessons
-        var allKeyTestCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.AllKeysTest);
-        _allKeyTestCourse = allKeyTestCourses.FirstOrDefault();
-        if (_allKeyTestCourse != null)
+        if (AppState.IsLoggedIn)
         {
-            AllKeyLessons = _allKeyTestCourse.Lessons.ToList();
-        }
+            // Initialize with some sample lessons
+            var allKeyTestCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.AllKeysTest);
+            _allKeyTestCourse = allKeyTestCourses.FirstOrDefault();
+            if (_allKeyTestCourse != null)
+            {
+                AllKeyLessons = _allKeyTestCourse.Lessons.ToList();
+            }
 
-        var SpeedTestCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.SpeedTest);
-        _speedTestCourse = SpeedTestCourses.FirstOrDefault();
-        if (_speedTestCourse != null)
+            var speedTestCourses = await CourseService.GetCoursesByType(AppState.CurrentAccount.Id, TrainingType.SpeedTest);
+            _speedTestCourse = speedTestCourses.FirstOrDefault();
+            if (_speedTestCourse != null)
+            {
+                SpeedLessons = _speedTestCourse.Lessons.ToList();
+            }
+
+            _target = AppState.CurrentAccount.GoalStats ?? GetDefaultTarget();
+        }
+        else
         {
-            SpeedLessons = _speedTestCourse.Lessons.ToList();
+            // Get course for guest user
+            _allKeyTestCourse = await CourseService.GetCoursesByTypeForGuest(TrainingType.AllKeysTest);
+            if (_allKeyTestCourse != null)
+            {
+                AllKeyLessons = _allKeyTestCourse.Lessons.ToList();
+            }
+
+            _speedTestCourse = await CourseService.GetCoursesByTypeForGuest(TrainingType.SpeedTest);
+            if (_speedTestCourse != null)
+            {
+                SpeedLessons = _speedTestCourse.Lessons.ToList();
+            }
+
+            _target = GetDefaultTarget();
+
         }
 
         StateHasChanged();
@@ -149,5 +174,10 @@
 
         // Navigate to the test page with the lesson ID
         Navigation.NavigateTo($"/allkeytest/{SelectedLesson.Id}");
+    }
+
+    private StatsBase GetDefaultTarget()
+    {
+        return new StatsBase { Wpm = 30, Accuracy = 90 };
     }
 }
