@@ -31,8 +31,8 @@ jobs:
     name: Build and Deploy to AWS
     runs-on: ubuntu-latest # Use a standard Linux runner
     permissions:
-        id-token: write # Required for OIDC authentication
-        contents: read # Required to read the repository contents
+      id-token: write # Required for OIDC authentication
+      contents: read # Required to read the repository contents
 
     steps:
       # 1. Checkout Repository Code
@@ -74,7 +74,7 @@ jobs:
       # 8. Deploy Blazor WASM files to S3
       - name: Deploy Blazor WASM to S3
         run: |
-          aws s3 sync ./publish-blazor/wwwroot s3://${{ env.S3_BUCKET_NAME }} --delete
+          aws s3 sync ./publish-blazor/wwwroot/typingmaster s3://${{ env.S3_BUCKET_NAME }} --delete
         # Syncs the contents of the Blazor wwwroot folder to S3
         # The --delete flag removes files in S3 that are no longer in wwwroot
 
