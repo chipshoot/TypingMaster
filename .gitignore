@@ -41,6 +41,8 @@ packages/
 nuget.exe
 
 # Ignore local development files
+appsettings..json
+appsettings.Release.json
 appsettings.Development.json
 
 # Ignore Azure Functions artifacts
