@@ -1,0 +1,19 @@
+{
+  "information": [
+    "TypingMaster.Server Lambda"
+  ],
+  "profile": "default", // Your AWS CLI profile name (if not default)
+  "region": "us-east-1", // Your target AWS region (e.g., ca-central-1) - **UPDATE THIS**
+  "configuration": "Release", // Build configuration
+  "framework": "net8.0", // Your target framework - **UPDATE THIS**
+  "function-runtime": "dotnet8", // Lambda runtime - **UPDATE THIS**
+  "function-memory-size": 512, // Memory allocated to the function (MB)
+  "function-timeout": 30, // Function timeout (seconds, max 900)
+  "function-handler": "TypingMaster.Server::TypingMaster.Server.LambdaEntryPoint::FunctionHandlerAsync", // Assembly::Namespace.ClassName::MethodName - **UPDATE THIS**
+  "function-name": "TypingMasterServerLambda", // Desired name for your Lambda function - **UPDATE THIS**
+  "environment-variables": "\"ASPNETCORE_ENVIRONMENT\"=\"Production\";\"SecretsManagerName\"=\"YourSecretName\"", // Environment variables (e.g., secret name) - **UPDATE THIS**
+  "iam-role-name": "YourLambdaExecutionRoleName" // Name of the IAM Role for Lambda execution - **UPDATE THIS**
+  // --- Add if deploying within a VPC (e.g., to access RDS) ---
+  // "vpc-security-group-ids": "sg-xxxxxxxxxxxxxxxxx", // Comma-separated SG IDs - **UPDATE THIS**
+  // "vpc-subnet-ids": "subnet-xxxxxxxxxxxxxxxxx,subnet-yyyyyyyyyyyyyyyyy" // Comma-separated Subnet IDs - **UPDATE THIS**
+}

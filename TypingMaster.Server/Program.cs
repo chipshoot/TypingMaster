@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
 using TypingMaster.Server.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +27,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAutoMapper(typeof(DomainMapProfile));
+
+// Add AWS Lambda support
+builder.Services.AddAWSLambdaHosting(LambdaEventSource.HttpApi);
 
 // Register Serilog logger
 builder.Services.AddSingleton(Log.Logger);
