@@ -23,14 +23,14 @@ RUN dotnet publish "TypingMaster.Server.csproj" -c Release -o /app/publish
 # Final stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-EXPOSE 8083 
-EXPOSE 8084
+EXPOSE 80
+EXPOSE 443 
 
 # Copy the published application
 COPY --from=publish /app/publish .
 
 # Set environment variables
-ENV ASPNETCORE_URLS=http://+:8083;https://+:8084
+ENV ASPNETCORE_URLS=http://+:80;https://+:443
 ENV ASPNETCORE_ENVIRONMENT=Release
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx

@@ -8,14 +8,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
 using TypingMaster.Server.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure specific URLs/ports
 // This will override settings in launchSettings.json when explicitly run
-builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
+var urls = builder.Configuration["Urls"];
+if (!string.IsNullOrEmpty(urls))
+{
+    builder.WebHost.UseUrls(urls);
+}
 
 // Configure logging
 Log.Logger = new LoggerConfiguration()
