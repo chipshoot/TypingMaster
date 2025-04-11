@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TypingMaster.Business.Contract;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Utility;
 
@@ -84,6 +85,22 @@ namespace TypingMaster.Server.Controllers
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error retrieving account {Id}", id);
+                return StatusCode(500, "An error occurred while retrieving the account");
+            }
+        }
+
+        [HttpGet("guest")]
+        [AllowAnonymous]
+        public IActionResult GetGuestAccount()
+        {
+            try
+            {
+                var account = accountService.GetGuestAccount();
+                return Ok(account);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error retrieving account for guest");
                 return StatusCode(500, "An error occurred while retrieving the account");
             }
         }

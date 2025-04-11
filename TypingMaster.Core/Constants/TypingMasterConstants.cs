@@ -5,6 +5,10 @@ namespace TypingMaster.Core.Constants
     /// </summary>
     public static class TypingMasterConstants
     {
+        #region Client
+        public const string DefaultPracticePrompt = "Type the line in the top box. The arrow moves to show the next key to type. At the end of the line press either space or Enter.";
+        #endregion
+
         #region Course Names
 
         public const string BeginnerCourseName = "BeginnerCourse";
@@ -33,6 +37,8 @@ namespace TypingMaster.Core.Constants
         #endregion
         
         #region Default Values
+
+        public const int GuestAccountId = -1;
         public const string DefaultCompleteText = "";
         #endregion
     }

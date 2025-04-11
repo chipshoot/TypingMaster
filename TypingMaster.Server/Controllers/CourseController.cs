@@ -25,11 +25,22 @@ namespace TypingMaster.Server.Controllers
         public async Task<ActionResult<IEnumerable<ICourse>>> GetCoursesByType([FromQuery] int accountId, [FromQuery] TrainingType type)
         {
             var courses = await courseService.GetCoursesByType(accountId, type);
-            if (courses == null || !courses.Any())
+            if (!courses.Any())
             {
                 return NotFound();
             }
             return Ok(courses);
+        }
+
+        [HttpGet("by-type-guest")]
+        public async Task<ActionResult<ICourse>> GetCoursesByType([FromQuery] TrainingType type)
+        {
+            var course = await courseService.GetCoursesByTypeForGuest(type);
+            if (course == null)
+            {
+                return NotFound();
+            }
+            return Ok(course);
         }
 
         [HttpPost]

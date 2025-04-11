@@ -30,7 +30,6 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
 
             var course = mapper.Map<CourseDto>(courseDao);
             return course;
-
         }
         catch (Exception ex)
         {
@@ -50,19 +49,12 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
             // If no courses found for user, add a default course
             if (!coursesByTypes.AsEnumerable().Any())
             {
-                var setting = new CourseSetting
-                {
-                    Minutes = 120,
-                    NewKeysPerStep = 1,
-                    PracticeTextLength = 74,
-                    TargetStats = new StatsBase { Wpm = 50, Accuracy = 90 }
-                };
                 CourseDto? course = null;
                 switch (type)
                 {
                     case TrainingType.AllKeysTest:
                     case TrainingType.SpeedTest:
-                        course = await GeneratePracticeCourse(accountId, type, setting);
+                        course = await GeneratePracticeCourse(accountId, type, GetDefaultCourseSetting());
                         break;
                 }
 
@@ -96,15 +88,35 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
         }
     }
 
-    public async Task<CourseDto?> CreateCourse(CourseDto courseDto)
+    public async Task<CourseDto?> GetCoursesByTypeForGuest(TrainingType type)
     {
-        // Validate courseDto is not null
-        if (courseDto == null)
+        try
         {
-            ProcessResult.AddError("Course data cannot be null");
+            CourseDto? course = null;
+            switch (type)
+            {
+                case TrainingType.AllKeysTest:
+                case TrainingType.SpeedTest:
+                    course = await GeneratePracticeCourse(TypingMasterConstants.GuestAccountId, type, GetDefaultCourseSetting());
+                    break;
+                case TrainingType.Course:
+                case TrainingType.Game:
+                default:
+                    ProcessResult.AddError($"Guest course does not support {type} type");
+                    break;
+            }
+
+            return course;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
             return null;
         }
+    }
 
+    public async Task<CourseDto?> CreateCourse(CourseDto courseDto)
+    {
         try
         {
             // Validate that Account exists in system
@@ -166,7 +178,7 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
                 courseDto.LessonDataUrl = defaultUrl;
             }
 
-            if (courseDto.Lessons == null || !courseDto.Lessons.Any())
+            if (!courseDto.Lessons.Any())
             {
                 // Initialize with empty lesson collection if none provided
                 courseDto.Lessons = new List<Lesson>();
@@ -228,7 +240,7 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
         var courseTemplate = _courseFactory.GetInitializedCourse(course);
         if (courseTemplate != null)
         {
-            course.Lessons= courseTemplate.Lessons;
+            course.Lessons = courseTemplate.Lessons;
         }
 
         return Task.FromResult(course);
@@ -253,12 +265,6 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
 
     public async Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats)
     {
-        if (stats == null)
-        {
-            ProcessResult.AddError($"Current stats cannot found");
-            return null;
-        }
-
         try
         {
             // get course information
@@ -313,35 +319,16 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
         return url;
     }
 
-    private async Task<T?> ProcessCourse<T>(Guid courseId, StatsBase stats, Func<ICourse, StatsBase, T?> processFunc)
+    private static CourseSetting GetDefaultCourseSetting()
     {
-        try
+        var setting = new CourseSetting
         {
-            // get course information
-            var courseDao = await courseRepository.GetCourseByIdAsync(courseId);
-            if (courseDao == null)
-            {
-                ProcessResult.AddError($"Course: {courseId} not found");
-                return default;
-            }
+            Minutes = 120,
+            NewKeysPerStep = 1,
+            PracticeTextLength = 74,
+            TargetStats = new StatsBase { Wpm = 50, Accuracy = 90 }
+        };
 
-            var courseDto = mapper.Map<CourseDto>(courseDao);
-
-            // Use the factory to create and initialize the appropriate course instance
-            var course = _courseFactory.GetInitializedCourse(courseDto);
-            if (course == null)
-            {
-                ProcessResult.AddError($"Unsupported course type: {courseDto.Type} with name: {courseDto.Name}");
-                return default;
-            }
-
-            // Process the course with the provided function
-            return processFunc(course, stats);
-        }
-        catch (Exception ex)
-        {
-            ProcessResult.AddException(ex);
-            return default;
-        }
+        return setting;
     }
 }

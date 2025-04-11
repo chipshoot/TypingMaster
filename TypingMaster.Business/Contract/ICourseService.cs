@@ -1,6 +1,5 @@
 ﻿using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
-using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Contract
 {
@@ -9,6 +8,8 @@ namespace TypingMaster.Business.Contract
         Task<CourseDto?> GetCourse(Guid id);
 
         Task<IEnumerable<CourseDto>> GetCoursesByType(int accountId, TrainingType type);
+
+        Task<CourseDto?> GetCoursesByTypeForGuest(TrainingType type);
 
         Task<CourseDto?> CreateCourse(CourseDto courseDto);
 

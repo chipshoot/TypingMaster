@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using TypingMaster.Business.Contract;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
@@ -282,6 +283,7 @@ public class AccountService(
     {
         var guest = new Account
         {
+            Id = TypingMasterConstants.GuestAccountId,
             AccountEmail = "guest@test.com",
             AccountName = Guid.NewGuid().ToString(),
             History = new PracticeLog(),

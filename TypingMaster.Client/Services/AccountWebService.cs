@@ -90,7 +90,7 @@ namespace TypingMaster.Client.Services
         {
             try
             {
-                var url = apiConfig.BuildApiUrl($"{BaseUrl}/-1");
+                var url = apiConfig.BuildApiUrl($"{BaseUrl}/guest");
                 return await httpClient.GetFromJsonAsync<Account>(url);
             }
             catch (Exception ex)
