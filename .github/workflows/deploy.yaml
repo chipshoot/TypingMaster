@@ -70,7 +70,7 @@ jobs:
       # 7 Replace Connection String in appsettings.Release.json
       - name: Replace Connection String
         run: |
-          sed -i "s|PLACEHOLDER_FOR_AWS_CONNECTION_STRING|${{ secrets.DATABASE_CONNECTION_STRING }}|g" ${{ API_PROJECT_PATH }}/appsettings.Release.json
+          sed -i "s|PLACEHOLDER_FOR_AWS_CONNECTION_STRING|${{ secrets.DATABASE_CONNECTION_STRING }}|g" ${{ env.API_PROJECT_PATH }}/appsettings.Release.json
 
       # 8. Apply Database Migrations
       - name: Apply Database Migrations
