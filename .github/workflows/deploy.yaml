@@ -63,10 +63,8 @@ jobs:
         run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release
 
       # 6. Install dotnet-ef Tool
-      - name: Install dotnet-ef tool
-        run: 
-          export DOTNET_ROOT=/usr/share/dotnet
-          export PATH=$DOTNET_ROOT:/home/runner/.dotnet/tools:$PATH
+      - name: Export Environment Variables
+        run:
           dotnet tool install --global dotnet-ef 
 
       # 7. Apply Database Migrations
