@@ -1,0 +1,228 @@
+@inject ILogger Logger
+<style>
+    .w-full {
+    width: 100%;
+    }
+
+    .h-full {
+    height: 100%;
+    }
+
+    .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
+    }
+
+    .justify-between {
+    justify-content: space-between;
+    }
+
+    .items-center {
+    align-items: center;
+    }
+
+    .bg-transparent {
+    background-color: transparent;
+    }
+
+    .resize-none {
+    resize: none;
+    }
+
+    .outline-none {
+    outline: 2px solid transparent;
+    outline-offset: 2px
+    }
+
+    .top-0 {
+    top: 0;
+    }
+
+    .left-0 {
+    left: 0;
+    }
+
+    .p-4 {
+    padding: 1rem;
+    }
+
+    .point-events-none {
+    pointer-events: none;
+    }
+
+    .absolute {
+    position: absolute;
+    }
+
+    .relative {
+    position: relative;
+    }
+
+    .monospace-font {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', 'DejaVu Sans Mono', 'Roboto Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+    font-feature-settings: "calt" 1, "ss01" 1, "ss02" 1; /* Enable font features for better readability */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Ensure consistent character width for input area */
+    #typingInput {
+    font-family: inherit; /* Inherit the monospace font from parent */
+    font-size: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    }
+
+    .arrowUp {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 0.5ch solid transparent;
+    border-right: 0.5ch solid transparent;
+    border-bottom: 1ch solid black;
+    margin-left: calc(var(--arrow-position, 0) * 1ch);
+    }
+
+    .arrow.hidden {
+    visibility: hidden;
+    }
+</style>
+<div class="pointer-events-none">
+    @for (var i = 0; i < Text.Length; i++)
+    {
+        <span key="@i" class="monospace-font @(i >= _textInput.Length ? "" : GetCharClass(i))">
+            @((MarkupString)(Text[i] == ' ' ? "&nbsp;" : Text[i].ToString()))
+        </span>
+    }
+</div>
+<div tabindex="0" class="pointer-events-none mt-2">
+    @for (var i = 0; i < InputChars.Length; i++)
+    {
+        <span key="@i" class="monospace-font @(i >= _textInput.Length ? "" : GetCharClass(i))">
+            @((MarkupString)(InputChars[i] == ' ' ? "&nbsp;" : InputChars[i].ToString()))
+        </span>
+    }
+    @if (_isActive && !IsCourseFinished)
+    {
+        <span key="@InputChars.Length" class="monospace-font arrowUp"></span>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public int CurrentLineId
+    {
+        set => _isActive = value == Id;
+    }
+
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+
+    [Parameter]
+    public string CharInput
+    {
+        set
+        {
+            var userInput = $"{_textInput}{value}";
+            CheckForLineCompletion(userInput);
+        }
+    }
+
+    [Parameter]
+    public int CursorPosition { get; set; }
+
+    [Parameter]
+    public string InputChars { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool IsLineCompleted { get; set; }
+
+    [Parameter]
+    public bool IsLessonCompleted { get; set; }
+
+    [Parameter]
+    public bool IsCourseFinished { get; set; }
+
+    [Parameter]
+    public EventCallback<(int lineId, string textInput)> OnLineFinished { get; set; }
+
+    private bool _isActive;
+    private ElementReference _inputRef;
+    private char _nextKeyExpected;
+    private string _textInput = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _nextKeyExpected = string.IsNullOrEmpty(Text) ? '\0' : Text[_textInput.Length];
+    }
+
+    private void UpdateEchoChars()
+    {
+        InputChars = string.Empty;
+        foreach (var t in _textInput)
+        {
+            InputChars += t;
+        }
+    }
+
+    private string GetCharClass(int index)
+    {
+        if (!_isActive)
+        {
+            return "";
+        }
+
+        if (IsCourseFinished)
+        {
+            return "text-success";
+        }
+
+        if (_textInput.Length <= index)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            if (index < _textInput.Length)
+            {
+                if (index < Text.Length)
+                {
+                    return _textInput[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
+                }
+            }
+
+            return string.Empty;
+        }
+        catch (Exception e)
+        {
+            Logger.Debug($"Index: {index}");
+            Logger.Debug($"GetCharClass-Test:{Text}:{Text.Length}");
+            Logger.Debug($"GetCharClass-Typed:{_textInput}:{_textInput.Length}");
+            throw;
+        }
+    }
+
+    private void CheckForLineCompletion(string userInput)
+    {
+        if (userInput.Length <= Text.Length)
+        {
+            IsLineCompleted = false;
+            _textInput = userInput;
+        }
+        else
+        {
+            IsLineCompleted = true;
+            _isActive = false;
+            OnLineFinished.InvokeAsync((Id, _textInput));
+        }
+    }
+}
