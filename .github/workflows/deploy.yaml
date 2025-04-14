@@ -70,7 +70,7 @@ jobs:
       # 7. Apply Database Migrations
       - name: Apply Database Migrations
         run: |
-          dotnet ef database update --project ${{ env.DATA_ACCESS_PROJECT_PATH }} --configuration Release
+          dotnet ef database update --project ${{ env.DATA_ACCESS_PROJECT_PATH }} --configuration Release --connection $"{{ secrets.DATABASE_CONNECTION_STRING }}"
         env:
           DOTNET_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
         # This step applies the latest migrations to the database using the connection string.
