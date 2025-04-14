@@ -37,54 +37,62 @@ jobs:
       contents: read # Required to read the repository contents
 
     steps:
-      # 1. Checkout Repository Code
+
+      # 1. Setup Environment Variables
+      - name: Setup environment variables
+        run: |
+          export DOTNET_ROOT=/usr/share/dotnet
+          export PATH=$DOTNET_ROOT:/home/runner/.dotnet/tools:$PATH
+
+      # 2. Checkout Repository Code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup .NET Environment
+      # 3. Setup .NET Environment
       - name: Setup .NET SDK ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      # 3. Restore .NET Dependencies
+      # 4. Restore .NET Dependencies
       - name: Restore dependencies
         run: dotnet restore ${{ env.SOLUTION_FILE }}
 
-      # 4. Build entire solution with Release configuration
+      # 5. Build entire solution with Release configuration
       - name: Build solution with Release configuration
         run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release
 
-      # 5. Install dotnet-ef Tool
+      # 6. Install dotnet-ef Tool
       - name: Install dotnet-ef tool
-        run: dotnet tool install --global dotnet-ef
-        env:
-          DOTNET_ROOT: /usr/share/dotnet # Set the DOTNET_ROOT environment variable
-          PATH: /usr/share/dotnet:/home/runner/.dotnet/tools:$PATH # Add the tools directory to PATH
+        run: 
+          export DOTNET_ROOT=/usr/share/dotnet
+          export PATH=$DOTNET_ROOT:/home/runner/.dotnet/tools:$PATH
+          dotnet tool install --global dotnet-ef 
 
-      # 6. Apply Database Migrations
+      # 7. Apply Database Migrations
       - name: Apply Database Migrations
         run: |
           dotnet ef database update --project ${{ env.DATA_ACCESS_PROJECT_PATH }} --configuration Release
         env:
           DOTNET_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
         # This step applies the latest migrations to the database using the connection string.
-      # 6.1 Replace Connection String in appsettings.Release.json
+
+      # 8 Replace Connection String in appsettings.Release.json
       - name: Replace Connection String
         run: |
           sed -i "s|PLACEHOLDER_FOR_AWS_CONNECTION_STRING|${{ secrets.DATABASE_CONNECTION_STRING }}|g" TypingMaster.Server/appsettings.Release.json
 
-      # 7. Build and Publish Blazor WASM Frontend
+      # 9. Build and Publish Blazor WASM Frontend
       - name: Publish Blazor WASM
         run: dotnet publish ${{ env.BLAZOR_PROJECT_PATH }} --configuration Release --output ./publish-blazor
         # Publishes the Blazor app to the ./publish-blazor directory
 
-      # 8. Build and Publish ASP.NET Core API Backend
+      # 10. Build and Publish ASP.NET Core API Backend
       - name: Publish API
         run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --output ./publish-api
         # Publishes the API app to the ./publish-api directory
 
-      # 9. Configure AWS Credentials using OIDC
+      # 11. Configure AWS Credentials using OIDC
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -92,21 +100,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: github-actions
 
-      # 10. Deploy Blazor WASM files to S3
+      # 12. Deploy Blazor WASM files to S3
       - name: Deploy Blazor WASM to S3
         run: |
           aws s3 sync ./publish-blazor/wwwroot/typingmaster s3://${{ env.S3_BUCKET_NAME }} --delete
         # Syncs the contents of the Blazor wwwroot folder to S3
         # The --delete flag removes files in S3 that are no longer in wwwroot
 
-      # 11. Invalidate CloudFront Cache
+      # 13. Invalidate CloudFront Cache
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
         # Creates an invalidation for all files ("/*") to force CloudFront
         # to fetch the latest versions from S3
 
-      # 12. Prepare API Deployment Package for Elastic Beanstalk
+      # 14. Prepare API Deployment Package for Elastic Beanstalk
       - name: Generate API Deployment Package
         run: |
           cd publish-api
@@ -114,7 +122,7 @@ jobs:
           cd ..
         # Creates a zip archive of the published API files
 
-      # 13. Upload API Package to S3 (for Elastic Beanstalk versioning)
+      # 15. Upload API Package to S3 (for Elastic Beanstalk versioning)
       - name: Upload API package to S3
         id: upload_s3 # Give this step an ID to reference its output
         run: |
@@ -125,7 +133,7 @@ jobs:
           echo "s3_key=$s3_key" >> $GITHUB_OUTPUT # Make the S3 key available to subsequent steps
         # Elastic Beanstalk requires the deployment package to be in S3
 
-      # 14. Create New Application Version in Elastic Beanstalk
+      # 16. Create New Application Version in Elastic Beanstalk
       - name: Create Elastic Beanstalk Application Version
         id: create_version # Give this step an ID
         run: |
@@ -140,7 +148,7 @@ jobs:
             --description "Deployed commit ${{ github.sha }} via GitHub Actions"
           echo "version_label=$version_label" >> $GITHUB_OUTPUT # Make the version label available
 
-      # 15. Deploy New Version to Elastic Beanstalk Environment
+      # 17. Deploy New Version to Elastic Beanstalk Environment
       - name: Deploy to Elastic Beanstalk Environment
         run: |
           aws elasticbeanstalk update-environment \
@@ -149,6 +157,6 @@ jobs:
             --version-label ${{ steps.create_version.outputs.version_label }}
         # Instructs Elastic Beanstalk to update the environment with the new version
 
-      # 16. Deployment Notification (Optional)
+      # 18. Deployment Notification (Optional)
       - name: Deployment successful
         run: echo "Deployment to AWS completed successfully for commit ${{ github.sha }}!"
