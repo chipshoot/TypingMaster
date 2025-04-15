@@ -4,13 +4,12 @@ using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TypingMaster.Business.Contract;
-using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Server.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/accounts")]
     [ApiController]
     [Authorize(Policy = "IdPAuth")]
     public class AccountController(IAccountService accountService, ILogger<AccountController> logger)
