@@ -1,0 +1,55 @@
+{
+  "info": {
+    "_postman_id": "b2c3d4e5-f6g7-8h9i-0j1k-2l3m4n5o6p7q",
+    "name": "TypingMaster PracticeLogController",
+    "description": "Collection for testing the PracticeLogController endpoints in TypingMaster API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Paginated Drill Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/PracticeLog/1/drill-stats?page=1&pageSize=10&sortByNewest=true",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "PracticeLog", "1", "drill-stats"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "10"
+            },
+            {
+              "key": "sortByNewest",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Get paginated drill stats for a practice log"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    }
+  ]
+}
