@@ -18,9 +18,9 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/Account",
+          "raw": "{{baseUrl}}/api/accounts",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "Account"]
+          "path": ["api", "accounts"]
         },
         "description": "Retrieves all accounts"
       },
@@ -47,9 +47,9 @@
           "raw": "{\r\n  \"accountName\": \"New Test Account\",\r\n  \"accountEmail\": \"newtest@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"Jane\",\r\n    \"lastName\": \"Doe\"\r\n  },\r\n  \"goalStats\": {\r\n    \"Wpm\": 40,\r\n  \"Accuracy\": 60\r\n},\r\n  \"history\": {\r\n  },\r\n  \"courseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"testCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"gameCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"version\": 0\r\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/Account",
+          "raw": "{{baseUrl}}/api/accounts",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "Account"]
+          "path": ["api", "accounts"]
         },
         "description": "Creates a new account"
       },
@@ -67,9 +67,9 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/Account/test-auth",
+          "raw": "{{baseUrl}}/api/accounts/test-auth",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "Account", "test-auth"]
+          "path": ["api", "accounts", "test-auth"]
         },
         "description": "Tests authentication and returns user claim information"
       },
@@ -87,9 +87,9 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/Account/1",
+          "raw": "{{baseUrl}}/api/accounts/1",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "Account", "1"]
+          "path": ["api", "accounts", "1"]
         },
         "description": "Retrieves an account by its ID"
       },
@@ -116,9 +116,9 @@
           "raw": "{\r\n  \"id\": 1,\r\n  \"accountName\": \"Updated Account\",\r\n  \"accountEmail\": \"updated@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\"\r\n  },\r\n  \"goalStats\": null,\r\n  \"history\": {\r\n  },\r\n  \"courseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"testCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"gameCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"isDeleted\": false,\r\n  \"deletedAt\": null,\r\n  \"version\": 1\r\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/Account/1",
+          "raw": "{{baseUrl}}/api/accounts/1",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "Account", "1"]
+          "path": ["api", "accounts", "1"]
         },
         "description": "Updates an existing account"
       },
@@ -136,9 +136,9 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/Account/1",
+          "raw": "{{baseUrl}}/api/accounts/1",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "Account", "1"]
+          "path": ["api", "accounts", "1"]
         },
         "description": "Deletes an account"
       },
@@ -165,9 +165,9 @@
           "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"/accountName\",\r\n    \"value\": \"Patched Account Name\"\r\n  },\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"/accountEmail\",\r\n    \"value\": \"patched@example.com\"\r\n  }\r\n]"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/Account/1",
+          "raw": "{{baseUrl}}/api/accounts/1",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "Account", "1"]
+          "path": ["api", "accounts", "1"]
         },
         "description": "Partially updates an account using JSON Patch"
       },

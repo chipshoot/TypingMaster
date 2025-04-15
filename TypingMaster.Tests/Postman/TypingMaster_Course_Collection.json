@@ -7,13 +7,86 @@
   },
   "item": [
     {
+      "name": "Get Course by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/course/{{courseId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course", "{{courseId}}"]
+        },
+        "description": "Get a specific course by its ID"
+      }
+    },
+    {
+      "name": "Get Courses by Type",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/course/by-type?accountId=1&type=0",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course", "by-type"],
+          "query": [
+            {
+              "key": "accountId",
+              "value": "1"
+            },
+            {
+              "key": "type",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Get courses by type for a specific account"
+      }
+    },
+    {
+      "name": "Get Courses by Type (Guest)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/course/by-type-guest?type=0",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "course", "by-type-guest"],
+          "query": [
+            {
+              "key": "type",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Get courses by type for guest users"
+      }
+    },
+    {
       "name": "Create Course",
       "request": {
         "method": "POST",
         "header": [
           {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
             "key": "Content-Type",
-            "value": "application/json"
+            "value": "application/json",
+            "type": "text"
           }
         ],
         "body": {
@@ -29,44 +102,24 @@
       }
     },
     {
-      "name": "Get Course by ID",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/course/{{courseId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "course", "{{courseId}}"]
-        },
-        "description": "Get a specific course by its ID"
-      }
-    },
-    {
-      "name": "Get All Keys Course",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/course/all-keys/{{courseId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "course", "all-keys", "{{courseId}}"]
-        },
-        "description": "Get all keys course with optional course ID"
-      }
-    },
-    {
       "name": "Generate Beginner Course",
       "request": {
         "method": "POST",
         "header": [
           {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
             "key": "Content-Type",
-            "value": "application/json"
+            "value": "application/json",
+            "type": "text"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"Minutes\": 30, \"TargetStats\": { \"Wpm\": 50, \"Accuracy\": 95.5 }, \"NewKeysPerStep\": 5, \"PracticeTextLength\": 1000 }"
+          "raw": "{\n    \"minutes\": 30,\n    \"targetStats\": {\n        \"wpm\": 50,\n        \"accuracy\": 95.5\n    },\n    \"newKeysPerStep\": 5,\n    \"practiceTextLength\": 1000\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/course/beginner",
@@ -80,7 +133,13 @@
       "name": "Generate Start Stats",
       "request": {
         "method": "GET",
-        "header": [],
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
         "url": {
           "raw": "{{baseUrl}}/api/course/start-stats",
           "host": ["{{baseUrl}}"],
@@ -95,13 +154,19 @@
         "method": "POST",
         "header": [
           {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
             "key": "Content-Type",
-            "value": "application/json"
+            "value": "application/json",
+            "type": "text"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"Minutes\": 30, \"TargetStats\": { \"Wpm\": 50, \"Accuracy\": 95.5 }, \"NewKeysPerStep\": 5, \"PracticeTextLength\": 1000 }"
+          "raw": "{\n    \"wpm\": 50,\n    \"accuracy\": 95.5\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/course/practice-lesson/{{courseId}}/{{lessonId}}",
@@ -121,12 +186,17 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:5000",
+      "value": "https://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE",
       "type": "string"
     },
     {
       "key": "courseId",
-      "value": "00000000-0000-0000-0000-000000000000",
+      "value": "F87309FC-6E7B-4B25-B407-FF25975A86E3",
       "type": "string"
     },
     {

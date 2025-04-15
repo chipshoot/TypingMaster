@@ -17,6 +17,7 @@ env:
   SOLUTION_FILE: "TypingMaster.sln" # Path to your solution file
   BLAZOR_PROJECT_PATH: "TypingMaster.Client/TypingMaster.Client.csproj" # Path to Blazor project
   API_PROJECT_PATH: "TypingMaster.Server/TypingMaster.Server.csproj" # Path to API project
+  API_PROJECT_CONNECTION_FILE: "TypingMaster.Server/appsettings.Release.json" # Path to API project
   DATA_ACCESS_PROJECT_PATH: "TypingMaster.DataAccess/TypingMaster.DataAccess.csproj" # Path to DataAccess project
   AWS_REGION: ${{ secrets.AWS_REGION }} # Use GitHub secret for region (e.g., us-east-1)
 
@@ -67,18 +68,18 @@ jobs:
         run:
           dotnet tool install --global dotnet-ef 
 
-      # 7. Apply Database Migrations
+      # 7 Replace Connection String in appsettings.Release.json
+      - name: Replace Connection String
+        run: |
+          sed -i "s|PLACEHOLDER_FOR_AWS_CONNECTION_STRING|${{ secrets.DATABASE_CONNECTION_STRING }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
+
+      # 8. Apply Database Migrations
       - name: Apply Database Migrations
         run: |
-          dotnet ef database update --project ${{ env.DATA_ACCESS_PROJECT_PATH }} --configuration Release
+          dotnet ef database update --project ${{ env.DATA_ACCESS_PROJECT_PATH }} --configuration Release --connection "${{ secrets.DATABASE_CONNECTION_STRING }}"
         env:
           DOTNET_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
         # This step applies the latest migrations to the database using the connection string.
-
-      # 8 Replace Connection String in appsettings.Release.json
-      - name: Replace Connection String
-        run: |
-          sed -i "s|PLACEHOLDER_FOR_AWS_CONNECTION_STRING|${{ secrets.DATABASE_CONNECTION_STRING }}|g" TypingMaster.Server/appsettings.Release.json
 
       # 9. Build and Publish Blazor WASM Frontend
       - name: Publish Blazor WASM
