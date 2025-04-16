@@ -84,7 +84,7 @@ builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
 builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository>();
 
 // Register business services
-builder.Services.AddScoped<MockIdpService>();
+builder.Services.AddScoped<IIdpService, AwsCognitoService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -96,7 +96,6 @@ builder.Services.AddScoped<ITypingTrainer, TypingTrainer>();
 builder.Services.AddScoped<ITypingMaterialGenerator, TypingMaterialGenerator>();
 
 // Register services
-builder.Services.AddScoped<MockIdpService>();
 builder.Services.AddScoped<IAuthorizationHandler, IdpAuthorizationHandler>();
 builder.Services.AddHttpContextAccessor();
 

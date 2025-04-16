@@ -39,11 +39,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-		<PackageReference Include="BootstrapBlazor" Version="9.5.5" />
+		<PackageReference Include="BootstrapBlazor" Version="9.5.6" />
 		<PackageReference Include="BootstrapBlazor.Chart" Version="9.0.0" />
 		<PackageReference Include="BootstrapBlazor.Dock" Version="9.0.0" />
 		<PackageReference Include="BootstrapBlazor.FontAwesome" Version="9.0.2" />
-		<PackageReference Include="Markdig" Version="0.40.0" />
+		<PackageReference Include="Markdig" Version="0.41.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.4" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.4" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.4" />
