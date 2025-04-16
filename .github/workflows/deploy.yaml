@@ -127,7 +127,7 @@ jobs:
         run: |
           timestamp=$(date +%Y%m%d%H%M%S)
           # Define a unique key in S3 for this deployment package
-          s3_key="typing-master-server/${{ env.EB_APPLICATION_NAME }}/api-${timestamp}-${{ github.sha }}.zip"
+          s3_key="${{ env.EB_APPLICATION_NAME }}/api-${timestamp}-${{ github.sha }}.zip"
           aws s3 cp ${{ env.API_DEPLOYMENT_PACKAGE_NAME }} s3://${{ env.S3_API_BUCKET_NAME }}/$s3_key
           echo "s3_key=$s3_key" >> $GITHUB_OUTPUT # Make the S3 key available to subsequent steps
         # Elastic Beanstalk requires the deployment package to be in S3
