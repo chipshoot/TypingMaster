@@ -73,7 +73,7 @@ jobs:
           sed -i "s|PLACEHOLDER_FOR_USER_POOL_ID|${{ secrets.USER_POOL_ID }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
           sed -i "s|PLACEHOLDER_FOR_CLIENT_ID|${{ secrets.CLIENT_ID }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
           sed -i "s|PLACEHOLDER_FOR_CLIENT_SECRET|${{ secrets.CLIENT_SECRET }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
-          sed -i "s|PLACEHOLDER_FOR_ACCESS_KEY|${{ secrets.ACCESS_KEY_ID }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
+          sed -i "s|PLACEHOLDER_FOR_ACCESS_KEY|${{ secrets.ACCESS_KEY }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
           sed -i "s|PLACEHOLDER_FOR_SECRET_KEY|${{ secrets.SECRET_KEY }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
 
       # 8. Apply Database Migrations
