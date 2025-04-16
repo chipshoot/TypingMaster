@@ -12,6 +12,7 @@ using TypingMaster.Server.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Console.WriteLine($"Current environment: {builder.Environment.EnvironmentName}");
 // Configure specific URLs/ports
 // This will override settings in launchSettings.json when explicitly run
 var urls = builder.Configuration["Urls"];
