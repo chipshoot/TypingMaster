@@ -6,13 +6,11 @@ namespace TypingMaster.Client.Services;
 
 public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig, Serilog.ILogger logger) : ICourseWebService
 {
-    private const string BaseUrl = "api/course";
-
     public async Task<CourseDto?> GetCourse(Guid id)
     {
         try
         {
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/{id}");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.CourseService}/{id}");
             return await httpClient.GetFromJsonAsync<CourseDto>(url);
         }
         catch (Exception ex)
@@ -26,9 +24,10 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
     {
         try
         {
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/by-type?accountId={accountId}&type={(int)type}");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.CourseService}/by-type?accountId={accountId}&type={(int)type}");
             var response = await httpClient.GetFromJsonAsync<IEnumerable<CourseDto>>(url);
-            return response;
+            var courseList = response?.ToList() ?? [];
+            return courseList;
         }
         catch (Exception ex)
         {
@@ -41,7 +40,7 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
     {
         try
         {
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/by-type-guest?type={(int)type}");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.CourseService}/by-type-guest?type={(int)type}");
             var response = await httpClient.GetFromJsonAsync<CourseDto>(url);
             return response;
         }
@@ -56,7 +55,7 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
     {
         try
         {
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/beginner");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.CourseService}/beginner");
             var response = await httpClient.PostAsJsonAsync(url, settings);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<CourseDto>()
@@ -73,7 +72,7 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
     {
         try
         {
-            var url = apiConfig.BuildApiUrl(BaseUrl);
+            var url = apiConfig.BuildApiUrl(apiConfig.ApiSettings.CourseService);
             var response = await httpClient.PostAsJsonAsync(url, courseDto);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<CourseDto>()
@@ -90,7 +89,7 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
     {
         try
         {
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/start-stats");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.CourseService}/start-stats");
             return await httpClient.GetFromJsonAsync<DrillStats>(url);
         }
         catch (Exception ex)
@@ -104,7 +103,7 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
     {
         try
         {
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/practice-lesson/{courseId}/{lessonId}");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.CourseService}/practice-lesson/{courseId}/{lessonId}");
             var response = await httpClient.PostAsJsonAsync(url, stats);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Lesson>()

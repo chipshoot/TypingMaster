@@ -9,11 +9,11 @@ public class AuthService : ServiceBase, IAuthService
     private readonly HttpClient _httpClient;
     private readonly IAccountService _accountService;
     private readonly ILoginLogService _loginLogService;
-    private readonly MockIdpService _idpService;
+    private readonly IIdpService _idpService;
     private readonly JwtTokenGenerator _tokenGenerator;
 
     public AuthService(HttpClient httpClient, IAccountService accountService,
-        ILoginLogService loginLogService, MockIdpService idpService,
+        ILoginLogService loginLogService, IIdpService idpService,
         JwtTokenGenerator tokenGenerator, ILogger logger)
         : base(logger)
     {
@@ -95,6 +95,28 @@ public class AuthService : ServiceBase, IAuthService
 
         try
         {
+            // Check if email is already registered
+            var existingAccount = await _accountService.GetAccountByEmail(request.Email);
+            if (existingAccount != null)
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "Email is already registered"
+                };
+            }
+
+            // Register with the identity provider
+            var idpRegistrationSuccess = await _idpService.RegisterUserAsync(request);
+            if (!idpRegistrationSuccess)
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "Failed to register with identity provider"
+                };
+            }
+
             // Create a new account from the registration request
             var newAccount = new Account
             {
@@ -108,17 +130,6 @@ public class AuthService : ServiceBase, IAuthService
                 GoalStats = new StatsBase { Wpm = 0, Accuracy = 0 }
             };
 
-            // Check if email is already registered
-            var existingAccount = await _accountService.GetAccountByEmail(request.Email);
-            if (existingAccount != null)
-            {
-                return new AuthResponse
-                {
-                    Success = false,
-                    Message = "Email is already registered"
-                };
-            }
-
             // Save the account using the account service
             var createdAccount = await _accountService.CreateAccount(newAccount);
 
@@ -131,16 +142,11 @@ public class AuthService : ServiceBase, IAuthService
                 };
             }
 
-            // Use mock IDP service for authentication
-            var idpResponse = await _idpService.AuthenticateAsync(request.Email, request.Password);
-
-            // Return success response with account info and token
+            // Return success response with account info
             return new AuthResponse
             {
                 Success = true,
-                Message = "Registration successful",
-                Token = idpResponse.AccessToken,
-                RefreshToken = idpResponse.RefreshToken,
+                Message = "Registration successful. Please check your email for confirmation code.",
                 AccountId = createdAccount.Id,
                 AccountName = createdAccount.AccountName
             };
@@ -197,10 +203,42 @@ public class AuthService : ServiceBase, IAuthService
         return Task.FromResult(true);
     }
 
-    public Task<bool> ConfirmEmailAsync(string token)
+    public async Task<bool> ConfirmEmailAsync(string token)
     {
-        // Temporarily disabled email confirmation
-        return Task.FromResult(true);
+        try
+        {
+            // Extract email and confirmation code from the token
+            // This assumes the token is in the format "email:confirmationCode"
+            var parts = token.Split(':');
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            var email = parts[0];
+            var confirmationCode = parts[1];
+
+            // Confirm the registration with the identity provider
+            var success = await _idpService.ConfirmRegistrationAsync(email, confirmationCode);
+            if (!success)
+            {
+                return false;
+            }
+
+            // Update the account status
+            var account = await _accountService.GetAccountByEmail(email);
+            if (account != null)
+            {
+                await _accountService.SetAccountStatusAsync(account.Id, true);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return false;
+        }
     }
 
     public Task<bool> ResendConfirmationEmailAsync(string email)

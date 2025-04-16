@@ -34,7 +34,7 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
         ? "Resources/LessonData/beginner-course-lessons.json"
         : lessonDataFileUrl;
 
-    public IEnumerable<Lesson> Lessons { get; set; }
+    public IEnumerable<Lesson> Lessons { get; set; } = [];
 
     public string CompleteText { get; } = "";
 

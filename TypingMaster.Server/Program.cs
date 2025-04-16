@@ -12,6 +12,7 @@ using TypingMaster.Server.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Console.WriteLine($"Current environment: {builder.Environment.EnvironmentName}");
 // Configure specific URLs/ports
 // This will override settings in launchSettings.json when explicitly run
 var urls = builder.Configuration["Urls"];
@@ -87,7 +88,7 @@ builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
 builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository>();
 
 // Register business services
-builder.Services.AddScoped<MockIdpService>();
+builder.Services.AddScoped<IIdpService, MockIdpService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -99,7 +100,6 @@ builder.Services.AddScoped<ITypingTrainer, TypingTrainer>();
 builder.Services.AddScoped<ITypingMaterialGenerator, TypingMaterialGenerator>();
 
 // Register services
-builder.Services.AddScoped<MockIdpService>();
 builder.Services.AddScoped<IAuthorizationHandler, IdpAuthorizationHandler>();
 builder.Services.AddHttpContextAccessor();
 

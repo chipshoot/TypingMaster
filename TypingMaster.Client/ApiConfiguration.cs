@@ -3,24 +3,29 @@ namespace TypingMaster.Client;
 public class ApiSettings
 {
     public string BaseUrl { get; set; } = string.Empty;
+    public string AccountService { get; set; } = string.Empty;
+
+    public string AuthService { get; set; } = string.Empty;
+
+    public string CourseService { get; set; } = string.Empty;
+
+    public string PracticeLogService { get; set; } = string.Empty;
+
+    public string ReportService { get; set; } = string.Empty;
 }
 
 public interface IApiConfiguration
 {
     string BuildApiUrl(string endpoint);
+    ApiSettings ApiSettings { get; }
 }
 
-public class ApiConfiguration : IApiConfiguration
+public class ApiConfiguration(ApiSettings apiSettings) : IApiConfiguration
 {
-    private readonly ApiSettings _apiSettings;
-
-    public ApiConfiguration(ApiSettings apiSettings)
-    {
-        _apiSettings = apiSettings;
-    }
+    public ApiSettings ApiSettings {get; private set; } = apiSettings;
 
     public string BuildApiUrl(string endpoint)
     {
-        return $"{_apiSettings.BaseUrl.TrimEnd('/')}/{endpoint.TrimStart('/')}";
+        return $"{ApiSettings.BaseUrl.TrimEnd('/')}/{endpoint.TrimStart('/')}";
     }
 }
