@@ -9,6 +9,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using TypingMaster.Server.Auth;
+using Amazon.CognitoIdentityProvider;
+using Amazon.Extensions.NETCore.Setup;
+using TypingMaster.Business.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,8 +87,13 @@ builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
 builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository>();
 
+// Configure AWS services
+builder.Services.Configure<CognitoSettings>(builder.Configuration.GetSection("CognitoSettings"));
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
+
 // Register business services
-builder.Services.AddScoped<IIdpService, MockIdpService>();
+builder.Services.AddScoped<IIdpService, AwsCognitoService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
