@@ -6,13 +6,11 @@ namespace TypingMaster.Client.Services
 {
     public class AccountWebService(HttpClient httpClient, IApiConfiguration apiConfig, ApplicationContext appContext, Serilog.ILogger logger) : IAccountWebService
     {
-        private const string BaseUrl = "api/account";
-
         public async Task<Account?> GetAccountAsync(int accountId)
         {
             try
             {
-                var url = apiConfig.BuildApiUrl($"{BaseUrl}/{accountId}");
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AccountService}/{accountId}");
 
                 // Add Authorization header with Bearer token if available
                 if (!string.IsNullOrEmpty(appContext.Token))
@@ -33,7 +31,7 @@ namespace TypingMaster.Client.Services
         {
             try
             {
-                var url = apiConfig.BuildApiUrl($"{BaseUrl}/{account.Id}");
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AccountService}/{account.Id}");
         
                 // Add Authorization header with Bearer token if available
                 if (!string.IsNullOrEmpty(appContext.Token))
@@ -90,7 +88,7 @@ namespace TypingMaster.Client.Services
         {
             try
             {
-                var url = apiConfig.BuildApiUrl($"{BaseUrl}/guest");
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AccountService}/guest");
                 return await httpClient.GetFromJsonAsync<Account>(url);
             }
             catch (Exception ex)

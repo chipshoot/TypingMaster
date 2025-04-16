@@ -4,6 +4,7 @@ using Serilog;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 
@@ -14,7 +15,7 @@ public class AccountService(
     IPracticeLogService practiceLogService,
     ICourseService courseService,
     IMapper mapper,
-    ILogger logger) : ServiceBase(logger), IAccountService
+    ILogger logger) : IAccountService
 {
     public async Task<IEnumerable<Account>> GetAllAccounts()
     {
@@ -55,7 +56,7 @@ public class AccountService(
     {
         if (account == null || string.IsNullOrEmpty(account.AccountName) || string.IsNullOrEmpty(account.AccountEmail))
         {
-            ProcessResult.AddError(InvalidAccountData);
+            ProcessResult.AddError(TypingMasterConstants.InvalidAccountData);
             return null;
         }
 
@@ -293,6 +294,41 @@ public class AccountService(
         return guest;
     }
 
+    public async Task<bool> SetAccountStatusAsync(int accountId, bool isActive)
+    {
+        try
+        {
+            var accountDao = await accountRepository.GetAccountByIdAsync(accountId);
+            if (accountDao == null)
+            {
+                ProcessResult.AddError($"Account with ID {accountId} not found");
+                return false;
+            }
+
+            // Update the account status
+            accountDao.IsDeleted = !isActive;
+            if (accountDao.IsDeleted)
+            {
+                accountDao.DeletedAt = DateTime.UtcNow;
+            }
+
+            var updatedAccountDao = await accountRepository.UpdateAccountAsync(accountDao);
+            if (updatedAccountDao == null)
+            {
+                ProcessResult.AddError("Failed to update account status");
+                return false;
+            }
+
+            ProcessResult.AddSuccess();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return false;
+        }
+    }
+
     public async Task<Account?> GetAccountByEmail(string email)
     {
         try
@@ -312,4 +348,6 @@ public class AccountService(
             return null;
         }
     }
+
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 }

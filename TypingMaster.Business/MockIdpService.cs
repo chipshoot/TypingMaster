@@ -1,8 +1,10 @@
 using Serilog;
+using TypingMaster.Business.Contract;
+using TypingMaster.Core.Models;
 
 namespace TypingMaster.Business;
 
-public class MockIdpService
+public class MockIdpService : IIdpService
 {
     private readonly ILogger _logger;
 
@@ -43,14 +45,20 @@ public class MockIdpService
             Scope = "openid profile email"
         };
     }
-}
 
-public class IdpAuthResponse
-{
-    public bool Success { get; set; }
-    public string AccessToken { get; set; } = string.Empty;
-    public string TokenType { get; set; } = string.Empty;
-    public int ExpiresIn { get; set; }
-    public string RefreshToken { get; set; } = string.Empty;
-    public string Scope { get; set; } = string.Empty;
+    public async Task<bool> RegisterUserAsync(RegisterRequest request)
+    {
+        // Mock successful registration
+        await Task.Delay(100);
+        _logger.Information("Mock user registration: {Email}", request.Email);
+        return true;
+    }
+
+    public async Task<bool> ConfirmRegistrationAsync(string email, string confirmationCode)
+    {
+        // Mock successful confirmation
+        await Task.Delay(100);
+        _logger.Information("Mock registration confirmation: {Email}", email);
+        return true;
+    }
 }

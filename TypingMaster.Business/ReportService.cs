@@ -1,12 +1,14 @@
 ﻿using Serilog;
 using System.Globalization;
 using TypingMaster.Business.Contract;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
+using TypingMaster.DataAccess.Utility;
 using ICourse = TypingMaster.Business.Contract.ICourse;
 
 namespace TypingMaster.Business;
 
-public class ReportService(ILogger logger) : ServiceBase(logger), IReportService
+public class ReportService(ILogger logger) : IReportService
 {
     public IEnumerable<string> GetKeyLabels(PracticeLog history)
     {
@@ -22,7 +24,7 @@ public class ReportService(ILogger logger) : ServiceBase(logger), IReportService
         {
             if (k.CorrectCount == 0)
             {
-                ProcessResult.AddInformation(NoCorrectKeyPressCount);
+                ProcessResult.AddInformation(TypingMasterConstants.NoCorrectKeyPressCount);
                 return 0;
             }
             return k.PressDuration / k.CorrectCount;
@@ -31,7 +33,7 @@ public class ReportService(ILogger logger) : ServiceBase(logger), IReportService
         {
             if (k.CorrectCount == 0)
             {
-                ProcessResult.AddInformation(NoCorrectKeyPressCount);
+                ProcessResult.AddInformation(TypingMasterConstants.NoCorrectKeyPressCount);
                 return 0;
             }
 
@@ -41,7 +43,7 @@ public class ReportService(ILogger logger) : ServiceBase(logger), IReportService
         {
             if (k.TypingCount == 0)
             {
-                ProcessResult.AddInformation(NoKeyPressCount);
+                ProcessResult.AddInformation(TypingMasterConstants.NoKeyPressCount);
                 return 0;
             }
 
@@ -115,6 +117,8 @@ public class ReportService(ILogger logger) : ServiceBase(logger), IReportService
 
         return dataList;
     }
+
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
     private static int CalculateGoodWpmKeys(Queue<KeyEvent> keyEvents)
     {

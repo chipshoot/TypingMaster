@@ -5,8 +5,6 @@ namespace TypingMaster.Business.Contract
 {
     public interface IAccountService
     {
-        ProcessResult ProcessResult { get; set; }
-
         Task<IEnumerable<Account>> GetAllAccounts();
 
         Task<Account?> GetAccountById(int id);
@@ -26,5 +24,9 @@ namespace TypingMaster.Business.Contract
         /// </summary>
         /// <returns>The guest account temporary used by guest for playing around, when guest registered as membership, the account will convert to normal account </returns>
         Account GetGuestAccount();
+
+        Task<bool> SetAccountStatusAsync(int accountId, bool isActive);
+
+        ProcessResult ProcessResult { get; set; }
     }
 }

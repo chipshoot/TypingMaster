@@ -11,14 +11,12 @@ public class AuthWebService(HttpClient httpClient,
     ApplicationContext appState,
     Serilog.ILogger logger) : IAuthWebService
 {
-    private const string BaseUrl = "api/auth";
-
     public async Task<AuthResponse> LoginAsync(string email, string password)
     {
         try
         {
             var loginRequest = new { Email = email, Password = password };
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/login");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/login");
             var response = await httpClient.PostAsJsonAsync(url, loginRequest);
 
             response.EnsureSuccessStatusCode();
@@ -51,8 +49,8 @@ public class AuthWebService(HttpClient httpClient,
     {
         try
         {
-            var logoutRequest = new { AccountId = accountId, RefreshToken = refreshToken ?? string.Empty };
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/logout");
+            var logoutRequest = new { AccountId = accountId, RefreshToken = refreshToken };
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/logout");
             var response = await httpClient.PostAsJsonAsync(url, logoutRequest);
 
             return new WebServiceResponse
@@ -77,7 +75,7 @@ public class AuthWebService(HttpClient httpClient,
     {
         try
         {
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/register");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/register");
             var response = await httpClient.PostAsJsonAsync(url, request);
 
             response.EnsureSuccessStatusCode();
@@ -99,7 +97,7 @@ public class AuthWebService(HttpClient httpClient,
         try
         {
             var refreshRequest = new { Token = token, RefreshToken = refreshToken };
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/refresh-token");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/refresh-token");
             var response = await httpClient.PostAsJsonAsync(url, refreshRequest);
 
             response.EnsureSuccessStatusCode();
@@ -127,7 +125,7 @@ public class AuthWebService(HttpClient httpClient,
                 NewPassword = newPassword
             };
 
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/change-password");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/change-password");
             var response = await httpClient.PostAsJsonAsync(url, changePasswordRequest);
 
             response.EnsureSuccessStatusCode();
@@ -145,7 +143,7 @@ public class AuthWebService(HttpClient httpClient,
         try
         {
             var resetRequest = new { Email = email };
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/forgot-password");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/forgot-password");
             var response = await httpClient.PostAsJsonAsync(url, resetRequest);
 
             response.EnsureSuccessStatusCode();
@@ -163,7 +161,7 @@ public class AuthWebService(HttpClient httpClient,
         try
         {
             var resetPasswordRequest = new { Token = token, NewPassword = newPassword };
-            var url = apiConfig.BuildApiUrl($"{BaseUrl}/reset-password");
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/reset-password");
             var response = await httpClient.PostAsJsonAsync(url, resetPasswordRequest);
 
             response.EnsureSuccessStatusCode();
