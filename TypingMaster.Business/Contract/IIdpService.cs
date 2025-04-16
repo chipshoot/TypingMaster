@@ -17,6 +17,23 @@ public interface IIdpService
     Task<IdpAuthResponse> AuthenticateAsync(string email, string password);
 
     /// <summary>
+    /// Responds to a new password challenge from the identity provider.
+    /// </summary>
+    /// <param name="email">The user's email address.</param>
+    /// <param name="newPassword">The new password to set.</param>
+    /// <param name="session">The session token from the initial authentication response.</param>
+    /// <returns>A task representing the asynchronous operation, with an <see cref="IdpAuthResponse"/> containing the authentication result.</returns>
+    Task<IdpAuthResponse> RespondToNewPasswordChallengeAsync(string email, string newPassword, string session);
+
+    /// <summary>
+    /// Sets a permanent password for a user, preventing the need to change password on first login.
+    /// </summary>
+    /// <param name="email">The user's email address.</param>
+    /// <param name="password">The password to set.</param>
+    /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
+    Task<bool> SetPermanentPasswordAsync(string email, string password);
+
+    /// <summary>
     /// Refreshes an access token using a refresh token.
     /// </summary>
     /// <param name="refreshToken">The refresh token to use for generating a new access token.</param>
