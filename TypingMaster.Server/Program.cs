@@ -84,7 +84,7 @@ builder.Services.AddScoped<ILoginLogRepository, LoginLogRepository>();
 builder.Services.AddScoped<ILoginCredentialRepository, LoginCredentialRepository>();
 
 // Register business services
-builder.Services.AddScoped<IIdpService, AwsCognitoService>();
+builder.Services.AddScoped<IIdpService, MockIdpService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
