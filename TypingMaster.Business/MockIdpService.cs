@@ -30,6 +30,16 @@ public class MockIdpService : IIdpService
         };
     }
 
+    public Task<IdpAuthResponse> RespondToNewPasswordChallengeAsync(string email, string newPassword, string session)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> SetPermanentPasswordAsync(string email, string password)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken)
     {
         // Mock token refresh

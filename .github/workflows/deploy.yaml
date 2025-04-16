@@ -17,7 +17,7 @@ env:
   SOLUTION_FILE: "TypingMaster.sln" # Path to your solution file
   BLAZOR_PROJECT_PATH: "TypingMaster.Client/TypingMaster.Client.csproj" # Path to Blazor project
   API_PROJECT_PATH: "TypingMaster.Server/TypingMaster.Server.csproj" # Path to API project
-  API_PROJECT_CONNECTION_FILE: "TypingMaster.Server/appsettings.Release.json" # Path to API project
+  API_PROJECT_CONNECTION_FILE: "TypingMaster.Server/appsettings.json" # Path to API project
   DATA_ACCESS_PROJECT_PATH: "TypingMaster.DataAccess/TypingMaster.DataAccess.csproj" # Path to DataAccess project
   AWS_REGION: ${{ secrets.AWS_REGION }} # Use GitHub secret for region (e.g., us-east-1)
 
@@ -38,7 +38,6 @@ jobs:
       contents: read # Required to read the repository contents
 
     steps:
-
       # 1. Setup Environment Variables
       - name: Setup environment variables
         run: |
@@ -65,13 +64,17 @@ jobs:
 
       # 6. Install dotnet-ef Tool
       - name: Export Environment Variables
-        run:
-          dotnet tool install --global dotnet-ef 
+        run: dotnet tool install --global dotnet-ef
 
-      # 7 Replace Connection String in appsettings.Release.json
-      - name: Replace Connection String
+      # 7 Replace Configuration Values in appsettings.Release.json
+      - name: Replace Configuration Values
         run: |
           sed -i "s|PLACEHOLDER_FOR_AWS_CONNECTION_STRING|${{ secrets.DATABASE_CONNECTION_STRING }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
+          sed -i "s|PLACEHOLDER_FOR_USER_POOL_ID|${{ secrets.USER_POOL_ID }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
+          sed -i "s|PLACEHOLDER_FOR_CLIENT_ID|${{ secrets.CLIENT_ID }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
+          sed -i "s|PLACEHOLDER_FOR_CLIENT_SECRET|${{ secrets.CLIENT_SECRET }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
+          sed -i "s|PLACEHOLDER_FOR_ACCESS_KEY|${{ secrets.ACCESS_KEY }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
+          sed -i "s|PLACEHOLDER_FOR_SECRET_KEY|${{ secrets.SECRET_KEY }}|g" ${{ env.API_PROJECT_CONNECTION_FILE }}
 
       # 8. Apply Database Migrations
       - name: Apply Database Migrations
