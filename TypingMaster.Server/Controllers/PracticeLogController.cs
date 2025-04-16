@@ -5,7 +5,7 @@ using TypingMaster.Core.Models;
 
 namespace TypingMaster.Server.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/practicelogs")]
     [ApiController]
     [Authorize(Policy = "IdPAuth")]
     public class PracticeLogController(IPracticeLogService practiceLogService, ILogger<PracticeLogController> logger)

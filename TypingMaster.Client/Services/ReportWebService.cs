@@ -7,7 +7,6 @@ namespace TypingMaster.Client.Services
     {
         private readonly HttpClient _httpClient = httpClient;
         private readonly IApiConfiguration _apiConfig = apiConfig;
-        private const string BaseUrl = "api/report";
 
         public async Task<IEnumerable<string>> GetKeyLabels(PracticeLog history)
         {

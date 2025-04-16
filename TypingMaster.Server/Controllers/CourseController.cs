@@ -7,7 +7,7 @@ using TypingMaster.Core.Models.Courses;
 namespace TypingMaster.Server.Controllers
 {
     [ApiController]
-    [Route("api/course")]
+    [Route("api/courses")]
     public class CourseController(ICourseService courseService) : ControllerBase
     {
         [HttpGet("{id}")]

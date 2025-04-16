@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System;
 using System.Net.Http.Json;
 using TypingMaster.Core.Models;
 
@@ -7,8 +6,6 @@ namespace TypingMaster.Client.Services
 {
     public class PracticeLogWebService(HttpClient httpClient, IApiConfiguration apiConfig, ApplicationContext appContext, Serilog.ILogger logger) : IPracticeLogWebService
     {
-        private const string BaseUrl = "api/practicelog";
-
         public async Task<PagedResult<DrillStats>> GetPaginatedDrillStatsAsync(
             int practiceLogId, 
             int page = 1, 
@@ -17,7 +14,7 @@ namespace TypingMaster.Client.Services
         {
             try
             {
-                var url = apiConfig.BuildApiUrl($"{BaseUrl}/{practiceLogId}/drill-stats?page={page}&pageSize={pageSize}&sortByNewest={sortByNewest}");
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.PracticeLogService}/{practiceLogId}/drill-stats?page={page}&pageSize={pageSize}&sortByNewest={sortByNewest}");
 
                 // Add Authorization header with Bearer token if available
                 if (!string.IsNullOrEmpty(appContext.Token))
