@@ -40,7 +40,7 @@ public class MockIdpService : IIdpService
         throw new NotImplementedException();
     }
 
-    public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken)
+    public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken, string userName)
     {
         // Mock token refresh
         await Task.Delay(100);
@@ -70,5 +70,10 @@ public class MockIdpService : IIdpService
         await Task.Delay(100);
         _logger.Information("Mock registration confirmation: {Email}", email);
         return true;
+    }
+
+    public Task<bool> ResendConfirmationCodeAsync(string userName)
+    {
+        return Task.FromResult(true);
     }
 }

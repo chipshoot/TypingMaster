@@ -7,25 +7,16 @@ using TypingMaster.Business.Config;
 using TypingMaster.Core.Models;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 
 namespace TypingMaster.Business;
 
-public class AwsCognitoService : IIdpService
+public class AwsCognitoService(
+    IAmazonCognitoIdentityProvider cognitoClient,
+    IOptions<CognitoSettings> cognitoSettings,
+    ILogger logger)
+    : IIdpService
 {
-    private readonly IAmazonCognitoIdentityProvider _cognitoClient;
-    private readonly CognitoSettings _cognitoSettings;
-    private readonly ILogger _logger;
-
-    public AwsCognitoService(
-        IAmazonCognitoIdentityProvider cognitoClient,
-        IOptions<CognitoSettings> cognitoSettings,
-        ILogger logger)
-    {
-        _cognitoClient = cognitoClient;
-        _cognitoSettings = cognitoSettings.Value;
-        _logger = logger;
-    }
+    private readonly CognitoSettings _cognitoSettings = cognitoSettings.Value;
 
     private string CalculateSecretHash(string username)
     {
@@ -38,7 +29,7 @@ public class AwsCognitoService : IIdpService
         return Convert.ToBase64String(hash);
     }
 
-    public async Task<IdpAuthResponse> AuthenticateAsync(string email, string password)
+    public async Task<IdpAuthResponse> AuthenticateAsync(string userName, string password)
     {
         try
         {
@@ -48,21 +39,21 @@ public class AwsCognitoService : IIdpService
                 AuthFlow = AuthFlowType.USER_PASSWORD_AUTH,
                 AuthParameters = new Dictionary<string, string>
                 {
-                    { "USERNAME", email },
+                    { "USERNAME", userName },
                     { "PASSWORD", password },
-                    { "SECRET_HASH", CalculateSecretHash(email) }
+                    { "SECRET_HASH", CalculateSecretHash(userName) }
                 }
             };
 
-            _logger.Information("Initiating authentication for user: {Email}", email);
-            var response = await _cognitoClient.InitiateAuthAsync(authRequest);
+            logger.Information("Initiating authentication for user: {UserName}", userName);
+            var response = await cognitoClient.InitiateAuthAsync(authRequest);
 
             if (response.ChallengeName == "NEW_PASSWORD_REQUIRED")
             {
                 // Prompt the user for a new password
                 var newPassword = "Password2@"; // Get this from your UI
                 var challengeResponse = await RespondToNewPasswordChallengeAsync(
-                    email,
+                    userName,
                     newPassword,
                     response.Session
                 );
@@ -83,7 +74,7 @@ public class AwsCognitoService : IIdpService
 
             if (response.AuthenticationResult == null)
             {
-                _logger.Warning("Authentication result is null. Challenge: {Challenge}, Session: {Session}",
+                logger.Warning("Authentication result is null. Challenge: {Challenge}, Session: {Session}",
                     response.ChallengeName,
                     response.Session);
 
@@ -108,7 +99,7 @@ public class AwsCognitoService : IIdpService
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Error authenticating with Cognito for user: {Email}", email);
+            logger.Error(ex, "Error authenticating with Cognito for user: {Email}", userName);
             return new IdpAuthResponse
             {
                 Success = false,
@@ -136,12 +127,12 @@ public class AwsCognitoService : IIdpService
                 }
             };
 
-            _logger.Information("Responding to new password challenge for user: {Email}", email);
-            var response = await _cognitoClient.RespondToAuthChallengeAsync(challengeRequest);
+            logger.Information("Responding to new password challenge for user: {Email}", email);
+            var response = await cognitoClient.RespondToAuthChallengeAsync(challengeRequest);
 
             if (response.AuthenticationResult == null)
             {
-                _logger.Error("Failed to set new password. Challenge response: {Challenge}", response.ChallengeName);
+                logger.Error("Failed to set new password. Challenge response: {Challenge}", response.ChallengeName);
                 return new IdpAuthResponse
                 {
                     Success = false,
@@ -163,7 +154,7 @@ public class AwsCognitoService : IIdpService
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Error responding to new password challenge for user: {Email}", email);
+            logger.Error(ex, "Error responding to new password challenge for user: {Email}", email);
             return new IdpAuthResponse
             {
                 Success = false,
@@ -172,7 +163,7 @@ public class AwsCognitoService : IIdpService
         }
     }
 
-    public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken)
+    public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken, string userName)
     {
         try
         {
@@ -183,21 +174,21 @@ public class AwsCognitoService : IIdpService
                 AuthParameters = new Dictionary<string, string>
                 {
                     { "REFRESH_TOKEN", refreshToken },
-                    { "SECRET_HASH", CalculateSecretHash(refreshToken) }
+                    { "SECRET_HASH", CalculateSecretHash(userName) }
                 }
             };
 
-            _logger.Information("Initiating token refresh");
-            var response = await _cognitoClient.InitiateAuthAsync(authRequest);
+            logger.Information("Initiating token refresh");
+            var response = await cognitoClient.InitiateAuthAsync(authRequest);
 
-            _logger.Information("Refresh response: Challenge={Challenge}, Session={Session}, AuthenticationResult={AuthResult}",
+            logger.Information("Refresh response: Challenge={Challenge}, Session={Session}, AuthenticationResult={AuthResult}",
                 response.ChallengeName,
                 response.Session,
                 response.AuthenticationResult != null ? "Present" : "Null");
 
             if (response.AuthenticationResult == null)
             {
-                _logger.Error("Authentication result is null during token refresh. Challenge: {Challenge}", response.ChallengeName);
+                logger.Error("Authentication result is null during token refresh. Challenge: {Challenge}", response.ChallengeName);
                 return new IdpAuthResponse
                 {
                     Success = false,
@@ -219,12 +210,33 @@ public class AwsCognitoService : IIdpService
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Error refreshing token with Cognito");
+            logger.Error(ex, "Error refreshing token with Cognito");
             return new IdpAuthResponse
             {
                 Success = false,
                 Message = ex.Message
             };
+        }
+    }
+    public async Task<bool> ResendConfirmationCodeAsync(string userName)
+    {
+        try
+        {
+            var request = new ResendConfirmationCodeRequest
+            {
+                ClientId = _cognitoSettings.ClientId,
+                Username = userName,
+                SecretHash = CalculateSecretHash(userName)
+            };
+
+            await cognitoClient.ResendConfirmationCodeAsync(request);
+            logger.Information("Verification code resent for user: {Username}", userName);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error resending verification code: {Error}", ex.Message);
+            return false;
         }
     }
 
@@ -235,47 +247,47 @@ public class AwsCognitoService : IIdpService
             var signUpRequest = new SignUpRequest
             {
                 ClientId = _cognitoSettings.ClientId,
-                Username = request.Email,
+                Username = request.AccountName,
                 Password = request.Password,
-                SecretHash = CalculateSecretHash(request.Email),
-                UserAttributes = new List<AttributeType>
-                {
+                SecretHash = CalculateSecretHash(request.AccountName),
+                UserAttributes =
+                [
                     new AttributeType { Name = "email", Value = request.Email },
                     new AttributeType { Name = "given_name", Value = request.FirstName },
-                    new AttributeType { Name = "family_name", Value = request.LastName ?? string.Empty }
-                }
+                    new AttributeType { Name = "name", Value = request.LastName }
+                ]
             };
 
-            var response = await _cognitoClient.SignUpAsync(signUpRequest);
-            _logger.Information("User registration initiated for {Email}", request.Email);
+            var response = await cognitoClient.SignUpAsync(signUpRequest);
+            logger.Information("User registration initiated for {Email}", request.Email);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Error registering user with Cognito");
+            logger.Error(ex, "Error registering user with Cognito");
             return false;
         }
     }
 
-    public async Task<bool> ConfirmRegistrationAsync(string email, string confirmationCode)
+    public async Task<bool> ConfirmRegistrationAsync(string userName, string confirmationCode)
     {
         try
         {
             var confirmSignUpRequest = new ConfirmSignUpRequest
             {
                 ClientId = _cognitoSettings.ClientId,
-                Username = email,
+                Username = userName,
                 ConfirmationCode = confirmationCode,
-                SecretHash = CalculateSecretHash(email)
+                SecretHash = CalculateSecretHash(userName)
             };
 
-            await _cognitoClient.ConfirmSignUpAsync(confirmSignUpRequest);
-            _logger.Information("User registration confirmed for {Email}", email);
+            await cognitoClient.ConfirmSignUpAsync(confirmSignUpRequest);
+            logger.Information("User registration confirmed for {Email}", userName);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Error confirming user registration with Cognito");
+            logger.Error(ex, "Error confirming user registration with Cognito");
             return false;
         }
     }
@@ -292,13 +304,13 @@ public class AwsCognitoService : IIdpService
                 Permanent = true
             };
 
-            await _cognitoClient.AdminSetUserPasswordAsync(request);
-            _logger.Information("Set permanent password for user: {Email}", email);
+            await cognitoClient.AdminSetUserPasswordAsync(request);
+            logger.Information("Set permanent password for user: {Email}", email);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Error setting permanent password for user: {Email}", email);
+            logger.Error(ex, "Error setting permanent password for user: {Email}", email);
             return false;
         }
     }
