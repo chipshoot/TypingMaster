@@ -40,7 +40,7 @@ namespace TypingMaster.Business.Course
 
         public string LessonDataUrl { get; }
 
-        public IEnumerable<Lesson> Lessons { get; set; }
+        public IEnumerable<Lesson> Lessons { get; set; } = [];
 
         public string CompleteText { get; }
 

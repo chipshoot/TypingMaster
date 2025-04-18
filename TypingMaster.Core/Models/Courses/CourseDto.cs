@@ -12,7 +12,7 @@ public class CourseDto
 
     public string LessonDataUrl { get; set; } = string.Empty;
 
-    public IEnumerable<Lesson> Lessons { get; set; }
+    public IEnumerable<Lesson> Lessons { get; set; } = [];
 
     public CourseSetting? Settings { get; set; }
 

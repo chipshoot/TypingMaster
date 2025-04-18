@@ -356,9 +356,6 @@ namespace TypingMaster.Business.Mapping
     {
         public PracticeLogDao Resolve(Account source, AccountDao destination, PracticeLogDao destMember, ResolutionContext context)
         {
-            if (source.History == null)
-                return null;
-
             if (source.History.CurrentCourseId == Guid.Empty)
             {
                 // Create a new PracticeLog with empty GUID to ensure proper mapping

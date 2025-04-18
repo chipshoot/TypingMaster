@@ -7,7 +7,7 @@ public interface IUserProfileRepository
 {
     Task<UserProfileDao?> GetUserProfileByIdAsync(int id);
 
-    Task<UserProfileDao> CreateUserProfileAsync(UserProfileDao userProfile);
+    Task<UserProfileDao?> CreateUserProfileAsync(UserProfileDao userProfile);
 
     Task<UserProfileDao?> UpdateUserProfileAsync(UserProfileDao userProfile);
 
