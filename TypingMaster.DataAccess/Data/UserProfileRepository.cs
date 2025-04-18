@@ -21,7 +21,7 @@ public class UserProfileRepository(ApplicationDbContext context, Serilog.ILogger
         }
     }
 
-    public async Task<UserProfileDao> CreateUserProfileAsync(UserProfileDao userProfile)
+    public async Task<UserProfileDao?> CreateUserProfileAsync(UserProfileDao userProfile)
     {
         try
         {

@@ -38,7 +38,7 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
 
     public string CompleteText { get; } = "";
 
-    public CourseSetting Settings { get; set; }
+    public CourseSetting Settings { get; set; } = null!;
 
     public string Description { get; } = CourseDescription;
 
@@ -51,7 +51,7 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
             return null;
         }
 
-        Lesson lesson;
+        Lesson? lesson;
         if (stats >= Settings.TargetStats)
         {
             // Target achieved, move to next lesson

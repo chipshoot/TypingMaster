@@ -1,0 +1,45 @@
+{
+  "id": "b5e8f9d3-9b1a-4b2c-9d3e-1a2b3c4d5e6f",
+  "name": "TypingMaster Environments",
+  "values": [
+    {
+      "key": "dev_baseUrl",
+      "value": "https://localhost:5001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "demo_baseUrl",
+      "value": "https://d2yysnliyljgnb.cloudfront.net",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "accountId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "courseId",
+      "value": "F87309FC-6E7B-4B25-B407-FF25975A86E3",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "lessonId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2024-03-20T12:00:00.000Z",
+  "_postman_exported_using": "Postman/10.0.0"
+}
