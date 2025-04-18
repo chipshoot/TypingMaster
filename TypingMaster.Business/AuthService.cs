@@ -41,7 +41,7 @@ public class AuthService : ServiceBase, IAuthService
             }
 
             // Use mock IDP service for authentication
-            var idpResponse = await _idpService.AuthenticateAsync(email, password);
+            var idpResponse = await _idpService.AuthenticateAsync(account.AccountName, password);
             if (!idpResponse.Success)
             {
                 await _loginLogService.CreateLoginLogAsync(account.Id, null, null, false, "IDP authentication failed");
@@ -162,11 +162,11 @@ public class AuthService : ServiceBase, IAuthService
         }
     }
 
-    public async Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken)
+    public async Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string userName)
     {
         try
         {
-            var idpResponse = await _idpService.RefreshTokenAsync(refreshToken);
+            var idpResponse = await _idpService.RefreshTokenAsync(refreshToken, userName);
             return new AuthResponse
             {
                 Success = true,
@@ -245,5 +245,43 @@ public class AuthService : ServiceBase, IAuthService
     {
         // Temporarily disabled email confirmation
         return Task.FromResult(true);
+    }
+
+    public async Task<bool> ResendConfirmationCodeAsync(string userName)
+    {
+        try
+        {
+            var success = await _idpService.ResendConfirmationCodeAsync(userName);
+            if (!success)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return false;
+        }
+    }
+
+    public async Task<bool> ConfirmRegistrationAsync(string userName, string confirmationCode)
+    {
+        try
+        {
+            var success = await _idpService.ConfirmRegistrationAsync(userName, confirmationCode);
+            if (!success)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return false;
+        }
     }
 }

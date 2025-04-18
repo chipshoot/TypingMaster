@@ -1,0 +1,175 @@
+@page "/confirm-registration"
+@page "/confirm-registration/{username}"
+
+@inject NavigationManager Navigation
+@inject IAuthWebService AuthService
+@inject ILogger Logger
+
+<div class="register-container">
+    <div class="register-header">
+        <h3>Confirm Registration</h3>
+        <p>Please enter the confirmation code sent to your email</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="error-container">
+            <div class="error-title">
+                <i class="error-icon fas fa-exclamation-circle"></i>
+                Confirmation Error
+            </div>
+            <p class="error-message">@_errorMessage</p>
+        </div>
+    }
+
+    @if (_confirmationSuccess)
+    {
+        <div class="success-container">
+            <div class="success-title">
+                <i class="success-icon fas fa-check-circle"></i>
+                Registration Confirmed
+            </div>
+            <p class="success-message">
+                Your registration has been confirmed successfully. You can now log in to your account.
+            </p>
+            <Button ButtonType="ButtonType.Button" class="btn btn-login" OnClick="@NavigateToLogin">
+                Go to Login
+            </Button>
+        </div>
+    }
+    else
+    {
+        <ValidateForm Model="@_confirmModel" OnValidSubmit="@HandleConfirmation">
+            <EditorForm Model="@_confirmModel" LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
+                <FieldItems>
+                    <EditorItem @bind-Field="@context.UserName">
+                        <EditTemplate Context="value">
+                            <BootstrapInput TValue="string" PlaceHolder="Username" @bind-value="@value.UserName"
+                                ShowLabel="true" DisplayText="Username" />
+                        </EditTemplate>
+                    </EditorItem>
+                    <EditorItem @bind-Field="@context.ConfirmationCode">
+                        <EditTemplate Context="value">
+                            <BootstrapInput TValue="string" PlaceHolder="Confirmation Code"
+                                @bind-value="@value.ConfirmationCode" ShowLabel="true" DisplayText="Confirmation Code" />
+                        </EditTemplate>
+                    </EditorItem>
+                </FieldItems>
+                <Buttons>
+                    <Button ButtonType="ButtonType.Submit" class="btn btn-primary btn-register" Icon="@_icon"
+                        disabled="@(_isLoading)">
+                        Confirm Registration
+                    </Button>
+                    <Button ButtonType="ButtonType.Button" class="btn btn-secondary" OnClick="@ResendConfirmationCode"
+                        disabled="@(_isLoading)">
+                        Resend Code
+                    </Button>
+                </Buttons>
+            </EditorForm>
+        </ValidateForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Username { get; set; }
+
+    private class ConfirmModel
+    {
+        [Required]
+        public string UserName { get; set; } = string.Empty;
+
+        [Required]
+        public string ConfirmationCode { get; set; } = string.Empty;
+    }
+
+    private readonly ConfirmModel _confirmModel = new();
+    private bool _isLoading = false;
+    private string? _errorMessage;
+    private string _icon = "";
+    private bool _confirmationSuccess = false;
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(Username))
+        {
+            _confirmModel.UserName = Username;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(Username))
+        {
+            _confirmModel.UserName = Username;
+        }
+    }
+
+    private async Task HandleConfirmation(EditContext context)
+    {
+        SetLoading(true);
+        _errorMessage = null;
+
+        try
+        {
+            var success = await AuthService.ConfirmRegistrationAsync(_confirmModel.UserName, _confirmModel.ConfirmationCode);
+            if (success)
+            {
+                _confirmationSuccess = true;
+            }
+            else
+            {
+                _errorMessage = "Failed to confirm registration. Please check your code and try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error confirming registration");
+            _errorMessage = "An unexpected error occurred. Please try again later.";
+        }
+        finally
+        {
+            SetLoading(false);
+        }
+    }
+
+    private async Task ResendConfirmationCode()
+    {
+        SetLoading(true);
+        _errorMessage = null;
+
+        try
+        {
+            var success = await AuthService.ResendConfirmationCodeAsync(_confirmModel.UserName);
+            if (success)
+            {
+                _errorMessage = "Confirmation code has been resent to your email.";
+            }
+            else
+            {
+                _errorMessage = "Failed to resend confirmation code. Please try again later.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error resending confirmation code");
+            _errorMessage = "An unexpected error occurred while resending the confirmation code.";
+        }
+        finally
+        {
+            SetLoading(false);
+        }
+    }
+
+    private void SetLoading(bool isLoading)
+    {
+        _isLoading = isLoading;
+        _icon = isLoading ? "fa-solid fa-spinner fa-spin fa-fw" : "";
+    }
+
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}

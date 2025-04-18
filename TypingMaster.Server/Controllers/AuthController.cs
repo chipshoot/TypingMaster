@@ -99,7 +99,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var response = await _authService.RefreshTokenAsync(request.Token, request.RefreshToken);
+                var response = await _authService.RefreshTokenAsync(request.Token, request.RefreshToken, request.UserName);
                 if (response.Success)
                 {
                     return Ok(response);
@@ -159,6 +159,58 @@ namespace TypingMaster.Server.Controllers
             {
                 _logger.LogError(ex, "Error processing change password request for account ID {AccountId}", request.AccountId);
                 return StatusCode(500, "An error occurred while changing password");
+            }
+        }
+
+        [HttpPost("resend-confirmation")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResendConfirmation([FromBody] ResendConfirmationRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var success = await _authService.ResendConfirmationCodeAsync(request.UserName);
+                if (success)
+                {
+                    return Ok(new WebServiceResponse { Success = true, Message = "Confirmation code has been resent" });
+                }
+
+                return BadRequest(new WebServiceResponse { Success = false, Message = "Failed to resend confirmation code" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resending confirmation code for {UserName}", request.UserName);
+                return StatusCode(500, new WebServiceResponse { Success = false, Message = "An error occurred while resending the confirmation code" });
+            }
+        }
+
+        [HttpPost("confirm-registration")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmRegistration([FromBody] ConfirmRegistrationRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var success = await _authService.ConfirmRegistrationAsync(request.UserName, request.ConfirmationCode);
+                if (success)
+                {
+                    return Ok(new WebServiceResponse { Success = true, Message = "Registration confirmed successfully" });
+                }
+
+                return BadRequest(new WebServiceResponse { Success = false, Message = "Failed to confirm registration" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error confirming registration for {UserName}", request.UserName);
+                return StatusCode(500, new WebServiceResponse { Success = false, Message = "An error occurred while confirming registration" });
             }
         }
     }
