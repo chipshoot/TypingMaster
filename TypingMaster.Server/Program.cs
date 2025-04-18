@@ -14,15 +14,6 @@ using TypingMaster.Business.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Release";
-Console.WriteLine($"Current environment: {environment}");
-
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
-
 // Configure specific URLs/ports
 // This will override settings in launchSettings.json when explicitly run
 var urls = builder.Configuration["Urls"];
