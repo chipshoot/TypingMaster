@@ -37,8 +37,9 @@ public interface IIdpService
     /// Refreshes an access token using a refresh token.
     /// </summary>
     /// <param name="refreshToken">The refresh token to use for generating a new access token.</param>
+    /// <param name="userName">The username associated with refresh token.</param>
     /// <returns>A task representing the asynchronous operation, with an <see cref="IdpAuthResponse"/> containing the new tokens if successful.</returns>
-    Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken);
+    Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken, string userName);
 
     /// <summary>
     /// Registers a new user with the identity provider.
@@ -54,4 +55,11 @@ public interface IIdpService
     /// <param name="confirmationCode">The confirmation code received via email.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
     Task<bool> ConfirmRegistrationAsync(string email, string confirmationCode);
+
+    /// <summary>
+    /// Resends the confirmation code to the user via email.
+    /// </summary>
+    /// <param name="userName">The username of the user to whom the confirmation code will be resent.</param>
+    /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
+    Task<bool> ResendConfirmationCodeAsync(string userName);
 }

@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using TypingMaster.Server.Auth;
 using Amazon.CognitoIdentityProvider;
-using Amazon.Extensions.NETCore.Setup;
 using TypingMaster.Business.Config;
 
 var builder = WebApplication.CreateBuilder(args);

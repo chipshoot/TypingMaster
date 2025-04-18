@@ -20,11 +20,11 @@ public class AuthWebService(HttpClient httpClient,
             var response = await httpClient.PostAsJsonAsync(url, loginRequest);
 
             response.EnsureSuccessStatusCode();
-            var authResponse =  await response.Content.ReadFromJsonAsync<AuthResponse>()
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>()
                    ?? new AuthResponse { Success = false, Message = "Failed to deserialize response" };
             if (authResponse.Success)
             {
-                var authResult= await AuthenticateUserAsync(authResponse);
+                var authResult = await AuthenticateUserAsync(authResponse);
                 if (!authResult.Success)
                 {
                     authResponse.Success = false;
@@ -202,7 +202,7 @@ public class AuthWebService(HttpClient httpClient,
             {
                 account.History.PracticeStats = drillStats.Items;
             }
-            
+
             // Load course information if available
             if (appState.CurrentAccount.CourseId != Guid.Empty)
             {
@@ -216,6 +216,44 @@ public class AuthWebService(HttpClient httpClient,
         {
             logger.Error(ex, "Error during authentication");
             return new WebServiceResponse { Success = false, Message = "An error occurred during login." };
+        }
+    }
+
+    public async Task<bool> ResendConfirmationCodeAsync(string userName)
+    {
+        try
+        {
+            var request = new { UserName = userName };
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/resend-confirmation");
+            var response = await httpClient.PostAsJsonAsync(url, request);
+
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<WebServiceResponse>();
+            return result?.Success ?? false;
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error resending confirmation code");
+            return false;
+        }
+    }
+
+    public async Task<bool> ConfirmRegistrationAsync(string userName, string confirmationCode)
+    {
+        try
+        {
+            var request = new { UserName = userName, ConfirmationCode = confirmationCode };
+            var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/confirm-registration");
+            var response = await httpClient.PostAsJsonAsync(url, request);
+
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<WebServiceResponse>();
+            return result?.Success ?? false;
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error confirming registration");
+            return false;
         }
     }
 }
