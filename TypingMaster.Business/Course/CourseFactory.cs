@@ -4,19 +4,22 @@ using TypingMaster.Business.Contract;
 using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Course
 {
-    public class CourseFactory(ILogger logger) : ServiceBase(logger)
+    public class CourseFactory(ILogger logger)
     {
         private static readonly Dictionary<string, List<Lesson>> LessonCache = new();
         private static readonly object CacheLock = new();
 
         public ICourse? CreateCourseInstance(CourseDto courseDto)
         {
-            if (courseDto == null)
+            ArgumentNullException.ThrowIfNull("Null course setting found for courseDto");
+
+            if (courseDto.Settings == null)
             {
-                return null;
+                ProcessResult.AddError("Null course setting found for courseDto");
             }
 
             return (courseDto.Type, courseDto.Name) switch
@@ -26,7 +29,7 @@ namespace TypingMaster.Business.Course
                 {
                     Id = courseDto.Id,
                     Name = courseDto.Name,
-                    Settings = courseDto.Settings
+                    Settings = courseDto.Settings ?? GetDefaultCourseSetting()
                 },
 
                 (TrainingType.Course, TypingMasterConstants.AdvancedLevelCourseName) => new AdvancedLevelCourse(logger,
@@ -34,7 +37,7 @@ namespace TypingMaster.Business.Course
                 {
                     Id = courseDto.Id,
                     Name = courseDto.Name,
-                    Settings = courseDto.Settings
+                    Settings = courseDto.Settings ?? GetDefaultCourseSetting()
                 },
 
                 (TrainingType.AllKeysTest, TypingMasterConstants.AllKeysCourseName) => new PracticeCourse(
@@ -42,7 +45,7 @@ namespace TypingMaster.Business.Course
                 {
                     Id = courseDto.Id,
                     Name = courseDto.Name,
-                    Settings = courseDto.Settings
+                    Settings = courseDto.Settings ?? GetDefaultCourseSetting()
                 },
 
                 (TrainingType.SpeedTest, TypingMasterConstants.SpeedTestCourseName) => new PracticeCourse(
@@ -50,7 +53,7 @@ namespace TypingMaster.Business.Course
                 {
                     Id = courseDto.Id,
                     Name = courseDto.Name,
-                    Settings = courseDto.Settings
+                    Settings = courseDto.Settings ?? GetDefaultCourseSetting()
                 },
 
                 _ => null // Return null for unsupported combinations
@@ -170,5 +173,18 @@ namespace TypingMaster.Business.Course
                 LessonCache.Clear();
             }
         }
+
+        private CourseSetting GetDefaultCourseSetting()
+        {
+            return new CourseSetting
+            {
+                Minutes = 0,
+                NewKeysPerStep = 1,
+                PracticeTextLength = 47,
+                TargetStats = new StatsBase { Wpm = 0, Accuracy = 0 }
+            };
+        }
+
+        public ProcessResult ProcessResult { get; set; } = new(logger);
     }
 }

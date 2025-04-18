@@ -73,7 +73,7 @@ public class TypingMaterialGenerator : ITypingMaterialGenerator
         };
     }
 
-    public async Task<string> GenerateTestMaterial(SkillLevel level, int wordCount = 100)
+    public Task<string> GenerateTestMaterial(SkillLevel level, int wordCount = 100)
     {
         var words = new List<string>();
         var levelWords = _levelSpecificWords[level];
@@ -99,7 +99,7 @@ public class TypingMaterialGenerator : ITypingMaterialGenerator
             }
         }
 
-        return string.Join(" ", words);
+        return Task.FromResult(string.Join(" ", words));
     }
 
     public async Task<string> GenerateTestMaterialFromArticle(string url)
@@ -117,7 +117,7 @@ public class TypingMaterialGenerator : ITypingMaterialGenerator
         }
     }
 
-    public async Task<string> GenerateTestMaterialFromKeywords(string[] keywords, int wordCount = 100)
+    public Task<string> GenerateTestMaterialFromKeywords(string[] keywords, int wordCount = 100)
     {
         var words = new List<string>();
         var keywordRatio = 0.3; // 30% of words will be keywords or related words
@@ -135,10 +135,10 @@ public class TypingMaterialGenerator : ITypingMaterialGenerator
             }
         }
 
-        return string.Join(" ", words);
+        return Task.FromResult(string.Join(" ", words));
     }
 
-    public async Task<string> GenerateKeyPracticeText(char[] keys, int wordCount = 50, int minWordLength = 2, int maxWordLength = 4)
+    public Task<string> GenerateKeyPracticeText(char[] keys, int wordCount = 50, int minWordLength = 2, int maxWordLength = 4)
     {
         if (keys == null || keys.Length == 0)
             throw new ArgumentException("Keys array cannot be empty", nameof(keys));
@@ -194,7 +194,7 @@ public class TypingMaterialGenerator : ITypingMaterialGenerator
         // Shuffle the words
         words = words.OrderBy(x => _random.Next()).ToList();
 
-        return string.Join(" ", words);
+        return Task.FromResult(string.Join(" ", words));
     }
 
     private string ExtractTextFromHtml(string html)

@@ -2,6 +2,7 @@ using AutoMapper;
 using Serilog;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 
@@ -11,8 +12,10 @@ public class PracticeLogService(
     IPracticeLogRepository practiceLogRepository,
     IDrillStatsRepository drillStatsRepository,
     IMapper mapper,
-    ILogger logger) : ServiceBase(logger), IPracticeLogService
+    ILogger logger) : IPracticeLogService
 {
+    public ProcessResult ProcessResult { get; set; } = new(logger);
+
     public async Task<PracticeLog?> GetPracticeLogById(int id)
     {
         try
@@ -247,7 +250,6 @@ public class PracticeLogService(
         int pageSize = 10,
         bool sortByNewest = true)
     {
-
         var pagedResult = new PagedResult<DrillStats>
         {
             Page = page,

@@ -1,4 +1,5 @@
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Contract;
 
@@ -29,7 +30,14 @@ public interface IPracticeLogService
     /// </summary>
     Task<DrillStats?> AddDrillStat(int practiceLogId, DrillStats drillStat);
 
-    // Add to PracticeLogService.cs
+    /// <summary>
+    /// Gets a paginated list of drill stats for a specific practice log.
+    /// </summary>
+    /// <param name="practiceLogId">The ID of the practice log.</param>
+    /// <param name="page">The page number to retrieve. Defaults to 1.</param>
+    /// <param name="pageSize">The number of items per page. Defaults to 10.</param>
+    /// <param name="sortByNewest">Indicates whether to sort the results by newest first. Defaults to true.</param>
+    /// <returns>A paginated result containing the drill stats.</returns>
     Task<PagedResult<DrillStats>> GetPaginatedDrillStatsByPracticeLogIdAsync(
         int practiceLogId,
         int page = 1,
@@ -45,4 +53,6 @@ public interface IPracticeLogService
     /// Delete a drill stat
     /// </summary>
     Task<bool> DeleteDrillStat(int id);
+
+    ProcessResult ProcessResult { get; set; }
 }
