@@ -35,8 +35,9 @@ public interface IAuthService
     /// </summary>
     /// <param name="token">The expired access token.</param>
     /// <param name="refreshToken">The refresh token to use for generating a new access token.</param>
+    /// <param name="userName">The userName associated to refresh token.</param>
     /// <returns>A task representing the asynchronous operation, with a <see cref="AuthResponse"/> containing the new tokens if successful.</returns>
-    Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken);
+    Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string userName);
 
     /// <summary>
     /// Changes the password for an authenticated user.
@@ -75,4 +76,19 @@ public interface IAuthService
     /// <param name="email">The email address to send the confirmation link to.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
     Task<bool> ResendConfirmationEmailAsync(string email);
+
+    /// <summary>
+    /// Resends the confirmation code to a user's email address.
+    /// </summary>
+    /// <param name="userName">The username of the user to resend the confirmation code to.</param>
+    /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
+    Task<bool> ResendConfirmationCodeAsync(string userName);
+
+    /// <summary>
+    /// Confirms a user's registration using the confirmation code.
+    /// </summary>
+    /// <param name="userName">The username of the user to confirm.</param>
+    /// <param name="confirmationCode">The confirmation code received via email.</param>
+    /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
+    Task<bool> ConfirmRegistrationAsync(string userName, string confirmationCode);
 }
