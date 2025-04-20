@@ -1,5 +1,6 @@
 ﻿@page "/typing-practice"
 @inject ILogger Logger
+@using System.Text
 
 <Card class="mt-3">
     <BodyTemplate>
@@ -8,19 +9,14 @@
             <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
             @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
             class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-            style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted"></textarea>
+            style="color: transparent; caret-color: transparent; overflow:hidden"
+            disabled="@_isCompleted"></textarea>
             @for (var i = 0; i < Lines.Count; i++)
             {
-                <TextDisplay Id="@(i+1)"
-                             CurrentLineId="@_currentLineId"
-                             Text="@Lines[i]"
-                             CharInput="@_lastKeyPressed"
-                             InputChars="@_inputChars"
-                             IsLineCompleted="@_isLineCompleted"
-                             IsCourseFinished="@_isCourseFinished"
-                             CursorPosition="@_cursorPosition"
-                             OnLineFinished="HandleLineFinished"/>
-
+                <TextDisplay Id="@(i + 1)" CurrentLineId="@_currentLineId" Text="@Lines[i]" InputChars="@_textInput"
+                IsLineCompleted="@_isLineCompleted" IsCourseFinished="@_isCourseFinished"
+                CursorPosition="@_cursorPosition" IsStatsUpdating="@_isStatsUpdating"
+                OnLineFinished="HandleLineFinished" />
             }
         </div>
         <div class="d-flex justify-between items-center mb-4">
@@ -44,10 +40,17 @@
         </div>
     </FooterTemplate>
 </Card>
-<TypingStatsCalculator Text="@Text" UserInput="@_textInput" OnWpmChanged="@(wpm => _wpm = wpm)"
-OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></TypingStatsCalculator>
+<TypingStatsCalculator Text="@CurrentLesson?.PracticeText" UserInput="@_totalInputText" OnWpmChanged="@(wpm => _wpm = wpm)"
+OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats" OnStatsUpdating="HandleStatsUpdating">
+</TypingStatsCalculator>
 
 @code {
+    // todo: fix the re practice button
+    // todo: fix the stats calculator, the result is not correct
+    // todo: fix the key event generator for practice, the result is not correct
+    // todo: fix the layout of multiply lines: 1. the line which is not input does not have gap for typed text
+    // todo: fix the layout of multiply lines: 2. the gap between lines is smaller than the gap between text and typed text
+    // todo: fix the back key event for the first character of a line, need navigate to the previous line
     [Parameter]
     public Lesson? CurrentLesson { get; set; }
 
@@ -62,19 +65,20 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
 
     private int _currentLineId = 1;
     private List<string> Lines => GetPracticeText(CurrentLesson?.PracticeText ?? string.Empty);
-    private List<string> LineTypedTexts => Lines.Select(_=>string.Empty).ToList();
+    private List<string> _lineTypedTexts = []; 
+    private readonly StringBuilder _inputCharsBuilder = new();
 
     private string Text => Lines.Count > 0 && _currentLineId > 0 && _currentLineId <= Lines.Count
-        ? Lines[_currentLineId - 1]
-        : string.Empty;
+    ? Lines[_currentLineId - 1]
+    : string.Empty;
+    private string _totalInputText = string.Empty;
     private string _textInput = string.Empty;
-    private string _inputChars = string.Empty;
     private List<string> _focusKeys = [];
     private char _nextKeyExpected;
     private string? _lastKeyPressed;
-    private bool _leftShiftPressed = false;
-    private bool _rightShiftPressed = false;
-    private int _cursorPosition = 0;
+    private bool _leftShiftPressed;
+    private bool _rightShiftPressed;
+    private int _cursorPosition;
     private ElementReference _inputRef;
     private string _lessonHeader = string.Empty;
     private int _wpm;
@@ -82,12 +86,14 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
     private SkillLevel Level => (_wpm, _accuracy).GetSkillLevel();
     private TypingStatsCalculator? _typingStats;
     private KeyEventGenerator? _keyEventGenerator;
-    private bool _isLineCompleted = false;
-    private bool _isCompleted = false;
-    private bool _isCourseFinished = false;
+    private bool _isLineCompleted;
+    private bool _isCompleted;
+    private bool _isCourseFinished;
     private KeyboardEventArgs? _keyEventArgs;
     private Queue<KeyEvent> _keyEvents = [];
     private int _lineWidth = 74;
+    private bool _isStatsUpdating;
+    private bool _isProcessingKeyEvent;
 
     protected override void OnInitialized()
     {
@@ -96,93 +102,123 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
         _nextKeyExpected = string.IsNullOrEmpty(Text) ? '\0' : Text[_textInput.Length];
         _lessonHeader = $"Lesson: {CurrentLesson?.Id}";
         _focusKeys = CurrentLesson == null ? [] : CurrentLesson.Target.ToList();
+
+        // Initialize _lineTypedTexts
+        _lineTypedTexts = Lines.Select(_ => string.Empty).ToList();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await _inputRef.FocusAsync();
+        if (firstRender)
+        {
+            await _inputRef.FocusAsync();
+        }
     }
 
-    private async Task HandleInputChange(ChangeEventArgs e)
+    private Task HandleInputChange(ChangeEventArgs e)
     {
         var newInput = e.Value?.ToString();
         if (newInput != null && newInput.Length <= Text.Length + 1)
         {
             _textInput = newInput;
             _cursorPosition = newInput.Length;
+            _totalInputText = GetTotalInputText(_textInput);
             UpdateEchoChars();
-
-            // make sure the last character can be input
-            if (_textInput.Length == Text.Length + 1)
-            {
-                _isCompleted = true;
-                await OnTypingCompleted.InvokeAsync(new DrillStats
-                    {
-                        LessonId = CurrentLesson.Id,
-                        PracticeText = Text,
-                        TypedText = _textInput[..^1],
-                        Wpm = _wpm,
-                        Accuracy = _accuracy,
-                        KeyEvents = _keyEvents.Copy(),
-                        Type = TrainingType,
-                        StartTime = _keyEvents.FirstOrDefault()?.KeyDownTime,
-                        FinishTime = DateTime.Now
-                    });
-            }
-            else
-            {
-                var idx = _textInput.Length >= Text.Length ? Text.Length - 1 : _textInput.Length;
-                _nextKeyExpected = Text[idx];
-            }
         }
+
+        return Task.CompletedTask;
     }
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-        switch (e.Code)
+        if (_isProcessingKeyEvent) return;
+
+        _isProcessingKeyEvent = true;
+        try
         {
-            case "ShiftLeft":
-                _leftShiftPressed = true;
-                break;
-            case "ShiftRight":
-                _rightShiftPressed = true;
-                break;
-            case "Space":
-                _lastKeyPressed = e.Code;
-                _keyEventArgs = e;
-                _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
-                break;
-            default:
-                _lastKeyPressed = e.Key;
-                _keyEventArgs = e;
-                _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
-                break;
+            switch (e.Code)
+            {
+                case "ShiftLeft":
+                    _leftShiftPressed = true;
+                    break;
+                case "ShiftRight":
+                    _rightShiftPressed = true;
+                    break;
+                case "Space":
+                    _lastKeyPressed = e.Code;
+                    _keyEventArgs = e;
+                    _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
+                    break;
+                default:
+                    _lastKeyPressed = e.Key;
+                    _keyEventArgs = e;
+                    _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
+                    break;
+            }
+        }
+        finally
+        {
+            _isProcessingKeyEvent = false;
         }
     }
 
     private void HandleKeyUp(KeyboardEventArgs e)
     {
-        switch (e.Code)
+        if (_isProcessingKeyEvent) return;
+
+        _isProcessingKeyEvent = true;
+        try
         {
-            case "ShiftLeft":
-                _leftShiftPressed = false;
-                break;
-            case "ShiftRight":
-                _rightShiftPressed = false;
-                break;
-            default:
-                _lastKeyPressed = null;
-                _keyEventArgs = e;
-                _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
-                break;
+            switch (e.Code)
+            {
+                case "ShiftLeft":
+                    _leftShiftPressed = false;
+                    break;
+                case "ShiftRight":
+                    _rightShiftPressed = false;
+                    break;
+                default:
+                    _lastKeyPressed = null;
+                    _keyEventArgs = e;
+                    _keyEventGenerator?.HandleKeyEvent(_keyEventArgs);
+                    break;
+            }
+        }
+        finally
+        {
+            _isProcessingKeyEvent = false;
         }
     }
 
     private void HandleLineFinished((int lineId, string textInput) lineState)
     {
-        // Update the LineTypedTexts with the completed line's text
-        if (lineState.lineId > 0 && lineState.lineId <= LineTypedTexts.Count)
+        if (!_lineTypedTexts.Any())
         {
-            LineTypedTexts[lineState.lineId - 1] = lineState.textInput;
+            _lineTypedTexts = Lines.Select(_ => string.Empty).ToList();
+        }
+
+        // Update the _lineTypedTexts with the completed line's text
+        if (lineState.lineId > 0 && lineState.lineId <= _lineTypedTexts.Count)
+        {
+            // we need take the last character from the lineState.textInput
+            // because we used the textInput to check for line completion
+            if (!string.IsNullOrEmpty(lineState.textInput))
+            {
+                var trimmedText = lineState.textInput[..^1];
+                var extraChar = lineState.textInput[^1];
+                _lineTypedTexts[lineState.lineId - 1] = trimmedText;
+
+                if (lineState.lineId < Lines.Count)
+                {
+                    // Prepopulate the next line with the extra character
+                    _textInput = extraChar.ToString();
+                    _cursorPosition = 1;
+                }
+                else
+                {
+                    // For the last line, append the extra character back
+                    _lineTypedTexts[lineState.lineId - 1] = trimmedText + extraChar;
+                }
+            }
         }
 
         // Check if there are more lines to type
@@ -192,13 +228,8 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
             _currentLineId = lineState.lineId + 1;
             _isLineCompleted = false;
 
-            // Reset input for the new line
-            _textInput = "";
-            _inputChars = "";
-            _cursorPosition = 0;
-
             // Set the next key to expect
-            _nextKeyExpected = !string.IsNullOrEmpty(Text) ? Text[0] : '\0';
+            _nextKeyExpected = !string.IsNullOrEmpty(Text) ? Text[1] : '\0';
         }
         else
         {
@@ -208,34 +239,30 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
 
             // Trigger the typing completed event
             OnTypingCompleted.InvokeAsync(new DrillStats
-                {
-                    LessonId = CurrentLesson?.Id ?? 0,
-                    PracticeText = string.Join("", Lines),
-                    TypedText = string.Join("", LineTypedTexts),
-                    Wpm = _wpm,
-                    Accuracy = _accuracy,
-                    KeyEvents = _keyEvents.Copy(),
-                    Type = TrainingType,
-                    StartTime = _keyEvents.FirstOrDefault()?.KeyDownTime,
-                    FinishTime = DateTime.Now
-                });
+            {
+                LessonId = CurrentLesson?.Id ?? 0,
+                PracticeText = string.Join("", Lines),
+                TypedText = string.Join("", _lineTypedTexts),
+                Wpm = _wpm,
+                Accuracy = _accuracy,
+                KeyEvents = _keyEvents.Copy(),
+                Type = TrainingType,
+                StartTime = _keyEvents.FirstOrDefault()?.KeyDownTime,
+                FinishTime = DateTime.Now
+            });
         }
 
     }
 
     private void UpdateEchoChars()
     {
-        _inputChars = string.Empty;
-        foreach (var t in _textInput)
-        {
-            _inputChars += t;
-        }
+        _inputCharsBuilder.Clear();
+        _inputCharsBuilder.Append(_textInput);
     }
 
     public void HandleReset(bool courseFinished = false)
     {
         _textInput = "";
-        _inputChars = "";
         _cursorPosition = 0;
         _wpm = 0;
         _accuracy = 0;
@@ -263,9 +290,17 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
 
     private void HandleKeyEventGenerated(Queue<KeyEvent> keyEvents)
     {
-        var jsonString = JsonSerializer.Serialize(keyEvents);
-        Logger.Debug($"KeyEvents: {jsonString}");
+        if (Logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
+        {
+            var jsonString = JsonSerializer.Serialize(keyEvents);
+            Logger.Verbose($"KeyEvents: {jsonString}");
+        }
         _keyEvents = keyEvents;
+    }
+
+    private void HandleStatsUpdating(bool isStatsUpdating)
+    {
+        _isStatsUpdating = isStatsUpdating;
     }
 
     private List<string> GetPracticeText(string rawText)
@@ -288,5 +323,16 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"></T
         }
 
         return lines;
+    }
+
+    private string GetTotalInputText(string inputText)
+    {
+        var totalInputText = new StringBuilder();
+        foreach (var line in _lineTypedTexts)
+        {
+            totalInputText.Append(line);
+        }
+        totalInputText.Append(inputText);
+        return totalInputText.ToString();
     }
 }
