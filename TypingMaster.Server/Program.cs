@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Release";
 Console.WriteLine($"Current environment: {environment}");
 
+// Load environment-specific settings first, then base settings
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)

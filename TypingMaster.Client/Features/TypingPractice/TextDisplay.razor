@@ -78,6 +78,24 @@
     line-height: inherit;
     }
 
+    .sample-line {
+        color: #333;
+        line-height: 1.6;
+        padding: 5px 0;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .input-line {
+        color: #333;
+        line-height: 1.6;
+        padding: 5px 0;
+        position: relative;
+        min-height: 30px;
+        background-color: #fff;
+        border-radius: 0 0 4px 4px;
+        margin-bottom: 10px;
+    }
+
     .arrowUp {
     display: inline-block;
     width: 0;
@@ -92,7 +110,7 @@
     visibility: hidden;
     }
 </style>
-<div class="pointer-events-none">
+<div class="pointer-events-none sample-line">
     @{
 
         if (_isActive)
@@ -117,7 +135,7 @@
         }
     }
 </div>
-<div tabindex="0" class="pointer-events-none mt-2">
+<div tabindex="0" class="pointer-events-none input-line mt-2">
     @if (_isActive)
     {
         _typedSpans = new MarkupString[InputChars.Length];
