@@ -59,7 +59,18 @@
     }
 
     [Parameter]
-    public string Text { get; set; } = string.Empty;
+    public string Text {
+        get => _text;
+        set
+        {
+            if (_text == value)
+            {
+                return;
+            }
+            _text = value;
+            SetupTextSpans();
+
+        } }
 
     [Parameter]
     public int CursorPosition { get; set; }
@@ -95,13 +106,14 @@
     public EventCallback<(int lineId, string textInput)> OnLineFinished { get; set; }
 
     private bool _isActive;
+    private string _text = string.Empty;
     private string _inputChars = string.Empty;
     private MarkupString[] _textSpans = [];
     private MarkupString[] _typedSpans = [];
 
     protected override void OnInitialized()
     {
-        if (string.IsNullOrEmpty(Text))
+        if (string.IsNullOrEmpty(_text))
         {
             _textSpans = [];
 
@@ -110,6 +122,15 @@
         {
             SetupTextSpans();
         }
+    }
+
+    public void Reset()
+    {
+        _isActive = false;
+        _inputChars = string.Empty;
+        _textSpans = [];
+        _typedSpans = [];
+        SetupTextSpans();
     }
 
     private string GetCharClass(int index)
@@ -157,7 +178,7 @@
 
     private void SetupTextSpans()
     {
-        _textSpans = new MarkupString[Text.Length];
+        _textSpans = new MarkupString[_text.Length];
         for (var i = 0; i < Text.Length; i++)
         {
             var displayChar = Text[i] == ' ' ? "&nbsp;" : Text[i].ToString();

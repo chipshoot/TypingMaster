@@ -77,26 +77,28 @@
             _wpm = (int)(wordsTyped / timeInMinutes);
 
             // Calculate Accuracy more efficiently
-            // var errors = 0;
-            // var minLength = Math.Min(Text.Length, UserInput.Length);
-            // for (var i = 0; i < minLength; i++)
-            // {
-            //     if (Text[i] != UserInput[i])
-            //     {
-            //         errors++;
-            //     }
-            // }
-            var startIndex = _lastProcessedInput.Length;
             var newErrors = 0;
-            for (var i = startIndex; i < UserInput.Length && i < Text.Length; i++)
+            var currentLength = Math.Min(UserInput.Length, Text.Length);
+
+            // Compare each character up to the current input length
+            for (var i = 0; i < currentLength; i++)
             {
                 if (Text[i] != UserInput[i])
                 {
                     newErrors++;
                 }
             }
-            newErrors += Math.Abs(Text.Length - UserInput.Length); // Add extra characters as errors
-            _accuracy = (int)((double)(Text.Length - newErrors) / Text.Length * 100);
+
+            // Calculate accuracy based on current typed length
+            var typedLength = currentLength;
+            if (typedLength > 0)
+            {
+                _accuracy = Math.Round((double)(typedLength - newErrors) / typedLength, 2) * 100;
+            }
+            else
+            {
+                _accuracy = 0;
+            }
 
             _lastProcessedInput = UserInput;
 
