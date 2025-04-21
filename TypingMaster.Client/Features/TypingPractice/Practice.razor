@@ -6,17 +6,28 @@
     <BodyTemplate>
 
         <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative">
-            <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
-            @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
-            class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-            style="color: transparent; caret-color: transparent; overflow:hidden"
-            disabled="@_isCompleted"></textarea>
+            <textarea id="typingInput"
+                @ref="_inputRef" 
+                @bind="_textInput" 
+                @oninput="HandleInputChange"
+                @onkeydown="HandleKeyDown"
+                @onkeyup="HandleKeyUp"
+                spellcheck="false"
+                class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
+                style="color: transparent; caret-color: transparent; overflow:hidden"
+                disabled="@_isCompleted">
+            </textarea>
             @for (var i = 0; i < Lines.Count; i++)
             {
-                <TextDisplay Id="@(i + 1)" CurrentLineId="@_currentLineId" Text="@Lines[i]" InputChars="@_textInput"
-                IsLineCompleted="@_isLineCompleted" IsCourseFinished="@_isCourseFinished"
-                CursorPosition="@_cursorPosition" IsStatsUpdating="@_isStatsUpdating"
-                OnLineFinished="HandleLineFinished" />
+                <TextDisplay Id="@(i + 1)"
+                             CurrentLineId="@_currentLineId" 
+                             Text="@Lines[i]" 
+                             InputChars="@_textInput"
+                             IsLineCompleted="@_isLineCompleted" 
+                             IsCourseFinished="@_isCourseFinished"
+                             CursorPosition="@_cursorPosition" 
+                             IsStatsUpdating="@_isStatsUpdating"
+                             OnLineFinished="HandleLineFinished" />
             }
         </div>
         <div class="d-flex justify-between items-center mb-4">
@@ -26,13 +37,23 @@
         </div>
         @if (!string.IsNullOrEmpty(CurrentLesson?.Instruction))
         {
-            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false"
-            TextType="MessageTextType.Markdown" />
+            <MessageBox Header="@_lessonHeader" 
+                        Message="@CurrentLesson?.Instruction" 
+                        IsCollapse="false"
+                        TextType="MessageTextType.Markdown" />
         }
-        <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
-        RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys" />
-        <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated"
-        CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs"></KeyEventGenerator>
+
+        <Keyboard LastKeyPressed="@_lastKeyPressed" 
+                  LeftShiftPressed="@_leftShiftPressed"
+                  RightShiftPressed="@_rightShiftPressed" 
+                  FocusKeys="@_focusKeys" />
+
+        <KeyEventGenerator @ref="_keyEventGenerator"
+                           OnKeyEventGenerated="HandleKeyEventGenerated"
+                           CharExpected="@_nextKeyExpected"
+                           KeyEventArgs="@_keyEventArgs">
+        </KeyEventGenerator>
+
     </BodyTemplate>
     <FooterTemplate>
         <div class="d-flex justify-between items-center mb-4">
@@ -40,8 +61,13 @@
         </div>
     </FooterTemplate>
 </Card>
-<TypingStatsCalculator Text="@CurrentLesson?.PracticeText" UserInput="@_totalInputText" OnWpmChanged="@(wpm => _wpm = wpm)"
-OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats" OnStatsUpdating="HandleStatsUpdating">
+
+<TypingStatsCalculator Text="@CurrentLesson?.PracticeText" 
+                       UserInput="@_totalInputText" 
+                       OnWpmChanged="@(wpm => _wpm = wpm)"
+                       OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" 
+                       @ref="@_typingStats" 
+                       OnStatsUpdating="HandleStatsUpdating">
 </TypingStatsCalculator>
 
 @code {
@@ -106,12 +132,10 @@ OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats" OnS
         // Initialize _lineTypedTexts
         _lineTypedTexts = Lines.Select(_ => string.Empty).ToList();
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await _inputRef.FocusAsync();
-        }
+        await _inputRef.FocusAsync();
     }
 
     private Task HandleInputChange(ChangeEventArgs e)

@@ -1,0 +1,132 @@
+﻿.w-full {
+    width: 100%;
+}
+
+.h-full {
+    height: 100%;
+}
+
+.space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.bg-transparent {
+    background-color: transparent;
+}
+
+.resize-none {
+    resize: none;
+}
+
+.outline-none {
+    outline: 2px solid transparent;
+    outline-offset: 2px
+}
+
+.top-0 {
+    top: 0;
+}
+
+.left-0 {
+    left: 0;
+}
+
+.p-4 {
+    padding: 1rem;
+}
+
+::deep .pointer-events-none {
+    pointer-events: none;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.relative {
+    position: relative;
+}
+
+::deep .monospace-font {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', 'DejaVu Sans Mono', 'Roboto Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+    font-feature-settings: "calt" 1, "ss01" 1, "ss02" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure consistent character width for input area */
+#typingInput {
+    font-family: inherit;
+    /* Inherit the monospace font from parent */
+    font-size: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+}
+
+/* Make sample-line more specific */
+div.sample-line {
+    color: #333 !important;
+    line-height: 1.6 !important;
+    padding: 5px 0 !important;
+    /*border-radius: 4px 4px 0 0 !important;
+    border: 1px solid #dee2e6 !important;*/ /* Added for visibility */
+    margin-bottom: 10px !important;
+}
+
+/* Make input-line more specific */
+div.input-line {
+    color: #333 !important;
+    line-height: 1.6 !important;
+    padding: 5px 0 !important;
+    position: relative !important;
+    min-height: 30px !important;
+    background-color: #fff !important;
+    border-radius: 0 0 4px 4px !important;
+    margin-bottom: 10px !important;
+    margin-top: 0.5rem !important;
+    border: 1px solid #dee2e6 !important; /* Added for visibility */
+}
+
+::deep .arrowUp {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 0.5ch solid transparent;
+    border-right: 0.5ch solid transparent;
+    border-bottom: 1ch solid black;
+    margin-left: calc(var(--arrow-position, 0) * 1ch);
+}
+
+::deep .arrow.hidden {
+    visibility: hidden;
+}
+
+/* Text state classes */
+::deep .text-success {
+    color: #28a745;
+}
+
+::deep .text-danger {
+    color: #dc3545;
+}
+
+::deep .bg-red-100 {
+    background-color: #fee2e2;
+}
+
+::deep .whitespace-pre {
+    white-space: pre;
+}

@@ -1,118 +1,7 @@
-<style>
-    .w-full {
-    width: 100%;
-    }
+@inject IJSRuntime JSRuntime
 
-    .h-full {
-    height: 100%;
-    }
-
-    .space-y-2> :not([hidden])~ :not([hidden]) {
-    --tw-space-y-reverse: 0;
-    margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
-    margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
-    }
-
-    .justify-between {
-    justify-content: space-between;
-    }
-
-    .items-center {
-    align-items: center;
-    }
-
-    .bg-transparent {
-    background-color: transparent;
-    }
-
-    .resize-none {
-    resize: none;
-    }
-
-    .outline-none {
-    outline: 2px solid transparent;
-    outline-offset: 2px
-    }
-
-    .top-0 {
-    top: 0;
-    }
-
-    .left-0 {
-    left: 0;
-    }
-
-    .p-4 {
-    padding: 1rem;
-    }
-
-    .point-events-none {
-    pointer-events: none;
-    }
-
-    .absolute {
-    position: absolute;
-    }
-
-    .relative {
-    position: relative;
-    }
-
-    .monospace-font {
-    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', 'DejaVu Sans Mono', 'Roboto Mono', 'Monaco', 'Courier New', monospace;
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
-    line-height: 1.5;
-    font-feature-settings: "calt" 1, "ss01" 1, "ss02" 1;
-    /* Enable font features for better readability */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Ensure consistent character width for input area */
-    #typingInput {
-    font-family: inherit;
-    /* Inherit the monospace font from parent */
-    font-size: inherit;
-    letter-spacing: inherit;
-    line-height: inherit;
-    }
-
-    .sample-line {
-        color: #333;
-        line-height: 1.6;
-        padding: 5px 0;
-        border-radius: 4px 4px 0 0;
-    }
-
-    .input-line {
-        color: #333;
-        line-height: 1.6;
-        padding: 5px 0;
-        position: relative;
-        min-height: 30px;
-        background-color: #fff;
-        border-radius: 0 0 4px 4px;
-        margin-bottom: 10px;
-    }
-
-    .arrowUp {
-    display: inline-block;
-    width: 0;
-    height: 0;
-    border-left: 0.5ch solid transparent;
-    border-right: 0.5ch solid transparent;
-    border-bottom: 1ch solid black;
-    margin-left: calc(var(--arrow-position, 0) * 1ch);
-    }
-
-    .arrow.hidden {
-    visibility: hidden;
-    }
-</style>
-<div class="pointer-events-none sample-line">
+<div class="pointer-events-none sample-line" @onmousedown:preventDefault="true" @onclick="HandleClick">
     @{
-
         if (_isActive)
         {
             if (!string.IsNullOrEmpty(InputChars))
@@ -135,7 +24,7 @@
         }
     }
 </div>
-<div tabindex="0" class="pointer-events-none input-line mt-2">
+<div class="pointer-events-none input-line mt-2" @onmousedown:preventDefault="true" @onclick="HandleClick">
     @if (_isActive)
     {
         _typedSpans = new MarkupString[InputChars.Length];
@@ -274,5 +163,10 @@
             var displayChar = Text[i] == ' ' ? "&nbsp;" : Text[i].ToString();
             _textSpans[i] = new MarkupString($"<span key='{i}' class='monospace-font whitespace-pre'>{displayChar}</span>");
         }
+    }
+
+    private async Task HandleClick()
+    {
+        await JSRuntime.InvokeVoidAsync("focusTypingInput");
     }
 }

@@ -99,7 +99,7 @@
 
 
 /* Better cursor styling */
-.text-cursor {
+/*.text-cursor {
     display: inline-block;
     width: 2px;
     height: 1.2em;
@@ -117,10 +117,10 @@
     50% {
         opacity: 0;
     }
-}
+}*/
 
 /* Status indicator for typing stats */
-.stats-indicator {
+/*.stats-indicator {
     display: flex;
     align-items: center;
     gap: 1.5rem;
@@ -147,4 +147,4 @@
     color: #6c757d;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-}
+}*/
