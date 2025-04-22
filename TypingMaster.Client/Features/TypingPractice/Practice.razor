@@ -53,9 +53,11 @@
 
 @code {
     // todo: fix the re practice button
-    // todo: fix the stats calculator, the result is not correct
     // todo: fix the key event generator for practice, the result is not correct
     // todo: fix the back key event for the first character of a line, need navigate to the previous line
+    // todo: fix the issue of processing last key event, if the lesson finished, throw the last key event
+    // todo: fix the issue of calculating the accuracy for the last key, currently the last key is not counted
+    // todo: fix the issue lesson event handler for beginning course
     [Parameter]
     public Lesson? CurrentLesson { get; set; }
 
@@ -74,8 +76,8 @@
     private readonly StringBuilder _inputCharsBuilder = new();
 
     private string Text => Lines.Count > 0 && _currentLineId > 0 && _currentLineId <= Lines.Count
-    ? Lines[_currentLineId - 1]
-    : string.Empty;
+        ? Lines[_currentLineId - 1]
+        : string.Empty;
     private string _totalInputText = string.Empty;
     private string _textInput = string.Empty;
     private List<string> _focusKeys = [];
@@ -216,11 +218,6 @@
                     // Prepopulate the next line with the extra character
                     _textInput = extraChar.ToString();
                     _cursorPosition = 1;
-                }
-                else
-                {
-                    // For the last line, append the extra character back
-                    _lineTypedTexts[lineState.lineId - 1] = trimmedText + extraChar;
                 }
             }
         }

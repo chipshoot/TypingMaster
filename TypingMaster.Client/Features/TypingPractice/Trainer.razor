@@ -22,8 +22,10 @@
         </div>
     </HeaderTemplate>
     <BodyTemplate>
-        <Practice CurrentLesson="@_curLesson" TrainingType="@TrainingType.Course" OnTypingCompleted="OnPracticeFinished"
-        @ref="@_practice">
+        <Practice CurrentLesson="@_curLesson" 
+                  TrainingType="@TrainingType.Course" 
+                  OnTypingCompleted="OnPracticeFinished"
+                  @ref="@_practice">
         </Practice>
     </BodyTemplate>
 </Card>
@@ -107,7 +109,7 @@
             }
         }
 
-        Logger.Debug($"DrillStats: {JsonSerializer.Serialize(stats)}");
+        Logger.Verbose($"DrillStats: {JsonSerializer.Serialize(stats)}");
         _practice?.HandleReset(_isCompleted);
         await Task.Delay(100); // Give time for state changes to complete
         await _practice?.FocusInput();

@@ -85,8 +85,22 @@
             {
                 return;
             }
-            _inputChars = value;
-            CheckForLineCompletion(_inputChars);
+
+            if (_inputChars == value)
+            {
+                return;
+            }
+
+            if (_inputChars.Length <= value.Length)
+            {
+                _inputChars = value;
+                CheckForLineCompletion(_inputChars);
+            }
+            else
+            {
+                _inputChars = value;
+                SetupTextSpans(true);
+            }
         }
     }
 
@@ -176,13 +190,18 @@
         }
     }
 
-    private void SetupTextSpans()
+    private void SetupTextSpans(bool isGetCharClass = false)
     {
         _textSpans = new MarkupString[_text.Length];
         for (var i = 0; i < Text.Length; i++)
         {
+            var charClass = "";
+            if (isGetCharClass)
+            {
+                charClass = GetCharClass(i);
+            }
             var displayChar = Text[i] == ' ' ? "&nbsp;" : Text[i].ToString();
-            _textSpans[i] = new MarkupString($"<span key='{i}' class='monospace-font whitespace-pre'>{displayChar}</span>");
+            _textSpans[i] = new MarkupString($"<span key='{i}' class='monospace-font whitespace-pre {charClass}'>{displayChar}</span>");
         }
     }
 
