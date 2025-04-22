@@ -19,4 +19,6 @@ public class Lesson
     public int Point { get; set; }
 
     public string? Description { get; set; }
+
+    public string[] CommonWords { get; set; } = [];
 }
