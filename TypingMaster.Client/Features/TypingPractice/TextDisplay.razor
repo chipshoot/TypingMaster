@@ -41,9 +41,16 @@
         @span
     }
 
-    @if (_isActive && !IsLineCompleted)
+    @if (_isActive)
     {
-        <span key="@InputChars.Length" class="monospace-font arrowUp"></span>
+        if (!IsLineCompleted)
+        {
+            <span key="@InputChars.Length" class="monospace-font arrowUp"></span>
+        }
+        else if (IsLessonCompleted)
+        {
+            <span key="@InputChars.Length" class="monospace-font loading-icon"></span>
+        }
     }
 </div>
 

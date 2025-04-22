@@ -7,17 +7,17 @@
 
         <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative">
             <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
-                @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
-                class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-                style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted">
+            @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
+            class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
+            style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted">
             </textarea>
             @for (var i = 0; i < Lines.Count; i++)
             {
                 var id = i + 1;
                 <TextDisplay Id="@id" CurrentLineId="@_currentLineId" Text="@Lines[i]" InputChars="@_textInput"
-                    IsLineCompleted="@_isLineCompleted" IsCourseFinished="@_isCourseFinished"
-                    CursorPosition="@_cursorPosition" IsStatsUpdating="@_isStatsUpdating"
-                    OnLineFinished="HandleLineFinished" @ref="_textDisplays[id]" />
+                IsLineCompleted="@_isLineCompleted" IsLessonCompleted="@_isCompleted" IsCourseFinished="@_isCourseFinished"
+                CursorPosition="@_cursorPosition" IsStatsUpdating="@_isStatsUpdating"
+                OnLineFinished="HandleLineFinished" @ref="_textDisplays[id]" />
             }
         </div>
         <div class="d-flex justify-between items-center mb-4">
@@ -28,14 +28,14 @@
         @if (!string.IsNullOrEmpty(CurrentLesson?.Instruction))
         {
             <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false"
-                TextType="MessageTextType.Markdown" />
+            TextType="MessageTextType.Markdown" />
         }
 
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
-            RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys" />
+        RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys" />
 
         <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated"
-            CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs">
+        CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs">
         </KeyEventGenerator>
 
     </BodyTemplate>
@@ -47,8 +47,8 @@
 </Card>
 
 <TypingStatsCalculator Text="@CurrentLesson?.PracticeText" UserInput="@_totalInputText"
-    OnWpmChanged="@(wpm => _wpm = wpm)" OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"
-    OnStatsUpdating="HandleStatsUpdating">
+OnWpmChanged="@(wpm => _wpm = wpm)" OnAccuracyChanged="@(accuracy => _accuracy = accuracy)" @ref="@_typingStats"
+OnStatsUpdating="HandleStatsUpdating">
 </TypingStatsCalculator>
 
 @code {
@@ -235,8 +235,10 @@
         else
         {
             // All lines completed, mark as finished
+            _isLineCompleted = true;
             _isCompleted = true;
             _isCourseFinished = CurrentLesson?.IsCourseComplete ?? false;
+            StateHasChanged();
 
             // Trigger the typing completed event
             OnTypingCompleted.InvokeAsync(new DrillStats
