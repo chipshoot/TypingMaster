@@ -185,13 +185,8 @@
 
     private void CheckForLineCompletion(string userInput)
     {
-        if (userInput.Length <= Text.Length)
+        if (userInput.Length > Text.Length)
         {
-            IsLineCompleted = false;
-        }
-        else
-        {
-            IsLineCompleted = true;
             _isActive = false;
             OnLineFinished.InvokeAsync((Id, InputChars));
         }
