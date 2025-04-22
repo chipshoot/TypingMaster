@@ -152,6 +152,7 @@ namespace TypingMaster.Business.Course
                     Description = lessonData.Description,
                     Instruction = lessonData.Instruction,
                     Point = lessonData.Point,
+                    CommonWords = lessonData.CommonWords
                 }).ToList();
 
                 return lessons;

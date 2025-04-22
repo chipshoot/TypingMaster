@@ -4,41 +4,47 @@
     "practiceText": "This is the introductory material for typing.",
     "description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
     "instruction": "Type and trying to achieve the advanced level to get Beginner level lesson",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 2,
     "practiceText": "This is the introductory Beginner material for typing.",
     "description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
     "instruction": "Type and trying to achieve the advanced level to get Novice level lesson",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 3,
     "practiceText": "This is the introductory Novice material for typing.",
     "description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
     "instruction": "Type and trying to achieve the advanced level to get Intermediate level lesson",
-    "point": 2
+    "point": 2,
+    "commonWords": []
   },
   {
     "id": 4,
     "practiceText": "This is the introductory Intermediate material for typing.",
     "description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
     "instruction": "Type and trying to achieve the advanced level to get Advanced level lesson",
-    "point": 3
+    "point": 3,
+    "commonWords": []
   },
   {
     "id": 5,
     "practiceText": "This is the introductory Advanced material for typing.",
     "description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
     "instruction": "Type and trying to achieve the advanced level to get Expert level lesson",
-    "point": 4
+    "point": 4,
+    "commonWords": []
   },
   {
     "id": 6,
     "practiceText": "This is the introductory Expert material for typing.",
     "description": "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.",
     "instruction": "Type and trying to achieve the advanced level to get Expert level lesson",
-    "point": 5
+    "point": 5,
+    "commonWords": []
   }
 ]

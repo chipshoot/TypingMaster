@@ -1,4 +1,3 @@
-
 using System.Text.Json.Serialization;
 
 namespace TypingMaster.Business.Course
@@ -22,5 +21,8 @@ namespace TypingMaster.Business.Course
 
         [JsonPropertyName("point")]
         public int Point { get; set; }
+
+        [JsonPropertyName("commonWords")]
+        public string[] CommonWords { get; set; } = [];
     }
 }
