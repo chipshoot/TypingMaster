@@ -30,14 +30,29 @@ public class MockIdpService : IIdpService
         };
     }
 
-    public Task<IdpAuthResponse> RespondToNewPasswordChallengeAsync(string email, string newPassword, string session)
+    public async Task<IdpAuthResponse> RespondToNewPasswordChallengeAsync(string email, string newPassword, string session)
     {
-        throw new NotImplementedException();
+        // Mock successful password change
+        await Task.Delay(100);
+        _logger.Information("Mock new password challenge response for user: {Email}", email);
+
+        return new IdpAuthResponse
+        {
+            Success = true,
+            AccessToken = $"mock.jwt.token.{Guid.NewGuid()}",
+            TokenType = "Bearer",
+            ExpiresIn = 3600,
+            RefreshToken = $"mock.refresh.token.{Guid.NewGuid()}",
+            Scope = "openid profile email"
+        };
     }
 
-    public Task<bool> SetPermanentPasswordAsync(string email, string password)
+    public async Task<bool> SetPermanentPasswordAsync(string email, string password)
     {
-        throw new NotImplementedException();
+        // Mock successful password setting
+        await Task.Delay(100);
+        _logger.Information("Mock setting permanent password for user: {Email}", email);
+        return true;
     }
 
     public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken, string userName)
@@ -72,8 +87,11 @@ public class MockIdpService : IIdpService
         return true;
     }
 
-    public Task<bool> ResendConfirmationCodeAsync(string userName)
+    public async Task<bool> ResendConfirmationCodeAsync(string userName)
     {
-        return Task.FromResult(true);
+        // Mock successful code resend
+        await Task.Delay(100);
+        _logger.Information("Mock resending confirmation code for user: {UserName}", userName);
+        return true;
     }
 }

@@ -91,7 +91,15 @@ builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
 
 // Register business services
-builder.Services.AddScoped<IIdpService, AwsCognitoService>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<IIdpService, MockIdpService>();
+}
+else
+{
+    builder.Services.AddScoped<IIdpService, AwsCognitoService>();
+}
+
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

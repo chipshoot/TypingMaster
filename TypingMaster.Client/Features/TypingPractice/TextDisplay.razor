@@ -1,0 +1,214 @@
+@inject IJSRuntime JSRuntime
+
+<div class="pointer-events-none sample-line" @onmousedown:preventDefault="true" @onclick="HandleClick">
+    @{
+        if (_isActive)
+        {
+            if (!string.IsNullOrEmpty(InputChars))
+            {
+                var cursorPosition = InputChars.Length - 1;
+                var charClass = GetCharClass(cursorPosition);
+                if (cursorPosition < Text.Length)
+                {
+                    var curChar = Text[cursorPosition].ToString();
+                    if (curChar != " ")
+                    {
+                        _textSpans[InputChars.Length - 1] = new MarkupString($"<span key='{cursorPosition}' class='monospace-font {charClass}'>{curChar}</span>");
+                    }
+                }
+            }
+        }
+        foreach (var span in _textSpans)
+        {
+            @span
+        }
+    }
+</div>
+<div class="pointer-events-none input-line mt-2" @onmousedown:preventDefault="true" @onclick="HandleClick">
+    @if (_isActive)
+    {
+        _typedSpans = new MarkupString[InputChars.Length];
+        for (var i = 0; i < InputChars.Length; i++)
+        {
+            var charClass = GetCharClass(i);
+            var displayChar = InputChars[i] == ' ' ? "&nbsp;" : InputChars[i].ToString();
+            _typedSpans[i] = new MarkupString($"<span key='{i}' class='monospace-font {charClass}'>{displayChar}</span>");
+        }
+    } 
+
+    @foreach (var span in _typedSpans)
+    {
+        @span
+    }
+
+    @if (_isActive)
+    {
+        if (!IsLineCompleted)
+        {
+            <span key="@InputChars.Length" class="monospace-font arrowUp"></span>
+        }
+        else if (IsLessonCompleted)
+        {
+            <span key="@InputChars.Length" class="monospace-font loading-icon"></span>
+        }
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public int CurrentLineId
+    {
+        set => _isActive = value == Id;
+    }
+
+    [Parameter]
+    public string Text {
+        get => _text;
+        set
+        {
+            if (_text == value)
+            {
+                return;
+            }
+            _text = value;
+            SetupTextSpans();
+
+        } }
+
+    [Parameter]
+    public int CursorPosition { get; set; }
+
+    [Parameter]
+    public string InputChars
+    {
+        get => _inputChars;
+        set
+        {
+            if (!_isActive)
+            {
+                return;
+            }
+
+            if (_inputChars == value)
+            {
+                return;
+            }
+
+            if (_inputChars.Length <= value.Length)
+            {
+                _inputChars = value;
+                CheckForLineCompletion(_inputChars);
+            }
+            else
+            {
+                _inputChars = value;
+                SetupTextSpans(true);
+            }
+        }
+    }
+
+    [Parameter]
+    public bool IsLineCompleted { get; set; }
+
+    [Parameter]
+    public bool IsLessonCompleted { get; set; }
+
+    [Parameter]
+    public bool IsCourseFinished { get; set; }
+
+    [Parameter]
+    public bool IsStatsUpdating { get; set; }
+
+    [Parameter]
+    public EventCallback<(int lineId, string textInput)> OnLineFinished { get; set; }
+
+    private bool _isActive;
+    private string _text = string.Empty;
+    private string _inputChars = string.Empty;
+    private MarkupString[] _textSpans = [];
+    private MarkupString[] _typedSpans = [];
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(_text))
+        {
+            _textSpans = [];
+
+        }
+        else
+        {
+            SetupTextSpans();
+        }
+    }
+
+    public void Reset()
+    {
+        _isActive = false;
+        _inputChars = string.Empty;
+        _textSpans = [];
+        _typedSpans = [];
+        SetupTextSpans();
+    }
+
+    private string GetCharClass(int index)
+    {
+        if (!_isActive)
+        {
+            return "";
+        }
+
+        if (IsCourseFinished)
+        {
+            return "text-success";
+        }
+
+        // Only process the current character being typed
+        if (index == InputChars.Length - 1)
+        {
+            if (index < Text.Length)
+            {
+                return InputChars[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
+            }
+        }
+        // For already typed characters, return their existing state
+        else if (index < InputChars.Length)
+        {
+            return InputChars[index] == Text[index] ? "text-success" : "text-danger bg-red-100";
+        }
+
+        return string.Empty;
+    }
+
+    private void CheckForLineCompletion(string userInput)
+    {
+        if (userInput.Length > Text.Length)
+        {
+            _isActive = false;
+            OnLineFinished.InvokeAsync((Id, InputChars));
+        }
+    }
+
+    private void SetupTextSpans(bool isGetCharClass = false)
+    {
+        _textSpans = new MarkupString[_text.Length];
+        for (var i = 0; i < Text.Length; i++)
+        {
+            var charClass = "";
+            if (isGetCharClass)
+            {
+                charClass = GetCharClass(i);
+            }
+            var displayChar = Text[i] == ' ' ? "&nbsp;" : Text[i].ToString();
+            _textSpans[i] = new MarkupString($"<span key='{i}' class='monospace-font whitespace-pre {charClass}'>{displayChar}</span>");
+        }
+    }
+
+    private async Task HandleClick()
+    {
+        await JSRuntime.InvokeVoidAsync("focusTypingInput");
+    }
+}

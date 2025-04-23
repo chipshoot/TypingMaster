@@ -44,6 +44,7 @@ nuget.exe
 appsettings..json
 appsettings.Release.json
 appsettings.Development.json
+appsettings.Demo.json
 
 # Ignore Azure Functions artifacts
 AzureFunctions/

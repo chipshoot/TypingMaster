@@ -78,13 +78,13 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
         {
             // First update the in-memory account data
             CheckPracticeResult(stats);
-        
+
             if (_account == null)
             {
                 ProcessResult.AddError("Cannot save practice history: No account is set");
                 return false;
             }
-        
+
             // Now persist the updated account to the database
             _account.History = _practiceLog;
             var updateResult = await accountService.UpdateAccountAsync(_account);
@@ -111,12 +111,13 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
 
     public void ConvertKeyEventToKeyStats(Queue<KeyEvent> keyEvents)
     {
-        if (_practiceLog == null)
+        if (_practiceLog == null || keyEvents == null || keyEvents.Count == 0)
         {
             return;
         }
 
         var keyStats = _practiceLog.KeyStats;
+        var statsDictionary = new Dictionary<char, KeyStats>(keyEvents.Count);
 
         foreach (var keyEvent in keyEvents)
         {
@@ -126,10 +127,9 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
                 continue;
             }
 
-            if (!keyStats.ContainsKey(keyEvent.Key))
+            if (!statsDictionary.TryGetValue(keyEvent.Key, out var stats))
             {
-
-                keyStats[keyEvent.Key] = new KeyStats
+                stats = new KeyStats
                 {
                     Key = keyEvent.Key.ToString(),
                     TypingCount = 0,
@@ -137,9 +137,9 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
                     PressDuration = 0,
                     Latency = 0
                 };
+                statsDictionary[keyEvent.Key] = stats;
             }
 
-            var stats = keyStats[keyEvent.Key];
             stats.TypingCount++;
             if (keyEvent.IsCorrect)
             {
@@ -150,18 +150,26 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
             stats.Latency += keyEvent.Latency;
         }
 
-        // Calculate average latency
-        foreach (var stats in keyStats.Values)
+        // Update the practice log with the new stats
+        foreach (var kvp in statsDictionary)
         {
-            stats.Latency /= stats.TypingCount;
+            var stats = kvp.Value;
+            if (stats.TypingCount > 0)
+            {
+                stats.Latency /= stats.TypingCount;
+            }
+            keyStats[kvp.Key] = stats;
         }
 
         _practiceLog.KeyStats = keyStats;
 
-        var jsonString = JsonSerializer.Serialize(keyEvents);
-        _logger.Debug($"events:{jsonString}");
-        jsonString = JsonSerializer.Serialize(keyStats);
-        _logger.Debug($"stats{jsonString}");
+        if (logger.IsEnabled(Serilog.Events.LogEventLevel.Debug))
+        {
+            var jsonString = JsonSerializer.Serialize(keyEvents);
+            logger.Debug($"events:{jsonString}");
+            jsonString = JsonSerializer.Serialize(keyStats);
+            logger.Debug($"stats{jsonString}");
+        }
     }
 
     public ProcessResult ProcessResult { get; set; } = new(logger);
