@@ -92,7 +92,6 @@ OnStatsUpdating="HandleStatsUpdating">
     private List<string> _lineTypedTexts = [];
     private int _currentLineId = 1;
     private string _text = string.Empty;
-    //private readonly StringBuilder _inputCharsBuilder = new();
     private string _totalInputText = string.Empty;
     private string _textInput = string.Empty;
     private List<string> _focusKeys = [];
@@ -107,7 +106,7 @@ OnStatsUpdating="HandleStatsUpdating">
     private bool _isLineCompleted;
     private bool _isCompleted;
     private bool _isCourseFinished;
-    private int _lineWidth = 74;
+    private int LineWidth = 74;
     private bool _isStatsUpdating;
     private bool _isProcessingKeyEvent;
     private readonly Dictionary<int, TextDisplay> _textDisplays = [];
@@ -141,7 +140,6 @@ OnStatsUpdating="HandleStatsUpdating">
             {
                 _nextKeyExpected = _text[_cursorPosition];
             }
-            //UpdateEchoChars();
         }
 
         return Task.CompletedTask;
@@ -290,11 +288,6 @@ OnStatsUpdating="HandleStatsUpdating">
             _nextKeyExpected = '\0';
         }
     }
-    // private void UpdateEchoChars()
-    // {
-    //     _inputCharsBuilder.Clear();
-    //     _inputCharsBuilder.Append(_textInput);
-    // }
 
     public void HandleReset(bool courseFinished = false)
     {
@@ -362,7 +355,7 @@ OnStatsUpdating="HandleStatsUpdating">
         while (startIndex < rawText.Length)
         {
             var remainingLength = rawText.Length - startIndex;
-            var lineLength = Math.Min(_lineWidth, remainingLength);
+            var lineLength = Math.Min(LineWidth, remainingLength);
             var lineText = rawText.Substring(startIndex, lineLength);
             lines.Add(lineText);
             startIndex += lineLength;
