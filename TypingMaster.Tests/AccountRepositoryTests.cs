@@ -4,6 +4,7 @@ using Serilog;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 using TypingMaster.DataAccess.Utility;
+using TypingMaster.Core.Constants;
 
 namespace TypingMaster.Tests
 {
@@ -635,6 +636,63 @@ namespace TypingMaster.Tests
             // Assert
             Assert.Null(result);
             Assert.True(_repository.ProcessResult.HasErrors);
+        }
+
+        [Fact]
+        public async Task CreateAccount_WithValidData_ShouldCreateAccount()
+        {
+            // Arrange
+            var account = new AccountDao
+            {
+                AccountName = "testuser",
+                AccountEmail = "test@example.com",
+                GoalStats = new StatsDao { Wpm = 70, Accuracy = 90 },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
+            };
+
+            // Act
+            var result = await _repository.CreateAccountAsync(account);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(account.AccountName, result.AccountName);
+            Assert.Equal(account.AccountEmail, result.AccountEmail);
+            Assert.NotNull(result.Settings);
+            Assert.Equal(TypingMasterConstants.DefaultTypingWindowWidth, result.Settings["TypingWindowWidth"]);
+        }
+
+        [Fact]
+        public async Task UpdateAccount_WithValidData_ShouldUpdateAccount()
+        {
+            // Arrange
+            var account = new AccountDao
+            {
+                AccountName = "testuser",
+                AccountEmail = "test@example.com",
+                GoalStats = new StatsDao { Wpm = 70, Accuracy = 90 },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
+            };
+            await _repository.CreateAccountAsync(account);
+
+            // Update account
+            account.AccountEmail = "updated@example.com";
+            account.Settings["TypingWindowWidth"] = 800;
+
+            // Act
+            var result = await _repository.UpdateAccountAsync(account);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(account.AccountName, result.AccountName);
+            Assert.Equal(account.AccountEmail, result.AccountEmail);
+            Assert.NotNull(result.Settings);
+            Assert.Equal(800, result.Settings["TypingWindowWidth"]);
         }
     }
 }

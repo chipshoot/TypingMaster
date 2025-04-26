@@ -21,6 +21,7 @@
 
 	<ItemGroup>
 		<Content Remove="appsettings.json" />
+		<Content Remove="wwwroot\scripts\window-resize.js" />
 		<Content Remove="wwwroot\site.js" />
 		<Content Remove="wwwroot\UserProfile.cs" />
 	</ItemGroup>
@@ -66,6 +67,7 @@
 		<None Include="wwwroot\imges\typingLogo.png" />
 		<None Include="wwwroot\index.html" />
 		<None Include="wwwroot\Sample\WelcomeMessage.md" />
+		<None Include="wwwroot\scripts\window-resize.js" />
 		<None Include="wwwroot\scripts\site.js" />
 	</ItemGroup>
 

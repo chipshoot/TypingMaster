@@ -19,6 +19,8 @@ public class AccountDao
 
     public ICollection<CourseDao> Courses { get; set; } = new List<CourseDao>();
 
+    public Dictionary<string, object> Settings { get; set; } = [];
+
     public bool IsDeleted { get; set; } = false;
 
     public DateTime? DeletedAt { get; set; }

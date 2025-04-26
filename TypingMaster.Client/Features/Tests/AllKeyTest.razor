@@ -53,7 +53,6 @@ else
     private IList<DrillStats> _statsList = [];
     private TrainingType _trainingType;
 
-
     protected override async Task OnInitializedAsync()
     {
         if (!AppState.IsLoggedIn && AppState.CurrentAccount == null)
@@ -82,6 +81,8 @@ else
         AppState.CurrentAccount.TestCourseId = course.Id;
         _trainingType = course.Type;
         _statsList = AppState.CurrentAccount.History.PracticeStats.Where(s => s.Type == course.Type).ToList();
+
+
         TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
     }
 

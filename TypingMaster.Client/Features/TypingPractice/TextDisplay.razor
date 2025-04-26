@@ -1,57 +1,59 @@
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 
-<div class="pointer-events-none sample-line" @onmousedown:preventDefault="true" @onclick="HandleClick">
-    @{
-        if (_isActive)
-        {
-            if (!string.IsNullOrEmpty(InputChars))
+<div id="textDisplay">
+    <div class="pointer-events-none sample-line" @onmousedown:preventDefault="true" @onclick="HandleClick">
+        @{
+            if (_isActive)
             {
-                var cursorPosition = InputChars.Length - 1;
-                var charClass = GetCharClass(cursorPosition);
-                if (cursorPosition < Text.Length)
+                if (!string.IsNullOrEmpty(InputChars))
                 {
-                    var curChar = Text[cursorPosition].ToString();
-                    if (curChar != " ")
+                    var cursorPosition = InputChars.Length - 1;
+                    var charClass = GetCharClass(cursorPosition);
+                    if (cursorPosition < Text.Length)
                     {
-                        _textSpans[InputChars.Length - 1] = new MarkupString($"<span key='{cursorPosition}' class='monospace-font {charClass}'>{curChar}</span>");
+                        var curChar = Text[cursorPosition].ToString();
+                        if (curChar != " ")
+                        {
+                            _textSpans[InputChars.Length - 1] = new MarkupString($"<span key='{cursorPosition}' class='monospace-font {charClass}'>{curChar}</span>");
+                        }
                     }
                 }
             }
+            foreach (var span in _textSpans)
+            {
+                @span
+            }
         }
-        foreach (var span in _textSpans)
+    </div>
+    <div class="pointer-events-none input-line mt-2" @onmousedown:preventDefault="true" @onclick="HandleClick">
+        @if (_isActive)
+        {
+            _typedSpans = new MarkupString[InputChars.Length];
+            for (var i = 0; i < InputChars.Length; i++)
+            {
+                var charClass = GetCharClass(i);
+                var displayChar = InputChars[i] == ' ' ? "&nbsp;" : InputChars[i].ToString();
+                _typedSpans[i] = new MarkupString($"<span key='{i}' class='monospace-font {charClass}'>{displayChar}</span>");
+            }
+        }
+
+        @foreach (var span in _typedSpans)
         {
             @span
         }
-    }
-</div>
-<div class="pointer-events-none input-line mt-2" @onmousedown:preventDefault="true" @onclick="HandleClick">
-    @if (_isActive)
-    {
-        _typedSpans = new MarkupString[InputChars.Length];
-        for (var i = 0; i < InputChars.Length; i++)
-        {
-            var charClass = GetCharClass(i);
-            var displayChar = InputChars[i] == ' ' ? "&nbsp;" : InputChars[i].ToString();
-            _typedSpans[i] = new MarkupString($"<span key='{i}' class='monospace-font {charClass}'>{displayChar}</span>");
-        }
-    } 
 
-    @foreach (var span in _typedSpans)
-    {
-        @span
-    }
-
-    @if (_isActive)
-    {
-        if (!IsLineCompleted)
+        @if (_isActive)
         {
-            <span key="@InputChars.Length" class="monospace-font arrowUp"></span>
+            if (!IsLineCompleted)
+            {
+                <span key="@InputChars.Length" class="monospace-font arrowUp"></span>
+            }
+            else if (IsLessonCompleted)
+            {
+                <span key="@InputChars.Length" class="monospace-font loading-icon"></span>
+            }
         }
-        else if (IsLessonCompleted)
-        {
-            <span key="@InputChars.Length" class="monospace-font loading-icon"></span>
-        }
-    }
+    </div>
 </div>
 
 @code {
@@ -66,7 +68,8 @@
     }
 
     [Parameter]
-    public string Text {
+    public string Text
+    {
         get => _text;
         set
         {
@@ -77,7 +80,8 @@
             _text = value;
             SetupTextSpans();
 
-        } }
+        }
+    }
 
     [Parameter]
     public int CursorPosition { get; set; }
@@ -209,6 +213,6 @@
 
     private async Task HandleClick()
     {
-        await JSRuntime.InvokeVoidAsync("focusTypingInput");
+        await JsRuntime.InvokeVoidAsync("focusTypingInput");
     }
 }

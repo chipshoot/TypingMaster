@@ -1,53 +1,32 @@
 ﻿<div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownTable" data-bs-toggle="dropdown"
-        aria-expanded="@_isOpen">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownTable"
+            data-bs-toggle="dropdown" aria-expanded="@_isOpen">
         Practice History
     </button>
     <div class="dropdown-menu history-dropdown-menu w-100" style="min-width: 300px;">
         <div class="p-2">
-            @if (StatsList?.Any() == true)
-            {
-                <div class="history-list">
-                    @foreach (var stats in StatsList)
-                    {
-                        <div class="history-item">
-                            <TypingStats Wpm="@stats.Wpm" Accuracy="@stats.Accuracy" ShowLevel="true" Class="compact" />
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="no-history">No History Records</div>
-            }
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Wpm</th>
+                    <th>Accuracy</th>
+                    <th>Practice Result</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var stats in StatsList)
+                {
+                    <tr style="cursor: pointer;">
+                        <td>@stats.Wpm</td>
+                        <td>@stats.Accuracy</td>
+                        <td>@stats.GetSkillLevel()</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-<style>
-    .history-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .history-item {
-        padding: 0.5rem;
-        border-radius: 6px;
-        background-color: var(--bs-body-bg);
-        transition: background-color 0.2s ease;
-    }
-
-    .history-item:hover {
-        background-color: var(--bs-light);
-    }
-
-    .no-history {
-        text-align: center;
-        padding: 1rem;
-        color: var(--bs-secondary);
-    }
-</style>
 
 @code {
     [Parameter]
