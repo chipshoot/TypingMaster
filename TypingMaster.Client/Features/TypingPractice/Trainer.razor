@@ -23,9 +23,9 @@
     </HeaderTemplate>
     <BodyTemplate>
         <Practice CurrentLesson="@_curLesson" 
-                  TrainingType="@TrainingType.Course" 
-                  OnTypingCompleted="OnPracticeFinished"
-                  @ref="@_practice">
+        TrainingType="@TrainingType.Course" 
+        OnTypingCompleted="OnPracticeFinished"
+        @ref="@_practice">
         </Practice>
     </BodyTemplate>
 </Card>
@@ -35,7 +35,7 @@
     private bool _isCompleted;
     private Lesson? _curLesson;
 
-    private IList<DrillStats> StatsList => AppState.CurrentAccount?.History.PracticeStats.ToList() ?? [];
+    private IList<DrillStats> StatsList => AppState.CurrentAccount?.History.PracticeStats.Where(p => p.Type == TrainingType.Course).ToList() ?? [];
 
 
     protected override async Task OnInitializedAsync()

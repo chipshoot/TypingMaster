@@ -148,6 +148,7 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.GoalStats, opt => opt.MapFrom(src => src.GoalStats))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.History, opt => opt.MapFrom(src => src.History))
+                .ForMember(dest => dest.Settings, opt => opt.MapFrom(src => src.Settings))
                 .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src =>
                     src.Courses.Where(c => c.Type == ((int)TrainingType.Course).ToString()).Select(c => c.Id).FirstOrDefault()))
                 .ForMember(dest => dest.TestCourseId, opt => opt.MapFrom(src =>
@@ -305,7 +306,8 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.History, opt => opt.PreCondition(src => src.History != null))
                 .ForMember(dest => dest.History, opt => opt.MapFrom<PracticeLogResolver>())
-                .ForMember(dest => dest.Courses, opt => opt.MapFrom<CoursesResolver>());
+                .ForMember(dest => dest.Courses, opt => opt.MapFrom<CoursesResolver>())
+                .ForMember(dest => dest.Settings, opt => opt.MapFrom<SettingsResolver>());
 
             // LoginLog mappings
             CreateMap<LoginLogDao, LoginLog>()
@@ -486,6 +488,23 @@ namespace TypingMaster.Business.Mapping
                 .Where(stat => stat != null && stat.CourseId != Guid.Empty)
                 .Select(stat => context.Mapper.Map<DrillStatsDao>(stat))
                 .ToList();
+        }
+    }
+
+    public class SettingsResolver : IValueResolver<Account, AccountDao, Dictionary<string, object>>
+    {
+        public Dictionary<string, object> Resolve(Account source, AccountDao destination, Dictionary<string, object> destMember, ResolutionContext context)
+        {
+            if (source.Settings == null)
+                return new Dictionary<string, object>();
+
+            // Create a new dictionary to avoid modifying the source
+            var settings = new Dictionary<string, object>();
+            foreach (var kvp in source.Settings)
+            {
+                settings[kvp.Key] = kvp.Value;
+            }
+            return settings;
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TypingMaster.Business.Contract;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Utility;
 using TypingMaster.Server.Controllers;
@@ -249,6 +250,49 @@ namespace TypingMaster.Tests.Server
         }
 
         [Fact]
+        public async Task CreateAccount_WithSettings_ReturnsCreatedAtActionResult_WithSettings()
+        {
+            // Arrange
+            var newAccount = new Account
+            {
+                AccountName = "NewUser",
+                AccountEmail = "newuser@example.com",
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
+            };
+            var createdAccount = new Account
+            {
+                Id = 1,
+                AccountName = "NewUser",
+                AccountEmail = "newuser@example.com",
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
+            };
+
+            _mockAccountService.Setup(service => service.CreateAccount(newAccount))
+                .ReturnsAsync(createdAccount);
+
+            // Act
+            var result = await _controller.CreateAccount(newAccount);
+
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
+            Assert.Equal(nameof(_controller.GetAccount), createdAtActionResult.ActionName);
+            Assert.Equal(1, createdAtActionResult.RouteValues["id"]);
+
+            var returnedAccount = Assert.IsType<Account>(createdAtActionResult.Value);
+            Assert.Equal(1, returnedAccount.Id);
+            Assert.Equal("NewUser", returnedAccount.AccountName);
+            Assert.Equal("newuser@example.com", returnedAccount.AccountEmail);
+            Assert.NotNull(returnedAccount.Settings);
+            Assert.Equal(TypingMasterConstants.DefaultTypingWindowWidth, returnedAccount.Settings["TypingWindowWidth"]);
+        }
+
+        [Fact]
         public async Task UpdateAccount_ReturnsOkResult_WithUpdatedAccount_WhenSuccessful()
         {
             // Arrange
@@ -383,6 +427,48 @@ namespace TypingMaster.Tests.Server
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("The account has been modified by another user", badRequestResult.Value);
+        }
+
+        [Fact]
+        public async Task UpdateAccount_WithSettings_ReturnsOkResult_WithUpdatedSettings()
+        {
+            // Arrange
+            int accountId = 1;
+            var account = new Account
+            {
+                Id = accountId,
+                AccountName = "Test",
+                AccountEmail = "test@example.com",
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
+            };
+            var updatedAccount = new Account
+            {
+                Id = accountId,
+                AccountName = "Updated",
+                AccountEmail = "test@example.com",
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", 800 }
+                }
+            };
+
+            _mockAccountService.Setup(service => service.GetAccountById(accountId))
+                .ReturnsAsync(account);
+            _mockAccountService.Setup(service => service.UpdateAccount(account))
+                .ReturnsAsync(updatedAccount);
+
+            // Act
+            var result = await _controller.UpdateAccount(accountId, account);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedAccount = Assert.IsType<Account>(okResult.Value);
+            Assert.Equal("Updated", returnedAccount.AccountName);
+            Assert.NotNull(returnedAccount.Settings);
+            Assert.Equal(800, returnedAccount.Settings["TypingWindowWidth"]);
         }
 
         [Fact]

@@ -7,6 +7,7 @@ using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
+using TypingMaster.Core.Constants;
 
 namespace TypingMaster.Tests
 {
@@ -183,31 +184,83 @@ namespace TypingMaster.Tests
                 AccountName = "New Account",
                 AccountEmail = "new@example.com",
                 User = new UserProfile(),
-                History = new PracticeLog()
+                History = new PracticeLog
+                {
+                    PracticeStats = new List<DrillStats>(),
+                    KeyStats = new Dictionary<char, KeyStats>()
+                },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
             };
 
             var accountDao = new AccountDao
             {
                 Id = 1,
                 AccountName = "New Account",
-                AccountEmail = "new@example.com"
+                AccountEmail = "new@example.com",
+                History = new PracticeLogDao
+                {
+                    PracticeStats = new List<DrillStatsDao>(),
+                    KeyStatsJson = new Dictionary<char, KeyStatsDao>()
+                },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
             };
 
             var createdAccount = new Account
             {
                 Id = 1,
                 AccountName = "New Account",
-                AccountEmail = "new@example.com"
+                AccountEmail = "new@example.com",
+                History = new PracticeLog()
+                {
+                    PracticeStats = new List<DrillStats>(),
+                    KeyStats = new Dictionary<char, KeyStats>()
+                },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
+            };
+
+            var updatedAccountDao = new AccountDao
+            {
+                Id = 1,
+                AccountName = "New Account",
+                AccountEmail = "new@example.com",
+                History = new PracticeLogDao
+                {
+                    PracticeStats = new List<DrillStatsDao>(),
+                    KeyStatsJson = new Dictionary<char, KeyStatsDao>()
+                },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
             };
 
             _mockMapper.Setup(m => m.Map<AccountDao>(account))
                 .Returns(accountDao);
 
+            _mockMapper.Setup(m => m.Map<Account>(updatedAccountDao))
+                .Returns(createdAccount);
+
             _mockRepository.Setup(repo => repo.CreateAccountAsync(accountDao))
                 .ReturnsAsync(accountDao);
 
+            _mockRepository.Setup(repo => repo.UpdateAccountAsync(It.IsAny<AccountDao>()))
+                .ReturnsAsync(updatedAccountDao);
+
             _mockMapper.Setup(m => m.Map<Account>(accountDao))
                 .Returns(createdAccount);
+
+            // Mock the CreatePracticeLog method
+            _mockPracticeLogService.Setup(svc => svc.CreatePracticeLog(It.IsAny<PracticeLog>()))
+                .ReturnsAsync(createdAccount.History);
 
             // Act
             var result = await _accountService.CreateAccount(account);
@@ -217,6 +270,8 @@ namespace TypingMaster.Tests
             Assert.Equal(1, result.Id);
             Assert.Equal("New Account", result.AccountName);
             Assert.Equal("new@example.com", result.AccountEmail);
+            Assert.NotNull(result.Settings);
+            Assert.Equal(TypingMasterConstants.DefaultTypingWindowWidth, result.Settings["TypingWindowWidth"]);
             _mockRepository.Verify(repo => repo.CreateAccountAsync(accountDao), Times.Once);
         }
 
@@ -262,7 +317,11 @@ namespace TypingMaster.Tests
                 Id = 1,
                 AccountName = "Updated Account",
                 AccountEmail = "updated@example.com",
-                Version = 1
+                Version = 1,
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", 80 }
+                }
             };
 
             var existingAccountDao = new AccountDao
@@ -270,7 +329,11 @@ namespace TypingMaster.Tests
                 Id = 1,
                 AccountName = "Original Account",
                 AccountEmail = "original@example.com",
-                Version = 1
+                Version = 1,
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+                }
             };
 
             var updatedAccountDao = new AccountDao
@@ -278,7 +341,11 @@ namespace TypingMaster.Tests
                 Id = 1,
                 AccountName = "Updated Account",
                 AccountEmail = "updated@example.com",
-                Version = 2
+                Version = 2,
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", 80 }
+                }
             };
 
             var updatedAccount = new Account
@@ -286,7 +353,11 @@ namespace TypingMaster.Tests
                 Id = 1,
                 AccountName = "Updated Account",
                 AccountEmail = "updated@example.com",
-                Version = 2
+                Version = 2,
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", 80 }
+                }
             };
 
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(account.Id))
@@ -309,6 +380,8 @@ namespace TypingMaster.Tests
             Assert.Equal("Updated Account", result.AccountName);
             Assert.Equal("updated@example.com", result.AccountEmail);
             Assert.Equal(2, result.Version);
+            Assert.NotNull(result.Settings);
+            Assert.Equal(80, result.Settings["TypingWindowWidth"]);
             _mockRepository.Verify(repo => repo.UpdateAccountAsync(It.IsAny<AccountDao>()), Times.Once);
         }
 
@@ -486,6 +559,8 @@ namespace TypingMaster.Tests
             Assert.NotNull(result.AccountName);
             Assert.NotNull(result.History);
             Assert.NotNull(result.User);
+            Assert.NotNull(result.Settings);
+            Assert.Equal(TypingMasterConstants.DefaultTypingWindowWidth, result.Settings["TypingWindowWidth"]);
         }
 
         [Fact]
@@ -501,6 +576,14 @@ namespace TypingMaster.Tests
             };
 
             var accountDaoWithResetCourseId = new AccountDao
+            {
+                Id = 1,
+                AccountName = "Test Account",
+                AccountEmail = "test@example.com",
+                History = new PracticeLogDao { CurrentCourseId = Guid.Empty }
+            };
+
+            var updatedAccountDao = new AccountDao
             {
                 Id = 1,
                 AccountName = "Test Account",
@@ -537,8 +620,16 @@ namespace TypingMaster.Tests
             _mockRepository.Setup(repo => repo.CreateAccountAsync(It.IsAny<AccountDao>()))
                 .ReturnsAsync(accountDaoWithResetCourseId);
 
-            _mockMapper.Setup(m => m.Map<Account>(accountDaoWithResetCourseId))
+            _mockRepository.Setup(repo => repo.UpdateAccountAsync(It.IsAny<AccountDao>()))
+                .ReturnsAsync(updatedAccountDao);
+
+            // Setup mapping for ANY AccountDao to return createdAccount
+            _mockMapper.Setup(m => m.Map<Account>(It.IsAny<AccountDao>()))
                 .Returns(createdAccount);
+
+            // Mock the CreatePracticeLog method
+            _mockPracticeLogService.Setup(svc => svc.CreatePracticeLog(It.IsAny<PracticeLog>()))
+                .ReturnsAsync(createdAccount.History);
 
             // Act
             var result = await _accountService.CreateAccount(account);
@@ -605,8 +696,24 @@ namespace TypingMaster.Tests
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(accountId))
                 .ReturnsAsync(existingAccountDao);
 
-            // Capture the mapped AccountDao for verification
+            // Setup PracticeLogService to return a valid practice log
+            var practiceLog = new PracticeLog
+            {
+                Id = 1,
+                AccountId = accountId,
+                CurrentCourseId = Guid.Empty
+            };
+
+            _mockPracticeLogService.Setup(svc => svc.GetPracticeLogByAccountId(accountId))
+                .ReturnsAsync(practiceLog);
+
+            _mockPracticeLogService.Setup(svc => svc.UpdatePracticeLog(It.IsAny<PracticeLog>()))
+                .ReturnsAsync(practiceLog);
+
+            // Create a variable to capture the AccountDao
             AccountDao capturedAccountDao = null;
+
+            // Setup the mapper to capture the AccountDao
             _mockMapper.Setup(m => m.Map<AccountDao>(accountToUpdate))
                 .Returns<Account>(a =>
                 {
@@ -616,7 +723,10 @@ namespace TypingMaster.Tests
                         AccountName = a.AccountName,
                         AccountEmail = a.AccountEmail,
                         Version = a.Version,
-                        History = new PracticeLogDao { CurrentCourseId = a.History.CurrentCourseId }
+                        History = new PracticeLogDao
+                        {
+                            CurrentCourseId = a.History.CurrentCourseId
+                        }
                     };
                     return capturedAccountDao;
                 });
@@ -624,21 +734,34 @@ namespace TypingMaster.Tests
             _mockRepository.Setup(repo => repo.UpdateAccountAsync(It.IsAny<AccountDao>()))
                 .ReturnsAsync(updatedAccountDao);
 
-            _mockMapper.Setup(m => m.Map<Account>(updatedAccountDao))
-                .Returns(updatedAccount);
+            // Setup mapper for AccountDao to Account mapping
+            _mockMapper.Setup(m => m.Map<Account>(It.IsAny<AccountDao>()))
+                .Returns<AccountDao>(dao => new Account
+                {
+                    Id = dao.Id,
+                    AccountName = dao.AccountName,
+                    AccountEmail = dao.AccountEmail,
+                    Version = dao.Version,
+                    History = new PracticeLog
+                    {
+                        CurrentCourseId = dao.History?.CurrentCourseId ?? Guid.Empty
+                    }
+                });
 
             // Act
             var result = await _accountService.UpdateAccount(accountToUpdate);
 
             // Assert
             Assert.NotNull(result);
+            Assert.NotNull(result.History);
             Assert.Equal(Guid.Empty, result.History.CurrentCourseId);
 
             // Verify the course service was called to validate the course ID
             _mockCourseService.Verify(cs => cs.GetCourse(invalidCourseId), Times.Once);
 
-            // Verify the course ID was reset before being sent to the repository
+            // Verify the captured AccountDao
             Assert.NotNull(capturedAccountDao);
+            Assert.NotNull(capturedAccountDao.History);
             Assert.Equal(Guid.Empty, capturedAccountDao.History.CurrentCourseId);
         }
     }

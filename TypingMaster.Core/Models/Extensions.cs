@@ -51,4 +51,15 @@ public static class Extensions
             Latency = k.Latency
         }));
     }
+
+    public static int ConvertToInt(this object? value, int defaultValue)
+    {
+        if (value is int intValue)
+            return intValue;
+    
+        if (value != null && int.TryParse(value.ToString(), out var parsedValue))
+            return parsedValue;
+    
+        return defaultValue;
+    }
 }

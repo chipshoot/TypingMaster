@@ -1,0 +1,116 @@
+.settings-container {
+    max-width: 450px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.settings-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+    .settings-header h3 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .settings-header p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+.error-container {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-top: 20px;
+    background-color: #fee;
+    border-left: 4px solid #d33;
+    color: #622;
+    animation: fadeInShake 0.5s ease-in-out;
+}
+
+.error-icon {
+    margin-right: 10px;
+    color: #d33;
+}
+
+.error-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.error-message {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.success-container {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-top: 20px;
+    background-color: #efe;
+    border-left: 4px solid #3d3;
+    color: #262;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.success-icon {
+    margin-right: 10px;
+    color: #3d3;
+}
+
+.success-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.success-message {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+@keyframes fadeInShake {
+    0% {
+        opacity: 0;
+        transform: translateX(0);
+    }
+
+    10% {
+        transform: translateX(-5px);
+    }
+
+    30% {
+        transform: translateX(5px);
+    }
+
+    50% {
+        transform: translateX(-3px);
+    }
+
+    70% {
+        transform: translateX(3px);
+    }
+
+    90% {
+        transform: translateX(-1px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+} 

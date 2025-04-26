@@ -34,6 +34,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             // Map camelCase property names to snake_case column names
             entity.Property(e => e.AccountEmail).HasColumnName("account_email");
+            entity.Property(e => e.Settings).HasColumnName("settings_json").HasColumnType("jsonb").HasJsonConversion();
 
             entity.HasOne(e => e.User)
                 .WithOne()

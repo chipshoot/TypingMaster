@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+﻿using System.Text.Json;
+using AutoMapper;
 using TypingMaster.Business.Mapping;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 using TypingMaster.DataAccess.Dao;
@@ -997,6 +999,128 @@ namespace TypingMaster.Tests
             Assert.NotNull(courseDao.SettingsJson.TargetStats);
             Assert.Equal(courseDto.Settings.TargetStats.Wpm, courseDao.SettingsJson.TargetStats.Wpm);
             Assert.Equal(courseDto.Settings.TargetStats.Accuracy, courseDao.SettingsJson.TargetStats.Accuracy);
+        }
+
+        [Fact]
+        public void Account_To_AccountDao_MapsSettingsCorrectly()
+        {
+            // Arrange
+            var account = new Account
+            {
+                Id = 1,
+                AccountName = "TestAccount",
+                AccountEmail = "test@example.com",
+                User = new UserProfile
+                {
+                    Id = 1,
+                    FirstName = "Test",
+                    LastName = "User"
+                },
+                History = new PracticeLog
+                {
+                    Id = 1,
+                    PracticeDuration = 60
+                },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth },
+                    { "Theme", "Dark" },
+                    { "SoundEnabled", true }
+                }
+            };
+
+            // Act
+            var accountDao = _mapper.Map<AccountDao>(account);
+
+            // Assert
+            Assert.NotNull(accountDao);
+            Assert.NotNull(accountDao.Settings);
+
+            // For numeric values
+            var typingWindowWidth = accountDao.Settings["TypingWindowWidth"];
+            var windowWidthValue = typingWindowWidth switch
+            {
+                JsonElement jsonElement => jsonElement.GetInt32(),
+                int intValue => intValue,
+                _ => 0
+            };
+            Assert.Equal(TypingMasterConstants.DefaultTypingWindowWidth, windowWidthValue);
+
+            // For string values
+            var theme = accountDao.Settings["Theme"].ToString();
+            Assert.Equal("Dark", theme);
+
+            // For boolean values
+            var soundEnabled = false;
+            var soundEnabledValue = accountDao.Settings["SoundEnabled"];
+            soundEnabled = soundEnabledValue switch
+            {
+                JsonElement boolElement => boolElement.GetBoolean(),
+                bool boolValue => boolValue,
+                _ => soundEnabled
+            };
+            Assert.True(soundEnabled);
+        }
+
+        [Fact]
+        public void AccountDao_To_Account_MapsSettingsCorrectly()
+        {
+            // Arrange
+            var accountDao = new AccountDao
+            {
+                Id = 1,
+                AccountName = "TestAccount",
+                AccountEmail = "test@example.com",
+                User = new UserProfileDao
+                {
+                    Id = 1,
+                    FirstName = "Test",
+                    LastName = "User"
+                },
+                History = new PracticeLogDao
+                {
+                    Id = 1,
+                    PracticeDuration = 60
+                },
+                Settings = new Dictionary<string, object>
+                {
+                    { "TypingWindowWidth", 1024 },
+                    { "Theme", "Light" },
+                    { "SoundEnabled", false }
+                }
+            };
+
+            // Act
+            var account = _mapper.Map<Account>(accountDao);
+
+            // Assert
+            Assert.NotNull(account);
+            Assert.NotNull(account.Settings);
+
+            // For numeric values
+            var typingWindowWidth = account.Settings["TypingWindowWidth"];
+            var windowWidthValue = typingWindowWidth switch
+            {
+                JsonElement jsonElement => jsonElement.GetInt32(),
+                int intValue => intValue,
+                _ => 0
+            };
+            Assert.Equal(1024, windowWidthValue);
+
+            // For string values
+            var theme = account.Settings["Theme"].ToString();
+            Assert.Equal("Light", theme);
+
+            // For boolean values
+            var soundEnabled = true; // Default to opposite of expected for stronger test
+            var soundEnabledValue = account.Settings["SoundEnabled"];
+            soundEnabled = soundEnabledValue switch
+            {
+                JsonElement boolElement => boolElement.GetBoolean(),
+                bool boolValue => boolValue,
+                _ => soundEnabled
+            };
+            Assert.False(soundEnabled);
         }
     }
 }
