@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using TypingMaster.DataAccess.Dao;
+using TypingMaster.DataAccess.Utility;
 
 namespace TypingMaster.DataAccess.Data;
 
-public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger logger)
-    : RepositoryBase(logger), IDrillStatsRepository
+public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger logger) :  IDrillStatsRepository
 {
     public async Task<DrillStatsDao?> GetDrillStatByIdAsync(int id)
     {
@@ -173,6 +173,8 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             return false;
         }
     }
+
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
     /// <summary>
     /// Sanitizes a string to prevent PostgreSQL Unicode escape sequence errors.
