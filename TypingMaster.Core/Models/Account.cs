@@ -1,4 +1,6 @@
-﻿namespace TypingMaster.Core.Models
+﻿using TypingMaster.Core.Constants;
+
+namespace TypingMaster.Core.Models
 {
     public class Account
     {
@@ -26,6 +28,11 @@
         public bool IsDeleted { get; set; } = false;
 
         public DateTime? DeletedAt { get; set; }
+
+        public Dictionary<string, object> Settings { get; set; } = new()
+        {
+            { "TypingWindowWidth", TypingMasterConstants.DefaultTypingWindowWidth }
+        };
 
         /// <summary>
         /// Version number for optimistic concurrency control

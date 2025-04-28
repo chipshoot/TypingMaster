@@ -1,0 +1,89 @@
+@using TypingMaster.Core.Models
+
+<div class="typing-stats @Class">
+    <div class="stat-item">
+        <div class="stat-label">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>WPM</span>
+        </div>
+        <div class="stat-value">@Wpm</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-label">
+            <i class="fas fa-bullseye"></i>
+            <span>Accuracy</span>
+        </div>
+        <div class="stat-value">@($"{Accuracy:F1}%")</div>
+    </div>
+    @if (ShowLevel)
+    {
+        <div class="stat-item">
+            <div class="stat-label">
+                <i class="fas fa-chart-line"></i>
+                <span>Level</span>
+            </div>
+            <div class="stat-value">@Level.ToString()</div>
+        </div>
+    }
+</div>
+
+<style>
+    .typing-stats {
+        display: flex;
+        gap: 1.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--bs-body-bg);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .typing-stats.compact {
+        padding: 0.25rem 0.75rem;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 80px;
+    }
+
+    .stat-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--bs-secondary);
+        font-size: 0.875rem;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--bs-primary);
+    }
+
+    .compact .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .compact .stat-label {
+        font-size: 0.8rem;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int Wpm { get; set; }
+
+    [Parameter]
+    public double Accuracy { get; set; }
+
+    [Parameter]
+    public bool ShowLevel { get; set; } = true;
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    private SkillLevel Level => (Wpm, Accuracy).GetSkillLevel();
+}

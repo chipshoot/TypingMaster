@@ -7,6 +7,7 @@ namespace TypingMaster.Core.Constants
     {
         #region Client
 
+        public const int DefaultTypingWindowWidth = 74;
         public const string DefaultPracticePrompt = "Type the line in the top box. The arrow moves to show the next key to type. At the end of the line press either space or Enter.";
 
         #endregion Client

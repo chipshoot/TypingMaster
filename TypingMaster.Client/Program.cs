@@ -9,11 +9,9 @@ using TypingMaster.Shared.Utility;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// Configure Serilog
+// Configure Serilog from appsettings.json
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .WriteTo.BrowserConsole()
-    .WriteTo.Seq("http://localhost:8081")
+    .ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
 
 builder.Logging.AddSerilog(Log.Logger);

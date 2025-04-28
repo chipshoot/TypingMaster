@@ -6,7 +6,7 @@
 <div class="test-dashboard">
     <div class="categories-panel">
         <div class="category-card @(SelectedCategory == "allkeys" ? "active" : "")"
-        @onclick='() => SelectCategory("allkeys")'>
+            @onclick='() => SelectCategory("allkeys")'>
             <div class="category-icon">
                 <i class="fas fa-keyboard"></i>
             </div>
@@ -14,7 +14,7 @@
             <div class="category-description">Test your typing skills across all keys on the keyboard</div>
         </div>
         <div class="category-card @(SelectedCategory == "speed" ? "active" : "")"
-        @onclick='() => SelectCategory("speed")'>
+            @onclick='() => SelectCategory("speed")'>
             <div class="category-icon">
                 <i class="fas fa-tachometer-alt"></i>
             </div>
@@ -31,7 +31,7 @@
                 @foreach (var lesson in GetLessonsForCategory(SelectedCategory))
                 {
                     <div class="lesson-item @(SelectedLesson?.Id == lesson.Id ? "active" : "")"
-                    @onclick="() => SelectLesson(lesson)">
+                        @onclick="() => SelectLesson(lesson)">
                         <h4>@lesson.Description</h4>
                         <p class="text-muted mb-0">@lesson.Description</p>
                     </div>
@@ -50,18 +50,7 @@
                 </div>
 
                 <div class="lesson-stats">
-                    <div class="stat-item">
-                        <i class="fas fa-clock stat-icon"></i>
-                        @* <span>Duration: @SelectedLesson.Duration min</span> *@
-                    </div>
-                    <div class="stat-item">
-                        <i class="fas fa-chart-line stat-icon"></i>
-                        <span>Target WPM: @_target.Wpm</span>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fas fa-bullseye stat-icon"></i>
-                        <span>Target Accuracy: @_target.Accuracy%</span> 
-                    </div>
+                    <TypingStats Wpm="@_target.Wpm" Accuracy="@_target.Accuracy" ShowLevel="false" />
                 </div>
 
                 <div class="mt-4">

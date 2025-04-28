@@ -1,6 +1,7 @@
 ﻿@page "/reports"
 
 @inject ApplicationContext AppState
+@inject NavigationManager Navigation
 @inject IReportWebService ReportService
 
 <style>
@@ -50,6 +51,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!AppState.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
         if (AppState?.CurrentAccount?.History == null)
         {
             return;

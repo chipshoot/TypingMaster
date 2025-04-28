@@ -32,6 +32,7 @@
         {
             case "keydown":
                 HandleKeyDown(e);
+
                 break;
             case "keyup":
                 HandleKeyUp(e);
@@ -56,7 +57,7 @@
 
     public void HandleKeyDown(KeyboardEventArgs e)
     {
-        Logger.Debug($"Raw KeyDown Event - Key: {e.Key}, Code: {e.Code}, ShiftKey: {e.ShiftKey}");
+        Logger.Verbose($"Raw KeyDown Event - Key: {e.Key}, Code: {e.Code}, ShiftKey: {e.ShiftKey}");
         float latency = 0;
 
         var keyDownTime = DateTime.Now;
@@ -105,7 +106,7 @@
         };
 
         _pendingKeyEvents[eventKey] = KeyEvent;
-        Logger.Debug($"KeyDown: {JsonSerializer.Serialize(KeyEvent)}");
+        Logger.Verbose($"KeyDown: {JsonSerializer.Serialize(KeyEvent)}");
     }
 
     private char GetShiftedDigit(char digit)
@@ -128,7 +129,7 @@
 
     public void HandleKeyUp(KeyboardEventArgs e)
     {
-        Logger.Debug($"Raw KeyUp Event - Key: {e.Key}, Code: {e.Code}, ShiftKey: {e.ShiftKey}");
+        Logger.Verbose($"Raw KeyUp Event - Key: {e.Key}, Code: {e.Code}, ShiftKey: {e.ShiftKey}");
         var eventKey = GetEventKey(e);
         if (_pendingKeyEvents.TryGetValue(eventKey, out var pendingEvent))
         {
@@ -143,8 +144,8 @@
             _keyEvents.Enqueue(pendingEvent);
             _pendingKeyEvents.Remove(eventKey);
 
-            Logger.Debug($"KeyUp: {JsonSerializer.Serialize(pendingEvent)}");
-            Logger.Debug($"KeyEventIds: {JsonSerializer.Serialize(_processedEventIds)}");
+            Logger.Verbose($"KeyUp: {JsonSerializer.Serialize(pendingEvent)}");
+            Logger.Verbose($"KeyEventIds: {JsonSerializer.Serialize(_processedEventIds)}");
             OnKeyEventGenerated.InvokeAsync(_keyEvents);
         }
     }

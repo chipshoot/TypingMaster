@@ -11,17 +11,6 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
     private const string CourseDescription =
         "Master Touch Typing from Scratch: This structured beginner's course guides you from the home row keys (a, s, d, f, j, k, l, ;) to full keyboard proficiency. Starting with your finger placement on home keys, each lesson gradually introduces new keys while reinforcing previously learned ones. Progress at your own pace through interactive exercises designed to build muscle memory, improve accuracy, and increase typing speed. Perfect for new typists or anyone looking to develop proper touch typing technique without looking at the keyboard. Track your WPM and accuracy as you transform from hunt-and-peck to confident touch typing.";
 
-    // List of common English words with limited character sets
-    private static readonly Dictionary<string, string[]> CommonWords = new()
-    {
-        ["asdf"] = ["as", "sad", "fad", "dad", "add", "sass", "fads", "ads"],
-        ["asdfj"] = ["ads", "sad", "fad", "dad", "add", "jazz", "fads", "jaff"],
-        ["asdfjk"] = ["ask", "ads", "sad", "fad", "dad", "jack", "fads", "skaj"],
-        ["asdfjkl"] = ["ask", "all", "fall", "dads", "laff", "flask", "fall", "lads"],
-        ["asdfjkl;"] = ["all;", "fall;", "dad;", "ask;", "jak;", "lads;", "ads;", "sad;"],
-        // Additional dictionaries will be populated dynamically as needed
-    };
-
     private static readonly Random Random = new();
 
     public Guid Id { get; set; }
@@ -80,21 +69,14 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
             throw new Exception("Cannot found lesson");
         }
 
-        lesson.PracticeText = GeneratePracticeText(lesson.Target);
+        lesson.PracticeText = GeneratePracticeText(lesson.Target, lesson.CommonWords);
         return lesson;
     }
 
-    private string GeneratePracticeText(IEnumerable<string> targetKeys)
+    private string GeneratePracticeText(IEnumerable<string> targetKeys, string[] commonWords)
     {
-        var enumerable = targetKeys.ToList();
-        var targetKeySet = string.Concat(enumerable.Select(k => k));
-        if (!CommonWords.TryGetValue(targetKeySet, out var words))
-        {
-            throw new InvalidOperationException($"No common words found for the target keys: {targetKeySet}");
-        }
-
         var practiceText = new StringBuilder();
-        var targetKeysList = enumerable.ToList();
+        var targetKeysList = targetKeys.ToList();
 
         // Generate 1-5 random strings from target keys
         var randomKeyStringsCount = Random.Next(1, 6); // Random number between 1 and 5
@@ -119,7 +101,7 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
         // Add random words from the dictionary
         while (practiceText.Length < Settings.PracticeTextLength)
         {
-            var word = words[Random.Next(words.Length)];
+            var word = commonWords[Random.Next(commonWords.Length)];
             if (practiceText.Length + word.Length + 1 > Settings.PracticeTextLength)
             {
                 break;

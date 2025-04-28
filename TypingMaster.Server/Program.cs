@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Release";
 Console.WriteLine($"Current environment: {environment}");
 
+// Load environment-specific settings first, then base settings
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -103,7 +104,15 @@ builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
 
 // Register business services
-builder.Services.AddScoped<IIdpService, AwsCognitoService>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<IIdpService, MockIdpService>();
+}
+else
+{
+    builder.Services.AddScoped<IIdpService, AwsCognitoService>();
+}
+
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

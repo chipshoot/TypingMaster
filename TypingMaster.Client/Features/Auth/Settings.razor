@@ -1,0 +1,147 @@
+@page "/settings"
+@inject NavigationManager Navigation
+@inject ApplicationContext AppState
+@inject ILogger Logger
+@inject IAccountWebService AccountService
+
+<div class="settings-container">
+    <div class="settings-header">
+        <h3>Settings</h3>
+        <p>Customize your typing experience</p>
+    </div>
+
+    @if (AppState.CurrentAccount == null)
+    {
+        <MessageBox Type="MessageBoxType.Card" Message="Please log in to access settings"></MessageBox>
+    }
+    else
+    {
+        <ValidateForm Model="@_settingsModel" OnValidSubmit="@HandleSettingsUpdate">
+            <EditorForm Model="@_settingsModel" LabelAlign="Alignment.Left" ItemsPerRow="1" ShowLabel="true">
+                <FieldItems>
+                    <EditorItem @bind-Field="@context.TypingWindowWidth">
+                        <EditTemplate Context="value">
+                            <BootstrapInput TValue="int" PlaceHolder="Enter width in characters"
+                                @bind-value="@value.TypingWindowWidth" ShowLabel="true" DisplayText="Typing Window Width" />
+                        </EditTemplate>
+                    </EditorItem>
+                </FieldItems>
+                <Buttons>
+                    <Button ButtonType="ButtonType.Submit" class="btn btn-primary" disabled="@(_isLoading)">
+                        <i class="@_icon"></i> Save Settings
+                    </Button>
+                    <Button ButtonType="ButtonType.Button" class="btn btn-secondary" OnClick="@HandleCancel"
+                        disabled="@(_isLoading)">
+                        Cancel
+                    </Button>
+                </Buttons>
+            </EditorForm>
+        </ValidateForm>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="error-container">
+                <div class="d-flex align-items-center">
+                    <i class="fa fa-exclamation-circle error-icon"></i>
+                    <div>
+                        <div class="error-title">Settings Update Failed</div>
+                        <p class="error-message">@_errorMessage</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_updateSuccess)
+        {
+            <div class="success-container">
+                <div class="d-flex align-items-center">
+                    <i class="fa fa-check-circle success-icon"></i>
+                    <div>
+                        <div class="success-title">Settings Updated</div>
+                        <p class="success-message">Your settings have been saved successfully.</p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    // todo: need add a cancel button, when click it, it will navigate to the previous page
+    private SettingsModel _settingsModel = new();
+    private bool _isLoading = false;
+    private string? _errorMessage;
+    private bool _updateSuccess = false;
+    private string _icon = "";
+    [Parameter]
+    public string? ReturnUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (AppState.CurrentAccount?.Settings != null)
+        {
+            _settingsModel = new SettingsModel
+            {
+                TypingWindowWidth = AppState.CurrentAccount.Settings.TryGetValue("TypingWindowWidth", out var typingWindowWidth)
+            ? typingWindowWidth.ConvertToInt(TypingMasterConstants.DefaultTypingWindowWidth)
+            : TypingMasterConstants.DefaultTypingWindowWidth
+            };
+        }
+    }
+
+    private async Task HandleSettingsUpdate(EditContext context)
+    {
+        if (AppState.CurrentAccount == null) return;
+
+        SetLoading(true);
+        _errorMessage = null;
+        _updateSuccess = false;
+
+        try
+        {
+            AppState.CurrentAccount.Settings["TypingWindowWidth"] = _settingsModel.TypingWindowWidth;
+            await AccountService.UpdateAccountAsync(AppState.CurrentAccount);
+            _updateSuccess = true;
+
+            if (!string.IsNullOrEmpty(ReturnUrl))
+            {
+                Navigation.NavigateTo(ReturnUrl);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "Failed to update settings. Please try again.";
+            Logger.Error(ex, "Error updating settings");
+        }
+        finally
+        {
+            SetLoading(false);
+            StateHasChanged();
+        }
+    }
+
+    private void SetLoading(bool isLoading)
+    {
+        _isLoading = isLoading;
+        _icon = isLoading ? "fa-solid fa-spinner fa-spin fa-fw" : "";
+    }
+
+    private void HandleCancel()
+    {
+        if (!string.IsNullOrEmpty(ReturnUrl))
+        {
+            Navigation.NavigateTo(ReturnUrl);
+        }
+        else
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    public class SettingsModel
+    {
+        [Required(ErrorMessage = "Typing window width is required")]
+        [Range(47, 100, ErrorMessage = "Typing window width must be between 47 and 100 characters")]
+        public int TypingWindowWidth { get; set; } = TypingMasterConstants.DefaultTypingWindowWidth;
+    }
+}

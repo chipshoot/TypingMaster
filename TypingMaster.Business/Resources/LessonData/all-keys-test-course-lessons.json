@@ -5,7 +5,8 @@
     "practiceText": "Pack my box with five dozen liquor jugs. It's quite amazing how complex sentences can be, isn't it? Please answer questions #1, #4, and #7 by 3:00 PM sharp. \"Why?\" she asked, \"I, thought the deadline was  tomorrow!\" Just remember to breathe and focus; you've got this. Check the file 'report_final.docx'. A journey of 1,000 miles begins with a single step.",
     "description": "Foundation and Common Punctuation",
     "instruction": "",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 2,
@@ -13,7 +14,8 @@
     "practiceText": "My order (Order # BZ-78G4) included 2 items @ $49.95 each, plus $12.60 shipping, for a total of $112.50. Please email [email address removed] or call 1-800-555-0199 extension #34 for help. The project requires a 15% down payment. He yelled, \"Stop! That's the wrong way!\" The values are approximately 6 & 7. Is the discount code \"SAVE20NOW!\" still valid? Check pages 83-97.",
     "description": "Numbers and Basic Symbols",
     "instruction": "",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 3,
@@ -21,7 +23,8 @@
     "practiceText": "Use the formula (Part / Whole) * 100% to calculate the percentage. The event requires attendees to pre-register [link: tinyurl.com/xyz789]. Query the database: SELECT * FROM users WHERE city = 'Zylotown'. We need the Jones & Baker Co. report by Friday EOD. What if the input is { \"key\": null, \"value\": 0 }? The stock price jumped ^5 points! This task is quite complex; it involves many variables.",
     "description": "More Symbols and Brackets",
     "instruction": "",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 4,
@@ -29,7 +32,8 @@
     "practiceText": "The configuration file is located at C:\\Program Files (x86)\\MyApp\\config_v2.ini. Ensure the user_id and session_token variables are set. The calculation a^2 + b^2 = c^2 is well-known. Please use underscores _ instead of spaces for file names, e.g., my_document_final.pdf. Check the array bounds [0...N-1]. What is the value of x_new = (x_old + 5) / 2? The server address is 192.168.1.100:8080. Escape sequence: \\t (tab).",
     "description": "More Symbols and Brackets",
     "instruction": "",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 5,
@@ -37,7 +41,8 @@
     "practiceText": "Verify the XML/HTML structure: <book id=\"123\"><title>Great Journeys</title></book>. Use the pipe | command: cat data.log | grep \"ERROR\". Is 5 > 3 && 2 < 10 true? Send payment confirmation to <payments_dept@global-corp.xyz>. The task requires careful validation (e.g., checking !isValid | isComplete). Cost: ~$75 +/- 5%. We expect feedback by 2025-04-11. Final command: git push origin main --force. Success!",
     "description": "Comprehensive Mix with Less Common Symbols",
     "instruction": "",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 6,
@@ -45,7 +50,8 @@
     "practiceText": "Please call 905-555-1234 or 416-555-9876 extension 708. Our address: 123 Main Street West, Unit 4B, Mississauga, Ontario L5R 2G9. Order confirmation #6077B shows 15 items at $49.99 each, total $749.85 plus 13% tax ($97.48) equals $847.33. Account 951-03-8274 shows a balance of $1,280.50. Flight 815 departs 06:50 on April 25, 2025, arriving 14:30. We need data points for years 1998, 2003, 2007, 2011, 2019, and 2024. Check serial numbers 10000 through 19999. The project budget is $5,750,000. Input coordinates: 43.5890° N, 79.6441° W. Count: 1, 2, 3, 4, 5, 6, 7, 8, 9, 0. Repeat 20 times.",
     "description": "Number Focus",
     "instruction": "",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 7,
@@ -53,6 +59,7 @@
     "practiceText": "\"Check file path: C:\\[Source]\\Project_Alpha\\*.* Is x > y && (z != 0) true? Email <admin@corp-net.com> re: Issue #404! Cost is $99.95 + 8% tax = $107.95. Use coupon code /\"SAVE&WIN_25%/\"? Query: SELECT data FROM tbl WHERE id={id_val};. Path: /usr/local/bin/. Function call: myFunc(arg1, arg2=True). Add values: _total += (sub_total * tax_rate^). Operators: + - * / % = < >. Special chars: ~ @ # $ ^ & * ( ) [ ] { } \\ | ; : ' /\". He shouted \"Stop! Danger zone!\" What's (45 / 5) * (3 + 2)?",
     "description": "Symbol Focus",
     "instruction": "",
-    "point": 1
+    "point": 1,
+    "commonWords": []
   }
 ]
