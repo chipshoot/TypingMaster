@@ -248,7 +248,8 @@ public class PracticeLogService(
         int practiceLogId,
         int page = 1,
         int pageSize = 10,
-        bool sortByNewest = true)
+        bool sortByNewest = true,
+        TrainingType? type = null)
     {
         var pagedResult = new PagedResult<DrillStats>
         {
@@ -260,7 +261,7 @@ public class PracticeLogService(
         {
             // Use the repository to get paginated data
             var (daoItems, totalCount) = await drillStatsRepository.GetPaginatedDrillStatsByPracticeLogIdAsync(
-                practiceLogId, page, pageSize, sortByNewest);
+                practiceLogId, page, pageSize, sortByNewest, type);
 
             // Set pagination metadata
             pagedResult.TotalCount = totalCount;

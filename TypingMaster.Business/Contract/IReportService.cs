@@ -9,7 +9,13 @@ public interface IReportService
 
     Dictionary<string, IEnumerable<double>> GetKeyStats(PracticeLog history, bool includeLastSession);
 
-    IEnumerable<ProgressRecord> GetProgressRecords(PracticeLog history, ICourse course, TrainingType type);
+    Task<PagedResult<ProgressRecord>> GetProgressRecords(
+        PracticeLog history,
+        ICourse course, 
+        TrainingType type, 
+        int page = 1,
+        int pageSize = 10, 
+        bool sortByNewest = true);
 
     ProcessResult ProcessResult { get; set; }
 }

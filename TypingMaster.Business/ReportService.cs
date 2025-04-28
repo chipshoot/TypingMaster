@@ -8,7 +8,7 @@ using ICourse = TypingMaster.Business.Contract.ICourse;
 
 namespace TypingMaster.Business;
 
-public class ReportService(ILogger logger) : IReportService
+public class ReportService(IPracticeLogService practiceLogService, ILogger logger) : IReportService
 {
     public IEnumerable<string> GetKeyLabels(PracticeLog history)
     {
@@ -63,59 +63,38 @@ public class ReportService(ILogger logger) : IReportService
         return stats;
     }
 
-    public IEnumerable<ProgressRecord> GetProgressRecords(PracticeLog history, ICourse course, TrainingType type)
+    public async Task<PagedResult<ProgressRecord>> GetProgressRecords(PracticeLog history, ICourse course, TrainingType type, int page = 1, int pageSize = 10, bool sortByNewest = true)
     {
         var dataList = new List<ProgressRecord>();
-        foreach (var item in history.PracticeStats)
+        var filteredStats =
+            await practiceLogService.GetPaginatedDrillStatsByPracticeLogIdAsync(history.Id, page, pageSize, sortByNewest);
+            
+        foreach (var item in filteredStats.Items)
         {
-            switch (type)
+            var record = new ProgressRecord
             {
-                case TrainingType.Course:
-                    if (item.Type == TrainingType.Course)
-                    {
-                        var record = new ProgressRecord
-                        {
-                            Type = TrainingType.Course.ToString(),
-                            Name = course.Name,
-                            Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(CultureInfo.InvariantCulture),
-                            GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
-                            OverallAccuracy = item.Accuracy, // Implement this method
-                            OverallSpeed = item.Wpm, // Implement this method
-                            BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
-                            BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
-                            BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
-                        };
+                Type = type.ToString(),
+                Name = course.Name,
+                Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(CultureInfo.InvariantCulture),
+                GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
+                OverallAccuracy = item.Accuracy,
+                OverallSpeed = item.Wpm,
+                BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
+                BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
+                BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
+            };
 
-                        dataList.Add(record);
-                    }
-
-                    break;
-                case TrainingType.AllKeysTest:
-                case TrainingType.SpeedTest:
-
-                    if (item.Type is TrainingType.AllKeysTest or TrainingType.SpeedTest )
-                    {
-                        var record = new ProgressRecord
-                        {
-                            Type = TrainingType.Course.ToString(),
-                            Name = course.Name,
-                            Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(CultureInfo.InvariantCulture),
-                            GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
-                            OverallAccuracy = item.Accuracy, // Implement this method
-                            OverallSpeed = item.Wpm, // Implement this method
-                            BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
-                            BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
-                            BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
-                        };
-
-                        dataList.Add(record);
-                    }
-
-                    break;
-            }
+            dataList.Add(record);
         }
 
-        return dataList;
+        return new PagedResult<ProgressRecord>
+        {
+            Items = dataList,
+            TotalCount = filteredStats.TotalCount,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = filteredStats.TotalPages
+        };
     }
 
     public ProcessResult ProcessResult { get; set; } = new(logger);

@@ -1,10 +1,12 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
+using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
+using TypingMaster.DataAccess.Utility;
 
 namespace TypingMaster.DataAccess.Data;
 
-public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger logger)
-    : RepositoryBase(logger), IDrillStatsRepository
+public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger logger) :  IDrillStatsRepository
 {
     public async Task<DrillStatsDao?> GetDrillStatByIdAsync(int id)
     {
@@ -26,7 +28,8 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
         int practiceLogId,
         int page = 1,
         int pageSize = 10,
-        bool sortByNewest = true)
+        bool sortByNewest = true,
+        TrainingType? type = null)
     {
         try
         {
@@ -35,9 +38,18 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             if (pageSize < 1) pageSize = 10;
         
             // Create base query
-            var query = context.DrillStats
-                .Where(d => d.PracticeLogId == practiceLogId);
-            
+            IQueryable<DrillStatsDao> query;
+            if (type != null)
+            {
+                query = context.DrillStats
+                    .Where(d => d.PracticeLogId == practiceLogId && d.TrainingType == (int)type);
+            }
+            else
+            {
+                query = context.DrillStats
+                    .Where(d => d.PracticeLogId == practiceLogId);
+            }
+
             // Get total count for pagination info
             var totalCount = await query.CountAsync();
         
@@ -140,7 +152,7 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             context.Entry(existingDrillStat).CurrentValues.SetValues(drillStat);
 
             // Update KeyEventsJson separately since it's a complex type
-            existingDrillStat.KeyEventsJson = drillStat.KeyEventsJson ?? new Queue<KeyEventDao>();
+            existingDrillStat.KeyEventsJson = drillStat.KeyEventsJson;
 
             await context.SaveChangesAsync();
             return existingDrillStat;
@@ -173,6 +185,8 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             return false;
         }
     }
+
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
     /// <summary>
     /// Sanitizes a string to prevent PostgreSQL Unicode escape sequence errors.
