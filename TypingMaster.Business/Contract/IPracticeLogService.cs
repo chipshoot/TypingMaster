@@ -37,12 +37,14 @@ public interface IPracticeLogService
     /// <param name="page">The page number to retrieve. Defaults to 1.</param>
     /// <param name="pageSize">The number of items per page. Defaults to 10.</param>
     /// <param name="sortByNewest">Indicates whether to sort the results by newest first. Defaults to true.</param>
+    /// <param name="type">The type of practice, if its null, take all practice</param>
     /// <returns>A paginated result containing the drill stats.</returns>
     Task<PagedResult<DrillStats>> GetPaginatedDrillStatsByPracticeLogIdAsync(
         int practiceLogId,
         int page = 1,
         int pageSize = 10,
-        bool sortByNewest = true);
+        bool sortByNewest = true,
+        TrainingType? type = null);
 
     /// <summary>
     /// Update an existing drill stat

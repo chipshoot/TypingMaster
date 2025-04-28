@@ -12,9 +12,9 @@
         border-radius: 8px;
     }
 
-        .cta-btn:hover {
-            background-color: #0056b3;
-        }
+    .cta-btn:hover {
+        background-color: #0056b3;
+    }
 </style>
 
 <div style="height:85vh;">
@@ -26,7 +26,8 @@
                         <HeaderTemplate>
                             <div class="d-flex justify-content-between align-items-center" style="width:100%">
                                 <div class="me-2">
-                                    <PracticeHistory StatsList="@_statsList"></PracticeHistory>
+                                    <PracticeHistory StatsList="@_statsList" OnPageChange="LoadPracticeHistoryPage">
+                                    </PracticeHistory>
                                 </div>
                             </div>
                         </HeaderTemplate>
@@ -47,11 +48,12 @@
                         <BodyTemplate>
                             <div class="result-card bg-white p-3">
                                 <h4>You're Doing Great! 🚀</h4>
-                                <p>Keep up the good work! Here’s your latest typing performance:</p>
+                                <p>Keep up the good work! Here's your latest typing performance:</p>
                                 <p><strong>WPM:</strong> @_curStats.Wpm</p>
                                 <p><strong>Accuracy:</strong> @_curStats.Accuracy</p>
                                 <p><strong>Skill Level:</strong> @Level.ToString()</p>
-                                <p>Want to type even faster and more accurately? Unlock personalized training now! 🔥</p>
+                                <p>Want to type even faster and more accurately? Unlock personalized training now! 🔥
+                                </p>
                             </div>
                         </BodyTemplate>
                         <FooterTemplate>
@@ -63,11 +65,11 @@
             <DockContent Type="DockContentType.Column">
                 <DockComponent ShowClose="false" Title="Speed Diagram">
                     <ReportChart IsSetTitle="true" IsStacked="false" Title="Speed" XTitle="Keys" YTitle="Speed (WPM)"
-                                 Xlabels="@_keys" Data="@_speedData"></ReportChart>
+                        Xlabels="@_keys" Data="@_speedData"></ReportChart>
                 </DockComponent>
                 <DockComponent ShowClose="false" Title="Accucary Diagram">
                     <ReportChart IsSetTitle="true" IsStacked="false" Title="Accuracy" XTitle="Keys" YTitle="Accuracy"
-                                 Xlabels="@_keys" Data="@_accuracyData"></ReportChart>
+                        Xlabels="@_keys" Data="@_accuracyData"></ReportChart>
                 </DockComponent>
             </DockContent>
         </DockContent>
@@ -75,12 +77,12 @@
 </div>
 
 @code {
-
     private IEnumerable<string>? _keys;
-    private IList<DrillStats> _statsList;
+    private PagedResult<DrillStats> _statsList = new();
     private DrillStats _curStats;
     private List<ChartDataset> _speedData = [];
     private List<ChartDataset> _accuracyData = [];
+    private const int PageSize = 10;
     private SkillLevel Level => (_curStats.Wpm, _curStats.Accuracy).GetSkillLevel();
 
     // todo: show red color for wrong typed characters
@@ -92,20 +94,52 @@
             var errMessage = "Null account found in AllKeyTest component Initialized method";
             Logger.Error(errMessage);
             throw new Exception(errMessage);
-
         }
 
-        _statsList = Context.CurrentAccount.History.PracticeStats.ToList();
-        _keys ??= await ReportService.GetKeyLabels(Context.CurrentAccount.History);
+        // Load first page of practice history
+        await LoadPracticeHistoryPage(1);
 
+        _keys ??= await ReportService.GetKeyLabels(Context.CurrentAccount.History);
         _speedData = await GetSpeedData();
         _accuracyData = await GetAccuracyData();
         SetResultContext();
     }
-    
+
+    private async Task LoadPracticeHistoryPage(int page)
+    {
+        if (Context.CurrentAccount?.History?.PracticeStats == null)
+        {
+            return;
+        }
+
+        var stats = Context.CurrentAccount.History.PracticeStats
+        .OrderByDescending(p => p.StartTime)
+        .ToList();
+
+        var totalCount = stats.Count;
+        var totalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+        page = Math.Max(1, Math.Min(page, totalPages));
+
+        var pagedStats = stats
+        .Skip((page - 1) * PageSize)
+        .Take(PageSize)
+        .ToList();
+
+        _statsList = new PagedResult<DrillStats>
+        {
+            Items = pagedStats,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = PageSize,
+            TotalPages = totalPages
+        };
+
+        StateHasChanged();
+    }
+
     private void SetResultContext()
     {
-        _curStats = _statsList.FirstOrDefault();
+        _curStats = _statsList.Items.FirstOrDefault();
         if (_curStats == null)
         {
             var errMessage = "Null stats found in AllKeyTest component SetResultContext method";

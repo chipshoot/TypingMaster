@@ -16,12 +16,13 @@ namespace TypingMaster.Server.Controllers
             int id,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
-            [FromQuery] bool sortByNewest = true)
+            [FromQuery] bool sortByNewest = true,
+            [FromQuery] TrainingType? type = null)
         {
             try
             {
                 var result = await practiceLogService.GetPaginatedDrillStatsByPracticeLogIdAsync(
-                    id, page, pageSize, sortByNewest);
+                    id, page, pageSize, sortByNewest, type);
 
                 return Ok(result);
             }

@@ -1,3 +1,4 @@
+using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Utility;
 
@@ -19,12 +20,14 @@ public interface IDrillStatsRepository
     /// <param name="page">The page number of dataset</param>
     /// <param name="pageSize">The page size</param>
     /// <param name="sortByNewest">Sort by date</param>
+    /// <param name="type">The practice type of drill, if its null, take all drill record</param>
     /// <returns>Collection of drill stats for the practice log</returns>
     Task<(IEnumerable<DrillStatsDao> Items, int TotalCount)> GetPaginatedDrillStatsByPracticeLogIdAsync(
         int practiceLogId,
         int page, 
         int pageSize,
-        bool sortByNewest);
+        bool sortByNewest,
+        TrainingType? type = null);
 
     /// <summary>
     /// Create a new drill stat

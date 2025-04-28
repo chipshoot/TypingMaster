@@ -1,36 +1,54 @@
 ﻿<div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownTable"
-            data-bs-toggle="dropdown" aria-expanded="@_isOpen">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownTable" data-bs-toggle="dropdown"
+        aria-expanded="@_isOpen">
         Practice History
     </button>
     <div class="dropdown-menu history-dropdown-menu w-100" style="min-width: 300px;">
         <div class="p-2">
             <table class="table table-hover mb-0">
                 <thead>
-                <tr>
-                    <th>Wpm</th>
-                    <th>Accuracy</th>
-                    <th>Practice Result</th>
-                </tr>
+                    <tr>
+                        <th>Wpm</th>
+                        <th>Accuracy</th>
+                        <th>Practice Result</th>
+                    </tr>
                 </thead>
                 <tbody>
-                @foreach (var stats in StatsList)
-                {
-                    <tr style="cursor: pointer;">
-                        <td>@stats.Wpm</td>
-                        <td>@stats.Accuracy</td>
-                        <td>@stats.GetSkillLevel()</td>
-                    </tr>
-                }
+                    @foreach (var stats in StatsList.Items)
+                    {
+                        <tr style="cursor: pointer;">
+                            <td>@stats.Wpm</td>
+                            <td>@stats.Accuracy</td>
+                            <td>@stats.GetSkillLevel()</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
+            <div class="pagination mt-2">
+                @for (int i = 1; i <= StatsList.TotalPages; i++)
+                {
+                    <div class="page-item">
+                        <span class="page-link @(i == StatsList.Page? "active" : "")" @onclick="() => LoadPage(i)">
+                            @i
+                        </span>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
 
 @code {
     [Parameter]
-    public IList<DrillStats> StatsList { get; set; } = null!;
+    public PagedResult<DrillStats> StatsList { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<int> OnPageChange { get; set; }
 
     private bool _isOpen { get; set; }
+
+    private async Task LoadPage(int page)
+    {
+        await OnPageChange.InvokeAsync(page);
+    }
 }

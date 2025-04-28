@@ -156,7 +156,7 @@ public class PracticeLogServiceTests
             }
         };
 
-        _drillStatsRepositoryMock.Setup(x => x.GetPaginatedDrillStatsByPracticeLogIdAsync(practiceLogId, 1, 10, true))
+        _drillStatsRepositoryMock.Setup(x => x.GetPaginatedDrillStatsByPracticeLogIdAsync(practiceLogId, 1, 10, true, null))
             .ReturnsAsync(new ValueTuple<IEnumerable<DrillStatsDao>, int>(drillStatsDao, drillStatsDao.Count));
 
         // Act

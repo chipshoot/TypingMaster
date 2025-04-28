@@ -1,177 +1,549 @@
 {
   "info": {
     "_postman_id": "bc9e9d3c-7f89-4e7a-9d5d-6a5ff76e12d5",
-    "name": "TypingMaster AccountController",
-    "description": "Collection for testing the AccountController endpoints in TypingMaster API",
+    "name": "TypingMaster API Collection",
+    "description": "Collection for testing all TypingMaster API endpoints",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Get All Accounts",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"user@example.com\",\r\n  \"password\": \"password123\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
           }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/accounts",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "accounts"]
         },
-        "description": "Retrieves all accounts"
-      },
-      "response": []
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"newuser@example.com\",\r\n  \"password\": \"password123\",\r\n  \"firstName\": \"John\",\r\n  \"lastName\": \"Doe\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"accountId\": 1,\r\n  \"refreshToken\": \"{{refreshToken}}\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"token\": \"{{token}}\",\r\n  \"refreshToken\": \"{{refreshToken}}\",\r\n  \"userName\": \"user@example.com\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh-token"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"user@example.com\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"token\": \"reset_token\",\r\n  \"newPassword\": \"newpassword123\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"accountId\": 1,\r\n  \"currentPassword\": \"currentpassword\",\r\n  \"newPassword\": \"newpassword123\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            }
+          }
+        }
+      ]
     },
     {
-      "name": "Create Account",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Get All Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts"]
+            }
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"accountName\": \"New Test Account\",\r\n  \"accountEmail\": \"newtest@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"Jane\",\r\n    \"lastName\": \"Doe\"\r\n  },\r\n  \"goalStats\": {\r\n    \"Wpm\": 40,\r\n  \"Accuracy\": 60\r\n},\r\n  \"history\": {\r\n  },\r\n  \"courseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"testCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"gameCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"version\": 0\r\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/accounts",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "accounts"]
+        {
+          "name": "Test Auth",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/test-auth",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "test-auth"]
+            }
+          }
         },
-        "description": "Creates a new account"
-      },
-      "response": []
+        {
+          "name": "Get Account by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Guest Account",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/guest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "guest"]
+            }
+          }
+        },
+        {
+          "name": "Get Account by Email",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/email/user@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "email", "user@example.com"]
+            }
+          }
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"accountName\": \"New Account\",\r\n  \"accountEmail\": \"new@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\"\r\n  },\r\n  \"goalStats\": {\r\n    \"Wpm\": 40,\r\n    \"Accuracy\": 60\r\n  }\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts"]
+            }
+          }
+        },
+        {
+          "name": "Update Account",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"accountName\": \"Updated Account\",\r\n  \"accountEmail\": \"updated@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\"\r\n  }\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Patch Account",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"/accountName\",\r\n    \"value\": \"Patched Account Name\"\r\n  }\r\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/accounts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "accounts", "1"]
+            }
+          }
+        }
+      ]
     },
     {
-      "name": "Test Auth",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Get Course by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "00000000-0000-0000-0000-000000000000"]
+            }
           }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/accounts/test-auth",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "accounts", "test-auth"]
         },
-        "description": "Tests authentication and returns user claim information"
-      },
-      "response": []
+        {
+          "name": "Get Courses by Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/by-type?accountId=1&type=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "by-type"],
+              "query": [
+                {
+                  "key": "accountId",
+                  "value": "1"
+                },
+                {
+                  "key": "type",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Courses by Type (Guest)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/by-type-guest?type=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "by-type-guest"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"New Course\",\r\n  \"description\": \"Course Description\",\r\n  \"type\": 1\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses"]
+            }
+          }
+        },
+        {
+          "name": "Generate Beginner Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"difficulty\": 1,\r\n  \"keySet\": \"basic\"\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/beginner",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "beginner"]
+            }
+          }
+        },
+        {
+          "name": "Generate Start Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/start-stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "start-stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Practice Lesson",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"wpm\": 40,\r\n  \"accuracy\": 95\r\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/practice-lesson/00000000-0000-0000-0000-000000000000/1",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "courses",
+                "practice-lesson",
+                "00000000-0000-0000-0000-000000000000",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
     },
     {
-      "name": "Get Account by ID",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
+      "name": "Practice Logs",
+      "item": [
+        {
+          "name": "Get Drill Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/practicelogs/1/drill-stats?page=1&pageSize=10&sortByNewest=true&type=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "practicelogs", "1", "drill-stats"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "sortByNewest",
+                  "value": "true"
+                },
+                {
+                  "key": "type",
+                  "value": "1"
+                }
+              ]
+            }
           }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/accounts/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "accounts", "1"]
-        },
-        "description": "Retrieves an account by its ID"
-      },
-      "response": []
-    },
-    {
-      "name": "Update Account",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"id\": 1,\r\n  \"accountName\": \"Updated Account\",\r\n  \"accountEmail\": \"updated@example.com\",\r\n  \"user\": {\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\"\r\n  },\r\n  \"goalStats\": null,\r\n  \"history\": {\r\n  },\r\n  \"courseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"testCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"gameCourseId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"isDeleted\": false,\r\n  \"deletedAt\": null,\r\n  \"version\": 1\r\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/accounts/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "accounts", "1"]
-        },
-        "description": "Updates an existing account"
-      },
-      "response": []
-    },
-    {
-      "name": "Delete Account",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/accounts/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "accounts", "1"]
-        },
-        "description": "Deletes an account"
-      },
-      "response": []
-    },
-    {
-      "name": "Patch Account",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "[\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"/accountName\",\r\n    \"value\": \"Patched Account Name\"\r\n  },\r\n  {\r\n    \"op\": \"replace\",\r\n    \"path\": \"/accountEmail\",\r\n    \"value\": \"patched@example.com\"\r\n  }\r\n]"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/accounts/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "accounts", "1"]
-        },
-        "description": "Partially updates an account using JSON Patch"
-      },
-      "response": []
+        }
+      ]
     }
   ],
   "event": [
@@ -199,6 +571,11 @@
     {
       "key": "token",
       "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "YOUR_REFRESH_TOKEN_HERE",
       "type": "string"
     }
   ]
