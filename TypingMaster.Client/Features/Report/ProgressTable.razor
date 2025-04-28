@@ -133,14 +133,60 @@ else
                             </button>
                         </li>
 
-                        @for (int i = 1; i <= Items.TotalPages; i++)
-                        {
-                            var pageNumber = i;
-                            <li class="page-item @(pageNumber == CurrentPage ? "active" : "")">
-                                <button class="page-link" @onclick="() => OnPageChangeAsync(pageNumber)">
-                                    @pageNumber
-                                </button>
-                            </li>
+                        @{
+                            const int maxVisiblePages = 3;
+                            int startPage = Math.Max(1, CurrentPage - maxVisiblePages / 2);
+                            int endPage = Math.Min(Items.TotalPages, startPage + maxVisiblePages - 1);
+
+                            if (endPage - startPage + 1 < maxVisiblePages)
+                            {
+                                startPage = Math.Max(1, endPage - maxVisiblePages + 1);
+                            }
+
+                            // First page
+                            if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <button class="page-link" @onclick="() => OnPageChangeAsync(1)">1</button>
+                                </li>
+
+                                // Show ellipsis if there's a gap
+                                if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            // Page numbers
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                                var pageNumber = i;
+                                <li class="page-item @(pageNumber == CurrentPage ? "active" : "")">
+                                    <button class="page-link" @onclick="() => OnPageChangeAsync(pageNumber)">
+                                        @pageNumber
+                                    </button>
+                                </li>
+                            }
+
+                            // Last page
+                            if (endPage < Items.TotalPages)
+                            {
+                                // Show ellipsis if there's a gap
+                                if (endPage < Items.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+
+                                <li class="page-item">
+                                    <button class="page-link" @onclick="() => OnPageChangeAsync(Items.TotalPages)">
+                                        @Items.TotalPages
+                                    </button>
+                                </li>
+                            }
                         }
 
                         <li class="page-item @(CurrentPage == Items.TotalPages ? "disabled" : "")">
