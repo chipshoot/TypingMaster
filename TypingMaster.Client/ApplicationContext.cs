@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using TypingMaster.Client.Services;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
@@ -6,11 +7,12 @@ using TypingMaster.Shared.Utility;
 
 namespace TypingMaster.Client;
 
-public class ApplicationContext(
-    IClientStorageService storage,
-    NavigationManager navigationManager,
-    ICourseWebService courseWebService)
+public class ApplicationContext
 {
+    private readonly IClientStorageService _storage;
+    private readonly NavigationManager _navigationManager;
+    private readonly ICourseWebService _courseWebService;
+
     private const string AccountKey = "Account";
     private const string CourseKey = "Course";
     private const string IsLoggedKey = "Login";
@@ -22,6 +24,25 @@ public class ApplicationContext(
     private bool _isLoggedIn;
     private string? _token;
     private string? _refreshToken;
+
+    public ApplicationContext(
+        IClientStorageService storage,
+        NavigationManager navigationManager,
+        ICourseWebService courseWebService)
+    {
+        _storage = storage;
+        _navigationManager = navigationManager;
+        _courseWebService = courseWebService;
+
+        // Register for navigation events
+        _navigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // Invoke the OnNavigating event when navigation occurs
+        OnNavigating?.Invoke();
+    }
 
     public bool IsLoggedIn
     {
@@ -47,11 +68,11 @@ public class ApplicationContext(
                 _token = value;
                 if (value != null)
                 {
-                    storage.SetItem(TokenKey, value);
+                    _storage.SetItem(TokenKey, value);
                 }
                 else
                 {
-                    storage.RemoveItem(TokenKey);
+                    _storage.RemoveItem(TokenKey);
                 }
             }
         }
@@ -68,11 +89,11 @@ public class ApplicationContext(
                 _refreshToken = value;
                 if (value != null)
                 {
-                    storage.SetItem(RefreshTokenKey, value);
+                    _storage.SetItem(RefreshTokenKey, value);
                 }
                 else
                 {
-                    storage.RemoveItem(RefreshTokenKey);
+                    _storage.RemoveItem(RefreshTokenKey);
                 }
             }
         }
@@ -112,16 +133,16 @@ public class ApplicationContext(
         {
             return;
         }
-        _currentCourse = await courseWebService.GetCourse(_currentCourseId);
+        _currentCourse = await _courseWebService.GetCourse(_currentCourseId);
     }
 
     public void InitializeAccount()
     {
-        _currentAccount = storage.GetItem<Account>(AccountKey);
-        _currentCourseId = storage.GetItem<Guid>(CourseKey);
-        IsLoggedIn = storage.GetItem<bool>(IsLoggedKey);
-        _token = storage.GetItem<string>(TokenKey);
-        _refreshToken = storage.GetItem<string>(RefreshTokenKey);
+        _currentAccount = _storage.GetItem<Account>(AccountKey);
+        _currentCourseId = _storage.GetItem<Guid>(CourseKey);
+        IsLoggedIn = _storage.GetItem<bool>(IsLoggedKey);
+        _token = _storage.GetItem<string>(TokenKey);
+        _refreshToken = _storage.GetItem<string>(RefreshTokenKey);
 
         if (_currentAccount == null || _currentCourseId == Guid.Empty)
         {
@@ -137,11 +158,11 @@ public class ApplicationContext(
         _currentCourse = null;
         IsLoggedIn = false;
         _token = null;
-        storage.RemoveItem(AccountKey);
-        storage.RemoveItem(CourseKey);
-        storage.RemoveItem(IsLoggedKey);
-        storage.RemoveItem(TokenKey);
-        storage.RemoveItem(RefreshTokenKey);
+        _storage.RemoveItem(AccountKey);
+        _storage.RemoveItem(CourseKey);
+        _storage.RemoveItem(IsLoggedKey);
+        _storage.RemoveItem(TokenKey);
+        _storage.RemoveItem(RefreshTokenKey);
         NotifyStateChanged();
     }
 
@@ -149,28 +170,28 @@ public class ApplicationContext(
     {
         if (_currentAccount != null && key == AccountKey)
         {
-            storage.SetItem(AccountKey, _currentAccount);
+            _storage.SetItem(AccountKey, _currentAccount);
         }
 
         if (_currentCourse != null && key == CourseKey)
         {
-            storage.SetItem(CourseKey, _currentCourse.Id);
+            _storage.SetItem(CourseKey, _currentCourse.Id);
         }
 
         if (key == IsLoggedKey)
         {
-            storage.SetItem(IsLoggedKey, IsLoggedIn);
+            _storage.SetItem(IsLoggedKey, IsLoggedIn);
         }
 
         if (key == TokenKey)
         {
             if (_token != null)
             {
-                storage.SetItem(TokenKey, _token);
+                _storage.SetItem(TokenKey, _token);
             }
             else
             {
-                storage.RemoveItem(TokenKey);
+                _storage.RemoveItem(TokenKey);
             }
         }
 
@@ -178,11 +199,11 @@ public class ApplicationContext(
         {
             if (_refreshToken != null)
             {
-                storage.SetItem(RefreshTokenKey, _refreshToken);
+                _storage.SetItem(RefreshTokenKey, _refreshToken);
             }
             else
             {
-                storage.RemoveItem(RefreshTokenKey);
+                _storage.RemoveItem(RefreshTokenKey);
             }
         }
     }
@@ -202,11 +223,11 @@ public class ApplicationContext(
             // Redirect to login page with return URL if provided
             if (!string.IsNullOrEmpty(returnUrl))
             {
-                navigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+                _navigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
             }
             else
             {
-                navigationManager.NavigateTo("/login");
+                _navigationManager.NavigateTo("/login");
             }
 
             return false;
@@ -225,6 +246,9 @@ public class ApplicationContext(
     }
 
     public event Action? OnChange;
+
+    // Add a new event that fires when navigating away from a page
+    public event Action? OnNavigating;
 
     private void NotifyStateChanged() => OnChange?.Invoke();
 }

@@ -6,11 +6,35 @@
 
 <style>
     .header-cell {
-    align-items: center;
-    text-align: center;
-    word-break: break-all;
+        align-items: center;
+        text-align: center;
+        word-break: break-all;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .page-item {
+        margin: 0 0.25rem;
+    }
+
+    .page-link {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+    .page-link.active {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
     }
 </style>
+
 <RequireAuthentication ShowMessage="true">
     <Tab IsCard="true">
         <TabItem Text="Progress" CssClass="progress-table">
@@ -18,10 +42,10 @@
             <Collapse IsAccordion="true">
                 <CollapseItems>
                     <CollapseItem Text="Lesson - Practice" IsCollapsed="false">
-                        <ProgressTable Items="@_courseProgress" />
+                        <ProgressTable Type="@TrainingType.Course" />
                     </CollapseItem>
                     <CollapseItem Text="Test">
-                        <ProgressTable Items="@_testProgress" />
+                        <ProgressTable Type="@TrainingType.AllKeysTest" />
                     </CollapseItem>
                 </CollapseItems>
             </Collapse>
@@ -29,25 +53,22 @@
         <TabItem Text="Speed">
             <div>Speed</div>
             <ReportChart IsSetTitle="true" IsStacked="false" Title="Speed" XTitle="Keys" YTitle="Speed (WPM)"
-            Xlabels="@_keys" Data="@GetSpeedData()"></ReportChart>
+                Xlabels="@_keys" Data="@GetSpeedData()"></ReportChart>
         </TabItem>
         <TabItem Text="Accuracy">
             <div>Accuracy</div>
             <ReportChart IsSetTitle="true" IsStacked="false" Title="Accuracy" XTitle="Keys" YTitle="Accuracy"
-            Xlabels="@_keys" Data="@GetAccuracyData()"></ReportChart>
+                Xlabels="@_keys" Data="@GetAccuracyData()"></ReportChart>
         </TabItem>
     </Tab>
 </RequireAuthentication>
 
 @code {
-
     [Parameter] public int AccountId { get; set; } = 1;
 
     private Chart _barChart;
     private IEnumerable<string>? _keys;
     private Dictionary<string, IEnumerable<double>>? _keyStats;
-    private List<ProgressRecord> _courseProgress = new();
-    private List<ProgressRecord> _testProgress = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,16 +84,6 @@
 
         _keys ??= await ReportService.GetKeyLabels(AppState.CurrentAccount.History);
         _keyStats ??= await ReportService.GetKeyStats(AppState.CurrentAccount.History, false);
-
-        _courseProgress = (await ReportService.GetProgressRecords(
-            AppState.CurrentAccount.History,
-            AppState.CurrentCourse,
-            TrainingType.Course)).ToList();
-
-        _testProgress = (await ReportService.GetProgressRecords(
-            AppState.CurrentAccount.History,
-            AppState.CurrentCourse,
-            TrainingType.AllKeysTest, TrainingType.SpeedTest)).ToList();
     }
 
     private List<ChartDataset> GetSpeedData()
@@ -83,10 +94,10 @@
         }
 
         var data = new List<ChartDataset>
-        {
-            new() { Label = "Average Press Duration", Data = _keyStats["typeSpeed"].Select(v => Math.Round(v, 1)).Cast<object>() },
-            new() { Label = "Average Latency", Data = _keyStats["latency"].Select(v => Math.Round(v, 1)).Cast<object>() }
-        };
+{
+new() { Label = "Average Press Duration", Data = _keyStats["typeSpeed"].Select(v => Math.Round(v, 1)).Cast<object>() },
+new() { Label = "Average Latency", Data = _keyStats["latency"].Select(v => Math.Round(v, 1)).Cast<object>() }
+};
 
         return data;
     }
@@ -99,12 +110,12 @@
         }
 
         var data = new List<ChartDataset>
-        {
-            new()
-            {
-                Label = "Overall Accuracy", Data = _keyStats["accuracy"].Select(v => Math.Round(v, 1)).Cast<object>()
-            }
-        };
+{
+new()
+{
+Label = "Overall Accuracy", Data = _keyStats["accuracy"].Select(v => Math.Round(v, 1)).Cast<object>()
+}
+};
 
         return data;
     }

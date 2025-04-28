@@ -13,7 +13,8 @@
             </div>
             <div class="d-flex">
                 <div class="me-2">
-                    <PracticeHistory StatsList="@StatsList"></PracticeHistory>
+                    <PracticeHistory StatsList="@_practiceHistory" OnPageChange="LoadPracticeHistoryPage">
+                    </PracticeHistory>
                 </div>
                 <div>
                     <Button Color="Color.Primary" OnClick="ResetPractice">RePractise</Button>
@@ -22,21 +23,19 @@
         </div>
     </HeaderTemplate>
     <BodyTemplate>
-        <Practice CurrentLesson="@_curLesson" 
-        TrainingType="@TrainingType.Course" 
-        OnTypingCompleted="OnPracticeFinished"
-        @ref="@_practice">
+        <Practice CurrentLesson="@_curLesson" TrainingType="@TrainingType.Course" OnTypingCompleted="OnPracticeFinished"
+            @ref="@_practice">
         </Practice>
     </BodyTemplate>
 </Card>
+
 @code {
     private string _text = string.Empty;
     private Practice? _practice;
     private bool _isCompleted;
     private Lesson? _curLesson;
-
-    private IList<DrillStats> StatsList => AppState.CurrentAccount?.History.PracticeStats.Where(p => p.Type == TrainingType.Course).ToList() ?? [];
-
+    private PagedResult<DrillStats> _practiceHistory = new();
+    private const int PageSize = 10;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,11 +61,47 @@
             }
         }
 
+        // Load first page of practice history
+        await LoadPracticeHistoryPage(1);
+
         // system get drill stats sorted by newest record by default, this let use get latest record at first record of the dataset
         var stats = AppState.CurrentAccount.History.PracticeStats.FirstOrDefault() ?? await CourseService.GenerateStartStats();
         var courseId = AppState.CurrentCourse.Id;
         _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
         TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
+
+        StateHasChanged();
+    }
+
+    private async Task LoadPracticeHistoryPage(int page)
+    {
+        if (AppState.CurrentAccount?.History?.PracticeStats == null)
+        {
+            return;
+        }
+
+        var stats = AppState.CurrentAccount.History.PracticeStats
+        .Where(p => p.Type == TrainingType.Course)
+        .OrderByDescending(p => p.StartTime)
+        .ToList();
+
+        var totalCount = stats.Count;
+        var totalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+        page = Math.Max(1, Math.Min(page, totalPages));
+
+        var pagedStats = stats
+        .Skip((page - 1) * PageSize)
+        .Take(PageSize)
+        .ToList();
+
+        _practiceHistory = new PagedResult<DrillStats>
+        {
+            Items = pagedStats,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = PageSize,
+            TotalPages = totalPages
+        };
 
         StateHasChanged();
     }
@@ -89,30 +124,8 @@
         await TypingTrainer.SavePracticeHistoryAsync(stats);
         AppState.CurrentAccount = TypingTrainer.Account;
 
-        // Get next lesson
-        var nextLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
-        if (nextLesson != null)
-        {
-            if (!nextLesson.IsCourseComplete)
-            {
-                _curLesson = nextLesson;
-                _isCompleted = false;
-                if (_curLesson.Id != AppState.CurrentAccount.History.CurrentLessonId)
-                {
-                    AppState.CurrentAccount.History.CurrentLessonId = _curLesson.Id;
-                }
-            }
-            else
-            {
-                _curLesson = null;
-                _isCompleted = true;
-            }
-        }
-
-        Logger.Verbose($"DrillStats: {JsonSerializer.Serialize(stats)}");
-        _practice?.HandleReset(_isCompleted);
-        await Task.Delay(100); // Give time for state changes to complete
-        await _practice?.FocusInput();
+        // Reload the current page of practice history
+        await LoadPracticeHistoryPage(_practiceHistory.Page);
     }
 
     private async Task ResetPractice()

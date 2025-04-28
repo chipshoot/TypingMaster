@@ -1,12 +1,18 @@
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Client.Services
 {
-    public class ReportWebService(HttpClient httpClient, IApiConfiguration apiConfig) : IReportWebService
+    public class ReportWebService(HttpClient httpClient, IApiConfiguration apiConfig, Serilog.ILogger logger) : IReportWebService
     {
-        private readonly HttpClient _httpClient = httpClient;
-        private readonly IApiConfiguration _apiConfig = apiConfig;
+        private readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
 
         public async Task<IEnumerable<string>> GetKeyLabels(PracticeLog history)
         {
@@ -50,41 +56,105 @@ namespace TypingMaster.Client.Services
             };
         }
 
-        public async Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseDto course, params TrainingType[] types)
+        public async Task<PagedResult<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseDto course, TrainingType type, int page = 1, int pageSize = 10, bool sortByNewest = true)
         {
-            if (history?.PracticeStats == null || course == null)
-                return Array.Empty<ProgressRecord>();
+            if (history == null || course == null)
+                return new PagedResult<ProgressRecord>();
 
-            var dataList = new List<ProgressRecord>();
-
-            foreach (var item in history.PracticeStats)
+            try
             {
-                // Only process items matching the requested type
-                if (!types.Contains(item.Type))
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.PracticeLogService}/{history.Id}");
+                var fullUrl = $"{url}/drill-stats?page={page}&pageSize={pageSize}&sortByNewest={sortByNewest}&type={type}";
+                var response = await httpClient.GetAsync($"{fullUrl}");
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    continue;
+                    logger.Error("Failed to get progress records. Status code: {StatusCode}", response.StatusCode);
+                    return new PagedResult<ProgressRecord>();
                 }
 
-                var record = new ProgressRecord
+                var content = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrEmpty(content))
                 {
-                    Type = item.Type.ToString(),
-                    Name = course.Name,
-                    Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(),
-                    GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
-                    OverallAccuracy = item.Accuracy,
-                    OverallSpeed = item.Wpm,
-                    BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
-                    BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
-                    BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
-                };
+                    logger.Error("Empty response content received");
+                    return new PagedResult<ProgressRecord>();
+                }
 
-                dataList.Add(record);
+                try
+                {
+                    var apiResponse = await response.Content.ReadFromJsonAsync<ApiDrillStatsResponse>(_jsonOptions);
+                    if (apiResponse == null || !apiResponse.Success || apiResponse.Items == null)
+                    {
+                        logger.Error("Invalid API response: {Content}", content);
+                        return new PagedResult<ProgressRecord>();
+                    }
+
+                    // Ensure all numeric fields are properly converted
+                    var items = new List<ProgressRecord>();
+
+                    foreach (var item in apiResponse.Items)
+                    {
+                        try
+                        {
+                            var record = new ProgressRecord
+                            {
+                                Type = item.Type.ToString(),
+                                Name = course.Name,
+                                Date = item.StartTime?.ToString() ?? DateTime.Now.ToString(),
+                                GoodWpmKeys = CalculateGoodWpmKeys(item.KeyEvents),
+                                OverallAccuracy = item.Accuracy,
+                                OverallSpeed = item.Wpm,
+                                BreakdownLetter = CalculateBreakdownLetter(item.KeyEvents, item.Wpm),
+                                BreakdownNumber = CalculateBreakdownNumber(item.KeyEvents, item.Wpm),
+                                BreakdownSymbol = CalculateBreakdownSymbol(item.KeyEvents, item.Wpm)
+                            };
+                            items.Add(record);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Error(ex, "Error converting numeric values for record");
+                        }
+                    }
+
+                    var records = new PagedResult<ProgressRecord>
+                    {
+                        Items = items,
+                        Page = apiResponse.Page,
+                        TotalPages = apiResponse.TotalPages,
+                        TotalCount = apiResponse.TotalCount,
+                        PageSize = apiResponse.PageSize,
+                    };
+
+                    return records;
+                }
+                catch (JsonException ex)
+                {
+                    logger.Error(ex, "Error deserializing response content: {Content}", content);
+                    return new PagedResult<ProgressRecord>();
+                }
             }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error getting progress records");
+                return new PagedResult<ProgressRecord>();
+            }
+        }
 
-            return dataList;
+        public class ApiDrillStatsResponse
+        {
+            public bool Success { get; set; }
+            public string? Message { get; set; }
+            public IEnumerable<DrillStats>? Items { get; set; }
+            public int Page { get; set; }
+            public int PageSize { get; set; }
+            public int TotalPages { get; set; }
+            public int TotalCount { get; set; }
+            public bool HasNextPage { get; set; }
+            public bool HasPreviousPage { get; set; }
         }
 
         #region Helper Methods
+
         private static int CalculateGoodWpmKeys(Queue<KeyEvent> keyEvents)
         {
             var count = 0;
@@ -157,6 +227,7 @@ namespace TypingMaster.Client.Services
             var wpm = (totalLetters / 5.0) / totalTime;
             return (int)wpm;
         }
-        #endregion
+
+        #endregion Helper Methods
     }
 }

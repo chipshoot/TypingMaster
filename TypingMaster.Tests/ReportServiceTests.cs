@@ -1,20 +1,23 @@
 ﻿using Moq;
 using Serilog;
 using TypingMaster.Business;
+using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
 
 namespace TypingMaster.Tests
 {
     public class ReportServiceTests
     {
+        private readonly Mock<IPracticeLogService> _mockPracticeLogService;
         private readonly Mock<ILogger> _mockLogger;
         private readonly ReportService _reportService;
 
         //todo: update test class to meet the new design of the ReportService class
         public ReportServiceTests()
         {
+            _mockPracticeLogService = new Mock<IPracticeLogService>();
             _mockLogger = new Mock<ILogger>();
-            _reportService = new ReportService(_mockLogger.Object);
+            _reportService = new ReportService(_mockPracticeLogService.Object, _mockLogger.Object);
         }
 
         [Fact]

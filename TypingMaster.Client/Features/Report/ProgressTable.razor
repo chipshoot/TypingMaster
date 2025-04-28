@@ -1,4 +1,8 @@
 ﻿@namespace TypingMaster.Client.Features.Report
+@inject IReportWebService ReportService
+@inject ApplicationContext AppState
+@inject ILogger<ProgressTable> Logger
+@implements IDisposable
 
 <style>
     .header-cell {
@@ -6,59 +10,350 @@
         text-align: center;
         word-break: break-all;
     }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .page-item {
+        margin: 0 0.25rem;
+    }
+
+    .page-link {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+    .page-link.active {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
 </style>
 
-<Table TItem="ProgressRecord" Items="@Items" HeaderStyle="TableHeaderStyle.Light"
-       IsBordered="true" IsStriped="true">
-    <MultiHeaderTemplate>
-        <tr>
-            <th rowspan="2" style="vertical-align:bottom;">
-                <div class="header-cell header-multi-row">Name</div>
-            </th>
-            <th rowspan="2" style="vertical-align:bottom;">
-                <div class="header-cell header-multi-row">Keys above 20 WPM</div>
-            </th>
-            <th rowspan="2" style="vertical-align:bottom;">
-                <div class="header-cell header-multi-row">Date</div>
-            </th>
-            <th colspan="2">
-                <div class="header-cell">Overall</div>
-            </th>
-            <th colspan="3">
-                <div class="header-cell">Speed Breakdown</div>
-            </th>
-        </tr>
-        <tr>
-            <th>
-                <div class="header-cell">Accuracy</div>
-            </th>
-            <th>
-                <div class="header-cell">Speed</div>
-            </th>
-            <th>
-                <div class="header-cell">Letter</div>
-            </th>
-            <th>
-                <div class="header-cell">Number</div>
-            </th>
-            <th>
-                <div class="header-cell">Symbol</div>
-            </th>
-        </tr>
-    </MultiHeaderTemplate>
-    <TableColumns>
-        <TableColumn @bind-Field="@context.Name"></TableColumn>
-        <TableColumn @bind-Field="@context.GoodWpmKeys"></TableColumn>
-        <TableColumn @bind-Field="@context.Date"></TableColumn>
-        <TableColumn @bind-Field="@context.OverallAccuracy"></TableColumn>
-        <TableColumn @bind-Field="@context.OverallSpeed"></TableColumn>
-        <TableColumn @bind-Field="@context.BreakdownLetter"></TableColumn>
-        <TableColumn @bind-Field="@context.BreakdownNumber"></TableColumn>
-        <TableColumn @bind-Field="@context.BreakdownSymbol"></TableColumn>
-    </TableColumns>
-</Table>
+@if (IsLoading)
+{
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="d-flex justify-content-end mb-2">
+        <button class="btn btn-sm btn-outline-secondary" @onclick="RefreshData">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh Data
+        </button>
+    </div>
+
+    <Table TItem="ProgressRecord" Items="@Items.Items" HeaderStyle="TableHeaderStyle.Light" IsBordered="true"
+        IsStriped="true" AutoGenerateColumns="false">
+        <MultiHeaderTemplate>
+            <tr>
+                <th rowspan="2" style="vertical-align:bottom;">
+                    <div class="header-cell header-multi-row">Name</div>
+                </th>
+                <th rowspan="2" style="vertical-align:bottom;">
+                    <div class="header-cell header-multi-row">Keys above 20 WPM</div>
+                </th>
+                <th rowspan="2" style="vertical-align:bottom;">
+                    <div class="header-cell header-multi-row">Date</div>
+                </th>
+                <th colspan="2">
+                    <div class="header-cell">Overall</div>
+                </th>
+                <th colspan="3">
+                    <div class="header-cell">Speed Breakdown</div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="header-cell">Accuracy</div>
+                </th>
+                <th>
+                    <div class="header-cell">Speed</div>
+                </th>
+                <th>
+                    <div class="header-cell">Letter</div>
+                </th>
+                <th>
+                    <div class="header-cell">Number</div>
+                </th>
+                <th>
+                    <div class="header-cell">Symbol</div>
+                </th>
+            </tr>
+        </MultiHeaderTemplate>
+        <TableColumns>
+            <TableColumn @bind-Field="@context.Name"></TableColumn>
+            <TableColumn @bind-Field="@context.GoodWpmKeys"></TableColumn>
+            <TableColumn @bind-Field="@context.Date"></TableColumn>
+            <TableColumn @bind-Field="@context.OverallAccuracy"></TableColumn>
+            <TableColumn @bind-Field="@context.OverallSpeed"></TableColumn>
+            <TableColumn @bind-Field="@context.BreakdownLetter"></TableColumn>
+            <TableColumn @bind-Field="@context.BreakdownNumber"></TableColumn>
+            <TableColumn @bind-Field="@context.BreakdownSymbol"></TableColumn>
+        </TableColumns>
+    </Table>
+
+    @if (Items.TotalCount > 0)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <div class="text-muted small d-flex align-items-center">
+                <span class="badge bg-light text-dark border me-2">@(Items.Items.Count())</span>
+                <span>of <strong>@Items.TotalCount</strong> records</span>
+                @if (Items.TotalPages > 1)
+                {
+                    <span class="ms-2">• Page <strong>@CurrentPage</strong> of @Items.TotalPages</span>
+                }
+                @if (IsFromCache)
+                {
+                    <span class="badge bg-info text-white ms-2">Cached</span>
+                }
+            </div>
+            <div class="d-flex align-items-center">
+                <select class="form-select me-3" style="width: auto;" @onchange="OnPageSizeChangeAsync">
+                    @foreach (var size in PageItemsSource)
+                    {
+                        <option value="@size" selected="@(size == PageItems)">@size per page</option>
+                    }
+                </select>
+
+                <div class="pagination mb-0">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => OnPageChangeAsync(CurrentPage - 1)"
+                                disabled="@(CurrentPage == 1)">
+                                &laquo;
+                            </button>
+                        </li>
+
+                        @{
+                            const int maxVisiblePages = 3;
+                            int startPage = Math.Max(1, CurrentPage - maxVisiblePages / 2);
+                            int endPage = Math.Min(Items.TotalPages, startPage + maxVisiblePages - 1);
+
+                            if (endPage - startPage + 1 < maxVisiblePages)
+                            {
+                                startPage = Math.Max(1, endPage - maxVisiblePages + 1);
+                            }
+
+                            // First page
+                            if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <button class="page-link" @onclick="() => OnPageChangeAsync(1)">1</button>
+                                </li>
+
+                                // Show ellipsis if there's a gap
+                                if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            // Page numbers
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                                var pageNumber = i;
+                                <li class="page-item @(pageNumber == CurrentPage ? "active" : "")">
+                                    <button class="page-link" @onclick="() => OnPageChangeAsync(pageNumber)">
+                                        @pageNumber
+                                    </button>
+                                </li>
+                            }
+
+                            // Last page
+                            if (endPage < Items.TotalPages)
+                            {
+                                // Show ellipsis if there's a gap
+                                if (endPage < Items.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+
+                                <li class="page-item">
+                                    <button class="page-link" @onclick="() => OnPageChangeAsync(Items.TotalPages)">
+                                        @Items.TotalPages
+                                    </button>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(CurrentPage == Items.TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => OnPageChangeAsync(CurrentPage + 1)"
+                                disabled="@(CurrentPage == Items.TotalPages)">
+                                &raquo;
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+}
 
 @code {
     [Parameter]
-    public List<ProgressRecord> Items { get; set; } = [];
+    public TrainingType Type { get; set; }
+
+    private PagedResult<ProgressRecord> Items { get; set; } = new();
+    private int PageItems { get; set; } = 10;
+    private int CurrentPage { get; set; } = 1;
+    private IEnumerable<int> PageItemsSource => [5, 10, 20];
+    private bool IsLoading { get; set; } = true;
+    private bool IsFromCache { get; set; } = false;
+
+    // Cache properties
+    private static readonly Dictionary<string, PagedResult<ProgressRecord>> _cachedData = new();
+    private static readonly Dictionary<string, (int Page, int PageSize)> _cachedSettings = new();
+
+    // Cache key based on training type, user account and course
+    private string CacheKey => $"{AppState?.CurrentAccount?.Id}_{AppState?.CurrentCourse?.Id}_{Type}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if we have cached data
+        if (_cachedData.TryGetValue(CacheKey, out var cachedItems) &&
+        _cachedSettings.TryGetValue(CacheKey, out var settings))
+        {
+            // Use the cached data and settings
+            Items = cachedItems;
+            CurrentPage = settings.Page;
+            PageItems = settings.PageSize;
+            IsFromCache = true;
+            IsLoading = false;
+        }
+        else
+        {
+            // No cached data, load from server
+            await LoadProgress(1);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to location changes
+        if (AppState != null)
+        {
+            AppState.OnNavigating += SaveToCache;
+            Logger.LogInformation("Subscribed to OnNavigating event");
+        }
+        else
+        {
+            Logger.LogWarning("AppState is null, can't subscribe to OnNavigating");
+        }
+    }
+
+    private void SaveToCache()
+    {
+        // Only cache if we have data
+        if (Items != null && Items.TotalCount > 0)
+        {
+            _cachedData[CacheKey] = Items;
+            _cachedSettings[CacheKey] = (CurrentPage, PageItems);
+            Logger.LogInformation($"Saved data to cache with key: {CacheKey}, Page: {CurrentPage}, Items: {Items.TotalCount}");
+        }
+    }
+
+    public void Dispose()
+    {
+        // Manually save to cache one last time before component is destroyed
+        SaveToCache();
+
+        // Unsubscribe from events to prevent memory leaks
+        if (AppState != null)
+        {
+            AppState.OnNavigating -= SaveToCache;
+            Logger.LogInformation("Unsubscribed from OnNavigating event");
+        }
+    }
+
+    private async Task OnPageChangeAsync(int pageIndex)
+    {
+        if (pageIndex < 1 || pageIndex > Items.TotalPages)
+            return;
+
+        CurrentPage = pageIndex;
+
+        // If we're coming from cache, we need to fetch the new page
+        if (IsFromCache)
+        {
+            IsFromCache = false;
+        }
+
+        await LoadProgress(pageIndex);
+    }
+
+    private async Task OnPageSizeChangeAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newPageSize))
+        {
+            PageItems = newPageSize;
+            CurrentPage = 1;
+            // Reset cache flag as we're changing parameters
+            IsFromCache = false;
+            await LoadProgress(1);
+        }
+    }
+
+    private async Task LoadProgress(int page)
+    {
+        if (AppState?.CurrentAccount?.History == null || AppState.CurrentCourse == null)
+        {
+            IsLoading = false;
+            return;
+        }
+
+        // Skip loading if we're using cached data
+        if (IsFromCache)
+        {
+            IsLoading = false;
+            return;
+        }
+
+        IsLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            Items = await ReportService.GetProgressRecords(
+            AppState.CurrentAccount.History,
+            AppState.CurrentCourse,
+            Type,
+            page,
+            PageItems);
+
+            CurrentPage = Items.Page;
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        // Clear the cache flag to force a reload
+        IsFromCache = false;
+
+        // Remove this specific cache entry
+        if (_cachedData.ContainsKey(CacheKey))
+        {
+            _cachedData.Remove(CacheKey);
+        }
+
+        // Force reload from server
+        await LoadProgress(CurrentPage);
+    }
 }

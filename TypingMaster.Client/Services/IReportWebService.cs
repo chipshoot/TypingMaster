@@ -25,8 +25,17 @@ namespace TypingMaster.Client.Services
         /// </summary>
         /// <param name="history">The practice log containing practice statistics</param>
         /// <param name="course">The course to get progress records for</param>
-        /// <param name="types">The training type to filter progress records by</param>
-        /// <returns>A collection of progress records</returns>
-        Task<IEnumerable<ProgressRecord>> GetProgressRecords(PracticeLog history, CourseDto course, params TrainingType[] types);
+        /// <param name="type">The training type to filter progress records by</param>
+        /// <param name="page">The page number to retrieve (1-based)</param>
+        /// <param name="pageSize">The number of records per page</param>
+        /// <param name="sortByNewest">Whether to sort records by newest first</param>
+        /// <returns>A paged result containing progress records</returns>
+        Task<PagedResult<ProgressRecord>> GetProgressRecords(
+            PracticeLog history,
+            CourseDto course,
+            TrainingType type,
+            int page = 1,
+            int pageSize = 10,
+            bool sortByNewest = true);
     }
 }

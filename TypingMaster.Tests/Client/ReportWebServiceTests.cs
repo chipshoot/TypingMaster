@@ -1,4 +1,5 @@
 using Moq;
+using Serilog;
 using TypingMaster.Client;
 using TypingMaster.Client.Services;
 using TypingMaster.Core.Models;
@@ -10,15 +11,17 @@ namespace TypingMaster.Tests.Client
     {
         private readonly ReportWebService _reportWebService;
         private readonly Mock<IApiConfiguration> _mockApiConfig;
+        private readonly Mock<ILogger> _mockLogger;
         private readonly HttpClient _httpClient;
 
         public ReportWebServiceTests()
         {
             _httpClient = new HttpClient();
             _mockApiConfig = new Mock<IApiConfiguration>();
+            _mockLogger = new Mock<ILogger>();
             _mockApiConfig.Setup(x => x.BuildApiUrl(It.IsAny<string>())).Returns<string>(s => s);
             
-            _reportWebService = new ReportWebService(_httpClient, _mockApiConfig.Object);
+            _reportWebService = new ReportWebService(_httpClient, _mockApiConfig.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -155,8 +158,8 @@ namespace TypingMaster.Tests.Client
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
-            var record = result.First();
+            Assert.Single(result.Items);
+            var record = result.Items.First();
             Assert.Equal("Course", record.Type);
             Assert.Equal("Test Course", record.Name);
             Assert.Equal(95.0, record.OverallAccuracy);
