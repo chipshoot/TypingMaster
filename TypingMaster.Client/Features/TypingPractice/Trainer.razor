@@ -176,6 +176,12 @@
         // Reload the current page of practice history
         await LoadPracticeHistoryPage(_practiceHistory.Page);
 
+        if (AppState?.CurrentAccount?.History == null)
+        {
+            Logger.Error("OnPracticeFinished: Null History found when getting next lesson");
+            throw new ArgumentNullException(nameof(AppState.CurrentAccount.History));
+        }
+
         // Get next lesson
         var nextLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
         if (nextLesson != null)
@@ -196,10 +202,14 @@
             }
         }
 
-        Logger.Verbose($"DrillStats: {JsonSerializer.Serialize(stats)}");
+        Logger.Verbose("DrillStats: {Serialize}", JsonSerializer.Serialize(stats));
         _practice?.HandleReset(_isCompleted);
         await Task.Delay(100); // Give time for state changes to complete
-        await _practice?.FocusInput();
+
+        if (_practice != null)
+        {
+            await _practice.FocusInput();
+        }
     }
 
     private async Task ResetPractice()
