@@ -2,6 +2,7 @@
 
 @inject ILogger Logger
 @inject ICourseWebService CourseService
+@inject IPracticeLogWebService PracticeLogService
 @inject ITypingTrainer TypingTrainer
 @inject ApplicationContext AppState
 
@@ -24,13 +25,12 @@
     </HeaderTemplate>
     <BodyTemplate>
         <Practice CurrentLesson="@_curLesson" TrainingType="@TrainingType.Course" OnTypingCompleted="OnPracticeFinished"
-            @ref="@_practice">
+                  @ref="@_practice">
         </Practice>
     </BodyTemplate>
 </Card>
 
 @code {
-    private string _text = string.Empty;
     private Practice? _practice;
     private bool _isCompleted;
     private Lesson? _curLesson;
@@ -64,8 +64,7 @@
         // Load first page of practice history
         await LoadPracticeHistoryPage(1);
 
-        // system get drill stats sorted by newest record by default, this let use get latest record at first record of the dataset
-        var stats = AppState.CurrentAccount.History.PracticeStats.FirstOrDefault() ?? await CourseService.GenerateStartStats();
+        var stats = await GetLastStat();
         var courseId = AppState.CurrentCourse.Id;
         _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
         TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
@@ -73,17 +72,67 @@
         StateHasChanged();
     }
 
-    private async Task LoadPracticeHistoryPage(int page)
+    private async Task<DrillStats> GetLastStat()
     {
-        if (AppState.CurrentAccount?.History?.PracticeStats == null)
+        if (AppState.CurrentAccount != null)
         {
-            return;
+            // Get later course type practice stats
+            var stats = AppState.CurrentAccount.History.PracticeStats
+                .Where(p => p.Type == TrainingType.Course)
+                .OrderByDescending(p => p.StartTime)
+                .FirstOrDefault();
+
+            if (stats != null)
+            {
+                return stats;
+            }
+
+            // If no practice stats found, search database for latest lesson
+            var statLst = await PracticeLogService.GetPaginatedDrillStatsAsync(AppState.CurrentAccount.History.Id, 1, 10, true, TrainingType.Course);
+            stats = statLst.Items.FirstOrDefault();
+            if (stats != null)
+            {
+                return stats;
+            }
+            else
+            {
+                stats = await CourseService.GenerateStartStats() ?? new DrillStats();
+                if (AppState.CurrentAccount.History.CurrentLessonId > 0)
+                {
+                    stats.LessonId = AppState.CurrentAccount.History.CurrentLessonId;
+                }
+
+                return stats;
+
+            }
         }
 
-        var stats = AppState.CurrentAccount.History.PracticeStats
-        .Where(p => p.Type == TrainingType.Course)
-        .OrderByDescending(p => p.StartTime)
-        .ToList();
+        return new DrillStats { LessonId = 1 };
+    }
+
+    private async Task LoadPracticeHistoryPage(int page)
+    {
+        List<DrillStats> stats;
+        if (AppState.CurrentAccount?.History?.PracticeStats == null || !AppState.CurrentAccount.History.PracticeStats.Any())
+        {
+            if (AppState.CurrentAccount?.History == null)
+            {
+                return;
+            }
+
+            var statLst = await PracticeLogService.GetPaginatedDrillStatsAsync(AppState.CurrentAccount.History.Id, page, PageSize, true, TrainingType.Course);
+            stats = ((List<DrillStats>)statLst.Items)
+                .Where(p => p.Type == TrainingType.Course)
+                .OrderByDescending(p => p.StartTime)
+                .ToList();
+        }
+        else
+        {
+            stats = AppState.CurrentAccount.History.PracticeStats
+                .Where(p => p.Type == TrainingType.Course)
+                .OrderByDescending(p => p.StartTime)
+                .ToList();
+        }
 
         var totalCount = stats.Count;
         var totalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
@@ -95,13 +144,13 @@
         .ToList();
 
         _practiceHistory = new PagedResult<DrillStats>
-        {
-            Items = pagedStats,
-            TotalCount = totalCount,
-            Page = page,
-            PageSize = PageSize,
-            TotalPages = totalPages
-        };
+            {
+                Items = pagedStats,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = PageSize,
+                TotalPages = totalPages
+            };
 
         StateHasChanged();
     }
@@ -126,6 +175,31 @@
 
         // Reload the current page of practice history
         await LoadPracticeHistoryPage(_practiceHistory.Page);
+
+        // Get next lesson
+        var nextLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
+        if (nextLesson != null)
+        {
+            if (!nextLesson.IsCourseComplete)
+            {
+                _curLesson = nextLesson;
+                _isCompleted = false;
+                if (_curLesson.Id != AppState.CurrentAccount.History.CurrentLessonId)
+                {
+                    AppState.CurrentAccount.History.CurrentLessonId = _curLesson.Id;
+                }
+            }
+            else
+            {
+                _curLesson = null;
+                _isCompleted = true;
+            }
+        }
+
+        Logger.Verbose($"DrillStats: {JsonSerializer.Serialize(stats)}");
+        _practice?.HandleReset(_isCompleted);
+        await Task.Delay(100); // Give time for state changes to complete
+        await _practice?.FocusInput();
     }
 
     private async Task ResetPractice()

@@ -10,11 +10,13 @@ namespace TypingMaster.Client.Services
             int practiceLogId, 
             int page = 1, 
             int pageSize = 10,
-            bool sortByNewest = true)
+            bool sortByNewest = true,
+            TrainingType? type = null)
         {
             try
             {
-                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.PracticeLogService}/{practiceLogId}/drill-stats?page={page}&pageSize={pageSize}&sortByNewest={sortByNewest}");
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.PracticeLogService}/{practiceLogId}");
+                var fullUrl = $"{url}/drill-stats?page={page}&pageSize={pageSize}&sortByNewest={sortByNewest}&type={type}";
 
                 // Add Authorization header with Bearer token if available
                 if (!string.IsNullOrEmpty(appContext.Token))
@@ -22,7 +24,7 @@ namespace TypingMaster.Client.Services
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appContext.Token);
                 }
 
-                var response = await httpClient.GetAsync(url);
+                var response = await httpClient.GetAsync(fullUrl);
         
                 if (!response.IsSuccessStatusCode)
                 {
