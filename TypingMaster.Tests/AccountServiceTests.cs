@@ -36,14 +36,14 @@ namespace TypingMaster.Tests
             // Arrange
             var accountDaos = new List<AccountDao>
             {
-                new AccountDao { Id = 1, AccountName = "Test1" },
-                new AccountDao { Id = 2, AccountName = "Test2" }
+                new() { Id = 1, AccountName = "Test1" },
+                new() { Id = 2, AccountName = "Test2" }
             };
 
             var accounts = new List<Account>
             {
-                new Account { Id = 1, AccountName = "Test1" },
-                new Account { Id = 2, AccountName = "Test2" }
+                new() { Id = 1, AccountName = "Test1" },
+                new() { Id = 2, AccountName = "Test2" }
             };
 
             _mockRepository.Setup(repo => repo.GetAllAccountsAsync())
@@ -110,7 +110,7 @@ namespace TypingMaster.Tests
             // Arrange
             var id = 999;
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(id))
-                .ReturnsAsync((AccountDao)null);
+                .ReturnsAsync( null as AccountDao);
 
             // Act
             var result = await _accountService.GetAccountById(id);
@@ -165,7 +165,7 @@ namespace TypingMaster.Tests
             // Arrange
             var email = "nonexistent@example.com";
             _mockRepository.Setup(repo => repo.GetAccountByEmailAsync(email))
-                .ReturnsAsync((AccountDao)null);
+                .ReturnsAsync(null as AccountDao);
 
             // Act
             var result = await _accountService.GetAccountByEmail(email);
@@ -280,7 +280,7 @@ namespace TypingMaster.Tests
         [InlineData("", "new@example.com")]
         [InlineData("New Account", null)]
         [InlineData("New Account", "")]
-        public async Task CreateAccount_ReturnsNull_WhenDataIsInvalid(string name, string email)
+        public async Task CreateAccount_ReturnsNull_WhenDataIsInvalid(string? name, string? email)
         {
             // Arrange
             var account = new Account
@@ -397,7 +397,7 @@ namespace TypingMaster.Tests
             };
 
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(account.Id))
-                .ReturnsAsync((AccountDao)null);
+                .ReturnsAsync(null as AccountDao);
 
             // Act
             var result = await _accountService.UpdateAccount(account);
@@ -472,9 +472,9 @@ namespace TypingMaster.Tests
         public async Task DeleteAccount_ReturnsFalse_WhenAccountDoesNotExist()
         {
             // Arrange
-            int id = 999;
+            var id = 999;
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(id))
-                .ReturnsAsync((AccountDao)null);
+                .ReturnsAsync(null as AccountDao);
 
             // Act
             var result = await _accountService.DeleteAccount(id);
@@ -488,8 +488,8 @@ namespace TypingMaster.Tests
         public async Task IsAccountUpdated_ReturnsTrue_WhenVersionIsOutdated()
         {
             // Arrange
-            int accountId = 1;
-            int version = 1;
+            var accountId = 1;
+            var version = 1;
 
             var accountDao = new AccountDao
             {
@@ -534,11 +534,11 @@ namespace TypingMaster.Tests
         public async Task IsAccountUpdated_ReturnsFalse_WhenAccountNotFound()
         {
             // Arrange
-            int accountId = 999;
-            int version = 1;
+            var accountId = 999;
+            var version = 1;
 
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(accountId))
-                .ReturnsAsync((AccountDao)null);
+                .ReturnsAsync(null as AccountDao);
 
             // Act
             var result = await _accountService.IsAccountUpdated(accountId, version);
@@ -601,10 +601,10 @@ namespace TypingMaster.Tests
 
             // Setup course service to return null for the invalid course ID
             _mockCourseService.Setup(cs => cs.GetCourse(invalidCourseId))
-                .ReturnsAsync((CourseDto)null);
+                .ReturnsAsync(null as CourseDto);
 
             // Capture the mapped AccountDao for verification
-            AccountDao capturedAccountDao = null;
+            AccountDao? capturedAccountDao = null;
             _mockMapper.Setup(m => m.Map<AccountDao>(account))
                 .Returns<Account>(a =>
                 {
@@ -691,7 +691,7 @@ namespace TypingMaster.Tests
 
             // Setup course service to return null for the invalid course ID
             _mockCourseService.Setup(cs => cs.GetCourse(invalidCourseId))
-                .ReturnsAsync((CourseDto)null);
+                .ReturnsAsync(null as CourseDto);
 
             _mockRepository.Setup(repo => repo.GetAccountByIdAsync(accountId))
                 .ReturnsAsync(existingAccountDao);
@@ -711,9 +711,9 @@ namespace TypingMaster.Tests
                 .ReturnsAsync(practiceLog);
 
             // Create a variable to capture the AccountDao
-            AccountDao capturedAccountDao = null;
+            AccountDao? capturedAccountDao = null;
 
-            // Setup the mapper to capture the AccountDao
+            // Set up the mapper to capture the AccountDao
             _mockMapper.Setup(m => m.Map<AccountDao>(accountToUpdate))
                 .Returns<Account>(a =>
                 {
