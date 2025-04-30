@@ -214,8 +214,8 @@ else
     private bool IsFromCache { get; set; } = false;
 
     // Cache properties
-    private static readonly Dictionary<string, PagedResult<ProgressRecord>> _cachedData = new();
-    private static readonly Dictionary<string, (int Page, int PageSize)> _cachedSettings = new();
+    private static readonly Dictionary<string, PagedResult<ProgressRecord>> CachedData = new();
+    private static readonly Dictionary<string, (int Page, int PageSize)> CachedSettings = new();
 
     // Cache key based on training type, user account and course
     private string CacheKey => $"{AppState?.CurrentAccount?.Id}_{AppState?.CurrentCourse?.Id}_{Type}";
@@ -223,8 +223,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         // Check if we have cached data
-        if (_cachedData.TryGetValue(CacheKey, out var cachedItems) &&
-        _cachedSettings.TryGetValue(CacheKey, out var settings))
+        if (CachedData.TryGetValue(CacheKey, out var cachedItems) &&
+        CachedSettings.TryGetValue(CacheKey, out var settings))
         {
             // Use the cached data and settings
             Items = cachedItems;
@@ -259,8 +259,8 @@ else
         // Only cache if we have data
         if (Items != null && Items.TotalCount > 0)
         {
-            _cachedData[CacheKey] = Items;
-            _cachedSettings[CacheKey] = (CurrentPage, PageItems);
+            CachedData[CacheKey] = Items;
+            CachedSettings[CacheKey] = (CurrentPage, PageItems);
             Logger.LogInformation($"Saved data to cache with key: {CacheKey}, Page: {CurrentPage}, Items: {Items.TotalCount}");
         }
     }
@@ -348,9 +348,9 @@ else
         IsFromCache = false;
 
         // Remove this specific cache entry
-        if (_cachedData.ContainsKey(CacheKey))
+        if (CachedData.ContainsKey(CacheKey))
         {
-            _cachedData.Remove(CacheKey);
+            CachedData.Remove(CacheKey);
         }
 
         // Force reload from server

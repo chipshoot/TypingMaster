@@ -24,16 +24,6 @@
                     }
                 </tbody>
             </table>
-            <div class="pagination mt-2">
-                @for (int i = 1; i <= StatsList.TotalPages; i++)
-                {
-                    <div class="page-item">
-                        <span class="page-link @(i == StatsList.Page? "active" : "")" @onclick="() => LoadPage(i)">
-                            @i
-                        </span>
-                    </div>
-                }
-            </div>
         </div>
     </div>
 </div>
