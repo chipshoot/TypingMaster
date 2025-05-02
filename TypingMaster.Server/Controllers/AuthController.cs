@@ -99,7 +99,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var response = await _authService.RefreshTokenAsync(request.Token, request.RefreshToken, request.UserName);
+                var response = await _authService.RefreshTokenAsync(request.Token, request.RefreshToken, request.Email);
                 if (response.Success)
                 {
                     return Ok(response);

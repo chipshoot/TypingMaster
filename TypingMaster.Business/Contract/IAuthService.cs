@@ -35,9 +35,9 @@ public interface IAuthService
     /// </summary>
     /// <param name="token">The expired access token.</param>
     /// <param name="refreshToken">The refresh token to use for generating a new access token.</param>
-    /// <param name="userName">The userName associated to refresh token.</param>
+    /// <param name="email">The email associated to refresh token.</param>
     /// <returns>A task representing the asynchronous operation, with a <see cref="AuthResponse"/> containing the new tokens if successful.</returns>
-    Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string userName);
+    Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string email);
 
     /// <summary>
     /// Changes the password for an authenticated user.
