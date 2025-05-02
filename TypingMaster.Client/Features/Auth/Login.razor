@@ -14,8 +14,9 @@
             <FieldItems>
                 <EditorItem @bind-Field="@context.Account">
                     <EditTemplate Context="value">
-                        <BootstrapInput @ref="_emailInput" TValue="string" PlaceHolder="youremail@example.com" type="email"
-                            maxLength="254" @bind-value="@value.Account" ShowLabel="true" DisplayText="Email" />
+                        <BootstrapInput @ref="_emailInput" TValue="string" PlaceHolder="youremail@example.com"
+                            type="email" maxLength="254" @bind-value="@value.Account" ShowLabel="true"
+                            DisplayText="Email" />
                     </EditTemplate>
                 </EditorItem>
                 <EditorItem @bind-Field="@context.Password">
@@ -24,22 +25,43 @@
                             @bind-value="@value.Password" ShowLabel="true" DisplayText="Password" />
                     </EditTemplate>
                 </EditorItem>
+                <EditorItem @bind-Field="@context.RememberMe">
+                    <EditTemplate Context="value">
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="rememberMe"
+                                @bind-value="@value.RememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Remember me
+                            </label>
+                        </div>
+                    </EditTemplate>
+                </EditorItem>
             </FieldItems>
             <Buttons>
-                <Button ButtonType="ButtonType.Submit" class="btn btn-primary btn-login" icon="@_icon" disabled="@(_isLoading)">
-                    LogIn
-                </Button>
-                <Button ButtonType="ButtonType.Button" class="btn btn-outline-secondary btn-register" disabled="@(_isLoading)"
-                    OnClick="@NavigateToRegister">
-                    Sign Up
-                </Button>
+                <div class="d-grid gap-3 mt-4">
+                    <Button ButtonType="ButtonType.Submit" class="btn btn-primary btn-lg btn-login" disabled="@(_isLoading)">
+                        @if (_isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Logging in...</span>
+                        }
+                        else
+                        {
+                            <span>Sign In</span>
+                        }
+                    </Button>
+                    <Button ButtonType="ButtonType.Button" class="btn btn-outline-secondary btn-register"
+                            disabled="@(_isLoading)" OnClick="@NavigateToRegister">
+                        Create Account
+                    </Button>
+                </div>
             </Buttons>
         </EditorForm>
     </ValidateForm>
 
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
-        <div class="error-container">
+        <div class="error-container mt-4">
             <div class="d-flex align-items-center">
                 <i class="fa fa-exclamation-circle error-icon"></i>
                 <div>
@@ -49,6 +71,10 @@
             </div>
         </div>
     }
+
+    <div class="text-center mt-4">
+        <a href="/forgot-password" class="text-decoration-none">Forgot your password?</a>
+    </div>
 </div>
 
 @code {
@@ -57,14 +83,21 @@
     private string? _errorMessage;
     private string? _returnUrl;
     private BootstrapInput<string>? _emailInput;
-    private string _icon = "";
 
     protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(Navigation.Uri);
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrl))
+        var queryParams = QueryHelpers.ParseQuery(uri.Query);
+
+        if (queryParams.TryGetValue("returnUrl", out var returnUrl))
         {
             _returnUrl = returnUrl;
+        }
+
+        // Check for error message in URL
+        if (queryParams.TryGetValue("error", out var errorMessage))
+        {
+            _errorMessage = Uri.UnescapeDataString(errorMessage);
         }
 
         await Task.Delay(100); // Small delay to ensure the component is fully rendered
@@ -96,7 +129,7 @@
 
         try
         {
-            var authResponse = await AuthService.LoginAsync(_loginModel.Account, _loginModel.Password);
+            var authResponse = await AuthService.LoginAsync(_loginModel.Account, _loginModel.Password, _loginModel.RememberMe);
             if (authResponse.Success)
             {
                 Navigation.NavigateTo(!string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/");
@@ -104,11 +137,11 @@
             else
             {
                 Logger.Error($"Auth API error: {authResponse.Message}");
-                
+
                 // Use the specific error message from the server when available
-                _errorMessage = string.IsNullOrEmpty(authResponse.Message) 
-                    ? "Login failed. Please check your credentials." 
-                    : authResponse.Message;
+                _errorMessage = string.IsNullOrEmpty(authResponse.Message)
+                ? "Login failed. Please check your credentials."
+                : authResponse.Message;
                 StateHasChanged();
             }
         }
@@ -131,7 +164,6 @@
     private void SetLoading(bool isLoading)
     {
         _isLoading = isLoading;
-        _icon = isLoading ? "fa-solid fa-spinner fa-spin fa-fw" : "";
     }
 
     public class LoginModel
@@ -143,5 +175,7 @@
         [Required(ErrorMessage = "Password cannot be empty")]
         [StringLength(128, MinimumLength = 8, ErrorMessage = "The password must be between 8 and 128 characters.")]
         public string? Password { get; set; }
+
+        public bool RememberMe { get; set; } = false;
     }
 }

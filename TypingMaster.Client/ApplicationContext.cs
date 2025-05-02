@@ -18,12 +18,17 @@ public class ApplicationContext
     private const string IsLoggedKey = "Login";
     private const string TokenKey = "Token";
     private const string RefreshTokenKey = "RefreshToken";
+    private const string RememberMeKey = "RememberMe";
+    private const string UsernameKey = "Username";
+    private const string AccountEmailKey = "AccountEmail";
     private Account? _currentAccount;
     private Guid _currentCourseId;
     private CourseDto? _currentCourse;
     private bool _isLoggedIn;
     private string? _token;
     private string? _refreshToken;
+    private string _accountEmail;
+    private bool _rememberMe;
 
     public ApplicationContext(
         IClientStorageService storage,
@@ -127,6 +132,19 @@ public class ApplicationContext
         }
     }
 
+    public bool RememberMe
+    {
+        get => _rememberMe;
+        private set
+        {
+            if (_rememberMe != value)
+            {
+                _rememberMe = value;
+                SaveContext(RememberMeKey);
+            }
+        }
+    }
+
     public async Task GetCourse()
     {
         if (_currentCourseId == Guid.Empty)
@@ -143,6 +161,7 @@ public class ApplicationContext
         IsLoggedIn = _storage.GetItem<bool>(IsLoggedKey);
         _token = _storage.GetItem<string>(TokenKey);
         _refreshToken = _storage.GetItem<string>(RefreshTokenKey);
+        _rememberMe = _storage.GetItem<bool>(RememberMeKey);
 
         if (_currentAccount == null || _currentCourseId == Guid.Empty)
         {
@@ -158,11 +177,22 @@ public class ApplicationContext
         _currentCourse = null;
         IsLoggedIn = false;
         _token = null;
+        _refreshToken = null;
+
         _storage.RemoveItem(AccountKey);
         _storage.RemoveItem(CourseKey);
         _storage.RemoveItem(IsLoggedKey);
-        _storage.RemoveItem(TokenKey);
-        _storage.RemoveItem(RefreshTokenKey);
+
+        // Only remove tokens if RememberMe is false
+        if (!_rememberMe)
+        {
+            _storage.RemoveItem(TokenKey);
+            _storage.RemoveItem(RefreshTokenKey);
+            _storage.RemoveItem(RememberMeKey);
+            _storage.RemoveItem(UsernameKey);
+            _rememberMe = false;
+        }
+
         NotifyStateChanged();
     }
 
@@ -206,6 +236,16 @@ public class ApplicationContext
                 _storage.RemoveItem(RefreshTokenKey);
             }
         }
+
+        if (key == AccountEmailKey)
+        {
+            _storage.SetItem(AccountEmailKey, _accountEmail);
+        }
+
+        if (key == RememberMeKey)
+        {
+            _storage.SetItem(RememberMeKey, _rememberMe);
+        }
     }
 
     /// <summary>
@@ -245,10 +285,37 @@ public class ApplicationContext
         return Task.FromResult(EnsureAuthenticated(returnUrl));
     }
 
+    public void SetRememberMe(bool remember)
+    {
+        RememberMe = remember;
+    }
+
+    public void SetAccountEmail(string email)
+    {
+        if (_accountEmail != email)
+        {
+            _accountEmail = email;
+            _storage.SetItem(AccountEmailKey, email);
+        }
+    }
+
     public event Action? OnChange;
 
     // Add a new event that fires when navigating away from a page
     public event Action? OnNavigating;
 
     private void NotifyStateChanged() => OnChange?.Invoke();
+
+    public void SaveUserName(string userName)
+    {
+        if (!string.IsNullOrEmpty(userName))
+        {
+            _storage.SetItem(UsernameKey, userName);
+        }
+    }
+
+    public string? GetStoredAccountEmail()
+    {
+        return _storage.GetItem<string>(AccountEmailKey);
+    }
 }

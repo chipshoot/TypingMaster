@@ -4,35 +4,27 @@ using TypingMaster.Core.Models;
 
 namespace TypingMaster.Business;
 
-public class AuthService : ServiceBase, IAuthService
+public class AuthService(
+    HttpClient httpClient,
+    IAccountService accountService,
+    ILoginLogService loginLogService,
+    IIdpService idpService,
+    JwtTokenGenerator tokenGenerator,
+    ILogger logger)
+    : ServiceBase(logger), IAuthService
 {
-    private readonly HttpClient _httpClient;
-    private readonly IAccountService _accountService;
-    private readonly ILoginLogService _loginLogService;
-    private readonly IIdpService _idpService;
-    private readonly JwtTokenGenerator _tokenGenerator;
-
-    public AuthService(HttpClient httpClient, IAccountService accountService,
-        ILoginLogService loginLogService, IIdpService idpService,
-        JwtTokenGenerator tokenGenerator, ILogger logger)
-        : base(logger)
-    {
-        _httpClient = httpClient;
-        _accountService = accountService;
-        _loginLogService = loginLogService;
-        _idpService = idpService;
-        _tokenGenerator = tokenGenerator;
-    }
+    private readonly HttpClient _httpClient = httpClient;
+    private readonly JwtTokenGenerator _tokenGenerator = tokenGenerator;
 
     public async Task<AuthResponse> LoginAsync(string email, string password)
     {
         try
         {
             // Retrieve account information based on email
-            var account = await _accountService.GetAccountByEmail(email);
+            var account = await accountService.GetAccountByEmail(email);
             if (account == null)
             {
-                await _loginLogService.CreateLoginLogAsync(0, null, null, false, "Account not found");
+                await loginLogService.CreateLoginLogAsync(0, null, null, false, "Account not found");
                 return new AuthResponse
                 {
                     Success = false,
@@ -41,10 +33,10 @@ public class AuthService : ServiceBase, IAuthService
             }
 
             // Use mock IDP service for authentication
-            var idpResponse = await _idpService.AuthenticateAsync(account.AccountName, password);
+            var idpResponse = await idpService.AuthenticateAsync(account.AccountName, password);
             if (!idpResponse.Success)
             {
-                await _loginLogService.CreateLoginLogAsync(account.Id, null, null, false, "IDP authentication failed");
+                await loginLogService.CreateLoginLogAsync(account.Id, null, null, false, "IDP authentication failed");
                 return new AuthResponse
                 {
                     Success = false,
@@ -53,7 +45,7 @@ public class AuthService : ServiceBase, IAuthService
             }
 
             // Log the successful login attempt
-            await _loginLogService.CreateLoginLogAsync(account.Id, null, null, true);
+            await loginLogService.CreateLoginLogAsync(account.Id, null, null, true);
 
             return new AuthResponse
             {
@@ -67,7 +59,7 @@ public class AuthService : ServiceBase, IAuthService
         catch (Exception ex)
         {
             ProcessResult.AddException(ex);
-            await _loginLogService.CreateLoginLogAsync(0, null, null, false, $"Error during login: {ex.Message}");
+            await loginLogService.CreateLoginLogAsync(0, null, null, false, $"Error during login: {ex.Message}");
             return new AuthResponse
             {
                 Success = false,
@@ -96,7 +88,7 @@ public class AuthService : ServiceBase, IAuthService
         try
         {
             // Check if email is already registered
-            var existingAccount = await _accountService.GetAccountByEmail(request.Email);
+            var existingAccount = await accountService.GetAccountByEmail(request.Email);
             if (existingAccount != null)
             {
                 return new AuthResponse
@@ -107,7 +99,7 @@ public class AuthService : ServiceBase, IAuthService
             }
 
             // Register with the identity provider
-            var idpRegistrationSuccess = await _idpService.RegisterUserAsync(request);
+            var idpRegistrationSuccess = await idpService.RegisterUserAsync(request);
             if (!idpRegistrationSuccess)
             {
                 return new AuthResponse
@@ -131,7 +123,7 @@ public class AuthService : ServiceBase, IAuthService
             };
 
             // Save the account using the account service
-            var createdAccount = await _accountService.CreateAccount(newAccount);
+            var createdAccount = await accountService.CreateAccount(newAccount);
 
             if (createdAccount == null)
             {
@@ -162,16 +154,34 @@ public class AuthService : ServiceBase, IAuthService
         }
     }
 
-    public async Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string userName)
+    public async Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string email)
     {
         try
         {
-            var idpResponse = await _idpService.RefreshTokenAsync(refreshToken, userName);
+            var idpResponse = await idpService.RefreshTokenAsync(refreshToken, email);
+            if (!idpResponse.Success)
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = idpResponse.Message ?? "Failed to refresh token"
+                };
+            }
+
+            // Try to get account information if we have a username
+            Account? account = null;
+            if (!string.IsNullOrEmpty(email))
+            {
+                account = await accountService.GetAccountByEmail(email);
+            }
+
             return new AuthResponse
             {
                 Success = true,
                 Token = idpResponse.AccessToken,
-                RefreshToken = idpResponse.RefreshToken
+                RefreshToken = idpResponse.RefreshToken,
+                AccountId = account?.Id ?? 0,
+                AccountName = account?.AccountName ?? string.Empty
             };
         }
         catch (Exception ex)
@@ -219,17 +229,17 @@ public class AuthService : ServiceBase, IAuthService
             var confirmationCode = parts[1];
 
             // Confirm the registration with the identity provider
-            var success = await _idpService.ConfirmRegistrationAsync(email, confirmationCode);
+            var success = await idpService.ConfirmRegistrationAsync(email, confirmationCode);
             if (!success)
             {
                 return false;
             }
 
             // Update the account status
-            var account = await _accountService.GetAccountByEmail(email);
+            var account = await accountService.GetAccountByEmail(email);
             if (account != null)
             {
-                await _accountService.SetAccountStatusAsync(account.Id, true);
+                await accountService.SetAccountStatusAsync(account.Id, true);
             }
 
             return true;
@@ -251,7 +261,7 @@ public class AuthService : ServiceBase, IAuthService
     {
         try
         {
-            var success = await _idpService.ResendConfirmationCodeAsync(userName);
+            var success = await idpService.ResendConfirmationCodeAsync(userName);
             if (!success)
             {
                 return false;
@@ -270,7 +280,7 @@ public class AuthService : ServiceBase, IAuthService
     {
         try
         {
-            var success = await _idpService.ConfirmRegistrationAsync(userName, confirmationCode);
+            var success = await idpService.ConfirmRegistrationAsync(userName, confirmationCode);
             if (!success)
             {
                 return false;
