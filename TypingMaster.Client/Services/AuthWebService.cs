@@ -11,11 +11,11 @@ public class AuthWebService(HttpClient httpClient,
     ApplicationContext appState,
     Serilog.ILogger logger) : IAuthWebService
 {
-    public async Task<AuthResponse> LoginAsync(string email, string password)
+    public async Task<AuthResponse> LoginAsync(string email, string password, bool rememberMe = false)
     {
         try
         {
-            var loginRequest = new { Email = email, Password = password };
+            var loginRequest = new { Email = email, Password = password, RememberMe = rememberMe };
             var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/login");
             var response = await httpClient.PostAsJsonAsync(url, loginRequest);
 
@@ -24,7 +24,7 @@ public class AuthWebService(HttpClient httpClient,
                    ?? new AuthResponse { Success = false, Message = "Failed to deserialize response" };
             if (authResponse.Success)
             {
-                var authResult = await AuthenticateUserAsync(authResponse);
+                var authResult = await AuthenticateUserAsync(authResponse, rememberMe);
                 if (!authResult.Success)
                 {
                     authResponse.Success = false;
@@ -96,16 +96,76 @@ public class AuthWebService(HttpClient httpClient,
     {
         try
         {
-            var refreshRequest = new { Token = token, RefreshToken = refreshToken };
+            // Try to get the username from AppState if available
+            string? accountEmail = appState.GetStoredAccountEmail();
+
+            // If no email is available bad data found and user need login
+            if (string.IsNullOrEmpty(accountEmail))
+            {
+                logger.Information("Email does not found, switch to login to fix the bad data");
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "Invalid account data. Please log in again."
+                };
+            }
+
+            var refreshRequest = new { Token = token, RefreshToken = refreshToken, Email = accountEmail };
             var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.AuthService}/refresh-token");
+
+            // For token refresh, we need to set the Authorization header
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            logger.Information("Sending refresh token request to {Url}", url);
             var response = await httpClient.PostAsJsonAsync(url, refreshRequest);
 
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<AuthResponse>()
-                   ?? new AuthResponse { Success = false, Message = "Failed to deserialize response" };
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.Error($"Token refresh failed with status: {response.StatusCode}");
+
+                // If we get a 401, try again without the Authorization header
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    logger.Information("Got 401, trying without Authorization header");
+                    httpClient.DefaultRequestHeaders.Authorization = null;
+                    response = await httpClient.PostAsJsonAsync(url, refreshRequest);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        logger.Error($"Second token refresh attempt failed with status: {response.StatusCode}");
+                        return new AuthResponse
+                        {
+                            Success = false,
+                            Message = $"Token refresh failed with status: {response.StatusCode}"
+                        };
+                    }
+                }
+                else
+                {
+                    return new AuthResponse
+                    {
+                        Success = false,
+                        Message = $"Token refresh failed with status: {response.StatusCode}"
+                    };
+                }
+            }
+
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>()
+                    ?? new AuthResponse { Success = false, Message = "Failed to deserialize response" };
+
+            // For auto-login purposes, if the refresh is successful but no account ID is provided,
+            // we can extract the account ID from the existing token if available
+            if (authResponse.Success && authResponse.AccountId == 0 && appState.CurrentAccount != null)
+            {
+                // Use the account ID from the current application state (if available)
+                authResponse.AccountId = appState.CurrentAccount.Id;
+            }
+
+            return authResponse;
         }
         catch (Exception ex)
         {
+            logger.Error(ex, "Token refresh failed: {Message}", ex.Message);
             return new AuthResponse
             {
                 Success = false,
@@ -174,7 +234,7 @@ public class AuthWebService(HttpClient httpClient,
         }
     }
 
-    public async Task<WebServiceResponse> AuthenticateUserAsync(AuthResponse authResponse)
+    public async Task<WebServiceResponse> AuthenticateUserAsync(AuthResponse authResponse, bool rememberMe = false)
     {
         try
         {
@@ -195,6 +255,11 @@ public class AuthWebService(HttpClient httpClient,
                 return response;
             }
             appState.CurrentAccount = account;
+
+            // Set persistence based on rememberMe flag
+            appState.SetRememberMe(rememberMe);
+            appState.SetAccountEmail(account.AccountEmail);
+
 
             // Load drill stats if available
             var drillStats = await practiceLogService.GetPaginatedDrillStatsAsync(account.History.Id);
@@ -253,6 +318,64 @@ public class AuthWebService(HttpClient httpClient,
         catch (Exception ex)
         {
             logger.Error(ex, "Error confirming registration");
+            return false;
+        }
+    }
+
+    public async Task<bool> TryAutoLoginAsync(string token, string refreshToken)
+    {
+        try
+        {
+            logger.Information("Attempting auto-login with stored tokens");
+
+            // Try to get the username from storage if not already available
+            string? accountEmail = appState.GetStoredAccountEmail();
+
+            // Check if email is missing, which indicates invalid account data
+            if (string.IsNullOrEmpty(accountEmail))
+            {
+                logger.Warning("Auto-login failed: Email not found in account data");
+                return false;
+            }
+
+            // First try to refresh the token
+            var refreshResponse = await RefreshTokenAsync(token, refreshToken);
+            if (!refreshResponse.Success)
+            {
+                logger.Error("Auto-login failed: Token refresh failed");
+                return false;
+            }
+
+            // If we don't have an account ID in the response, auto-login can't continue
+            if (refreshResponse.AccountId == 0)
+            {
+                // If the refresh was successful, but we don't have an account ID,
+                // we might need to make a separate API call to retrieve user info
+                logger.Warning("Auto-login: No account ID in refresh response, attempting to retrieve user info");
+
+                // If we have a username from the refresh, we could try to get the account that way
+                if (!string.IsNullOrEmpty(refreshResponse.AccountName))
+                {
+                    logger.Information("Using accountName from refresh response: {AccountName}", refreshResponse.AccountName);
+                    // Save the username for future auto-login attempts
+                    appState.SaveUserName(refreshResponse.AccountName);
+                }
+            }
+
+            // Now authenticate the user with the refreshed token
+            var authResult = await AuthenticateUserAsync(refreshResponse, true);
+            if (authResult.Success)
+            {
+                logger.Information("Auto-login successful");
+                return true;
+            }
+
+            logger.Error("Auto-login failed: Authentication step failed");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error during auto-login");
             return false;
         }
     }
