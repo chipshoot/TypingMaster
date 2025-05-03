@@ -1,7 +1,8 @@
-﻿@* @page "/games/wordDefender"
+﻿@page "/games/wordDefender"
 @using System.Timers
 @using Timer = System.Timers.Timer
 @implements IDisposable
+@inject IJSRuntime JSRuntime
 
 <div class="game-container">
     <div class="game-stats">
@@ -53,13 +54,27 @@
                 {
                     <div class="building" style="left: @(building.X)px; height: @(building.Height)px;">
                         <div class="building-top"></div>
-                        <div class="building-body"></div>
+                        <div class="building-body">
+                            @for (int floor = 0; floor < building.Height / 20; floor++)
+                            {
+                                <div class="building-floor">
+                                    @for (int window = 0; window < 2; window++)
+                                    {
+                                        <div class="building-window"></div>
+                                    }
+                                </div>
+                            }
+                        </div>
                     </div>
                 }
                 else
                 {
                     <div class="building-destroyed" style="left: @(building.X)px;">
-                        💥
+                        <div class="rubble">
+                            <div class="rubble-piece"></div>
+                            <div class="rubble-piece"></div>
+                            <div class="rubble-piece"></div>
+                        </div>
                     </div>
                 }
             }
@@ -71,146 +86,6 @@
         </div>
     }
 </div>
-
-<style>
-    .game-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100vh;
-        background: linear-gradient(to bottom, #87CEEB, #1E90FF);
-        overflow: hidden;
-        position: relative;
-    }
-
-    .game-stats {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px;
-        background-color: rgba(0, 0, 0, 0.5);
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    .sky-container {
-        flex-grow: 1;
-        position: relative;
-    }
-
-    .falling-word {
-        position: absolute;
-        color: white;
-        font-weight: bold;
-        font-size: 20px;
-        padding: 5px;
-        border-radius: 4px;
-        transition: top 0.1s linear;
-    }
-
-    .highlight {
-        color: yellow;
-        text-shadow: 0 0 10px yellow;
-    }
-
-    .explosion {
-        position: absolute;
-        font-size: 32px;
-        animation: explode 0.5s forwards;
-    }
-
-    @keyframes explode {
-        0%
-
-    {
-        transform: scale(0.5);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(2);
-        opacity: 0;
-    }
-
-    }
-
-    .city-container {
-        height: 150px;
-        display: flex;
-        justify-content: space-around;
-        align-items: flex-end;
-        background-color: #3A3A3A;
-        position: relative;
-    }
-
-    .building {
-        position: absolute;
-        bottom: 0;
-        width: 60px;
-        background-color: #555;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .building-top {
-        width: 80%;
-        height: 15px;
-        background-color: #777;
-    }
-
-    .building-body {
-        width: 100%;
-        flex-grow: 1;
-        background: repeating-linear-gradient( to bottom, #555, #555 10px, #444 10px, #444 20px );
-    }
-
-    .building-destroyed {
-        position: absolute;
-        bottom: 0;
-        font-size: 40px;
-    }
-
-    .input-container {
-        padding: 10px;
-        background-color: #333;
-    }
-
-    input {
-        width: 100%;
-        padding: 10px;
-        font-size: 18px;
-        border: none;
-        border-radius: 4px;
-    }
-
-    .start-screen, .game-over {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 40px;
-        border-radius: 10px;
-        text-align: center;
-    }
-
-    .start-button {
-        padding: 10px 20px;
-        font-size: 18px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 20px;
-    }
-
-        .start-button:hover {
-            background-color: #45a049;
-        }
-</style>
 
 @code {
     private ElementReference gameAreaRef;
@@ -262,7 +137,7 @@
         try
         {
             // Get the width of the game area
-            var dimensions = await JSRuntime.InvokeAsync<object>("eval", "{ width: document.documentElement.clientWidth }");
+            var dimensions = await JSRuntime.InvokeAsync<object>("eval", new object[] { "{ width: document.documentElement.clientWidth }" });
 
             if (dimensions is System.Text.Json.JsonElement json)
             {
@@ -298,7 +173,7 @@
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('input').focus()");
+            await JSRuntime.InvokeVoidAsync("eval", new object[] { "document.querySelector('input').focus()" });
         }
         catch
         {
@@ -363,15 +238,16 @@
             var word = fallingWords[i];
             word.Y += (2 + level) * word.SpeedFactor * speedMultiplier;
 
-            // Check if word hit the ground
-            if (word.Y > 500) // Approximate sky height
+            // Check if word hit the ground (adjust height based on sky container and city heights)
+            int groundLevel = 450; // Approximate sky height minus word height
+            if (word.Y > groundLevel)
             {
                 // Find the closest building and damage it
-                Building closestBuilding = FindClosestBuilding(word.X);
+                Building closestBuilding = FindClosestBuilding((int)word.X);
                 if (closestBuilding != null && closestBuilding.IsAlive)
                 {
                     closestBuilding.IsAlive = false;
-                    explosions.Add(new Explosion { X = closestBuilding.X, Y = 500 });
+                    explosions.Add(new Explosion { X = closestBuilding.X, Y = groundLevel });
                     lives--;
 
                     if (lives <= 0)
@@ -436,6 +312,9 @@
         if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(currentInput))
         {
             CheckWordMatch();
+            // Clear the input and set focus for next word
+            currentInput = "";
+            InvokeAsync(FocusInput);
         }
     }
 
@@ -489,4 +368,4 @@
         public double Y { get; set; }
         public int Lifetime { get; set; } = 0;
     }
-} *@
+}
