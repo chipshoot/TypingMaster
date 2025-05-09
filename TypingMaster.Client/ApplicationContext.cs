@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using TypingMaster.Client.Services;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 using TypingMaster.Shared.Utility;
@@ -21,13 +22,15 @@ public class ApplicationContext
     private const string RememberMeKey = "RememberMe";
     private const string UsernameKey = "Username";
     private const string AccountEmailKey = "AccountEmail";
+    private const string PracticePhaseKey = "PracticePhase";
     private Account? _currentAccount;
     private Guid _currentCourseId;
     private CourseDto? _currentCourse;
+    private PracticePhases _currentPracticePhase = PracticePhases.NotSet;
     private bool _isLoggedIn;
     private string? _token;
     private string? _refreshToken;
-    private string _accountEmail;
+    private string? _accountEmail;
     private bool _rememberMe;
 
     public ApplicationContext(
@@ -130,6 +133,32 @@ public class ApplicationContext
                 NotifyStateChanged();
             }
         }
+    }
+
+    public PracticePhases CurrentPracticePhase
+    {
+        get => _currentPracticePhase;
+        set
+        {
+            if (_currentPracticePhase != value)
+            {
+                _currentPracticePhase = value;
+                SaveContext(PracticePhaseKey);
+                NotifyStateChanged();
+            }
+        }
+    }
+
+    public int GetLineWidth()
+    {
+        if (!IsLoggedIn || CurrentAccount == null)
+        {
+            return TypingMasterConstants.DefaultTypingWindowWidth;
+        }
+
+        return CurrentAccount.Settings.TryGetValue("TypingWindowWidth", out var typingWindowWidth)
+            ? typingWindowWidth.ConvertToInt(TypingMasterConstants.DefaultTypingWindowWidth)
+            : TypingMasterConstants.DefaultTypingWindowWidth;
     }
 
     public bool RememberMe
@@ -245,6 +274,11 @@ public class ApplicationContext
         if (key == RememberMeKey)
         {
             _storage.SetItem(RememberMeKey, _rememberMe);
+        }
+
+        if (key == PracticePhaseKey)
+        {
+            _storage.SetItem(PracticePhaseKey, (int)_currentPracticePhase);
         }
     }
 

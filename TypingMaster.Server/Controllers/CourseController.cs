@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using TypingMaster.Business;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
@@ -77,19 +76,25 @@ namespace TypingMaster.Server.Controllers
         }
 
         [HttpPost("practice-lesson/{courseId}/{lessonId}")]
-        public async Task<ActionResult<Lesson>> GetPracticeLesson(Guid courseId, int lessonId, [FromBody] StatsBase stats)
+        public async Task<ActionResult<PracticeLessonResult>> GetPracticeLesson([FromBody] LessonRequest request)
         {
-            var lesson = await courseService.GetPracticeLesson(courseId, lessonId, stats);
-            if (courseService is ServiceBase { ProcessResult.HasErrors: true } serviceBase)
+            var lessonDto = await courseService.GetPracticeLesson(
+                request.CourseId, 
+                request.LessonId, 
+                request.Stats,
+                request.Phase,
+                request.MaxCharacters);
+
+            if (courseService.ProcessResult.HasErrors)
             {
-                return BadRequest(serviceBase.ProcessResult.ErrorMessage);
+                return BadRequest(courseService.ProcessResult.ErrorMessage);
             }
 
-            if (lesson == null)
+            if (lessonDto == null)
             {
-                return NotFound();
+                return NotFound("Lesson not found");
             }
-            return Ok(lesson);
+            return Ok(lessonDto);
         }
     }
 }

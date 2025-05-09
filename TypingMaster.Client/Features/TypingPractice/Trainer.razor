@@ -25,13 +25,14 @@
     </HeaderTemplate>
     <BodyTemplate>
         <Practice CurrentLesson="@_curLesson" TrainingType="@TrainingType.Course" OnTypingCompleted="OnPracticeFinished"
-                  @ref="@_practice">
+        @ref="@_practice">
         </Practice>
     </BodyTemplate>
 </Card>
 
 @code {
-    private Practice? _practice;
+    private const int MaxCharacters = TypingMasterConstants.DefaultTypingWindowWidth; // Max number of characters generating
+    private Practice _practice = new();
     private bool _isCompleted;
     private Lesson? _curLesson;
     private PagedResult<DrillStats> _practiceHistory = new();
@@ -66,7 +67,17 @@
 
         var stats = await GetLastStat();
         var courseId = AppState.CurrentCourse.Id;
-        _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
+        var lineWidth = AppState.GetLineWidth();
+        var lessonDto = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats, stats.Phases, lineWidth);
+        if (lessonDto == null)
+        {
+            Logger.Error("Cannot get lesson");
+            return;
+        }
+
+        _curLesson = lessonDto.Lesson;
+        AppState.CurrentPracticePhase = lessonDto.Phase;
+
         TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
 
         StateHasChanged();
@@ -78,9 +89,9 @@
         {
             // Get later course type practice stats
             var stats = AppState.CurrentAccount.History.PracticeStats
-                .Where(p => p.Type == TrainingType.Course)
-                .OrderByDescending(p => p.StartTime)
-                .FirstOrDefault();
+            .Where(p => p.Type == TrainingType.Course)
+            .OrderByDescending(p => p.StartTime)
+            .FirstOrDefault();
 
             if (stats != null)
             {
@@ -88,7 +99,8 @@
             }
 
             // If no practice stats found, search database for latest lesson
-            var statLst = await PracticeLogService.GetPaginatedDrillStatsAsync(AppState.CurrentAccount.History.Id, 1, 10, true, TrainingType.Course);
+            var statLst = await PracticeLogService.GetPaginatedDrillStatsAsync(AppState.CurrentAccount.History.Id, 1, 10, true,
+            TrainingType.Course);
             stats = statLst.Items.FirstOrDefault();
             if (stats != null)
             {
@@ -120,18 +132,19 @@
                 return;
             }
 
-            var statLst = await PracticeLogService.GetPaginatedDrillStatsAsync(AppState.CurrentAccount.History.Id, page, PageSize, true, TrainingType.Course);
+            var statLst = await PracticeLogService.GetPaginatedDrillStatsAsync(AppState.CurrentAccount.History.Id, page, PageSize,
+            true, TrainingType.Course);
             stats = ((List<DrillStats>)statLst.Items)
-                .Where(p => p.Type == TrainingType.Course)
-                .OrderByDescending(p => p.StartTime)
-                .ToList();
+            .Where(p => p.Type == TrainingType.Course)
+            .OrderByDescending(p => p.StartTime)
+            .ToList();
         }
         else
         {
             stats = AppState.CurrentAccount.History.PracticeStats
-                .Where(p => p.Type == TrainingType.Course)
-                .OrderByDescending(p => p.StartTime)
-                .ToList();
+            .Where(p => p.Type == TrainingType.Course)
+            .OrderByDescending(p => p.StartTime)
+            .ToList();
         }
 
         var totalCount = stats.Count;
@@ -144,13 +157,13 @@
         .ToList();
 
         _practiceHistory = new PagedResult<DrillStats>
-            {
-                Items = pagedStats,
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = PageSize,
-                TotalPages = totalPages
-            };
+        {
+            Items = pagedStats,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = PageSize,
+            TotalPages = totalPages
+        };
 
         StateHasChanged();
     }
@@ -183,13 +196,16 @@
         }
 
         // Get next lesson
-        var nextLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
-        if (nextLesson != null)
+        var lineWidth = AppState.GetLineWidth();
+        var nextLessonDto = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats, stats.Phases, lineWidth);
+        if (nextLessonDto != null)
         {
+            var nextLesson = nextLessonDto.Lesson;
             if (!nextLesson.IsCourseComplete)
             {
                 _curLesson = nextLesson;
                 _isCompleted = false;
+                AppState.CurrentPracticePhase = nextLessonDto.Phase;
                 if (_curLesson.Id != AppState.CurrentAccount.History.CurrentLessonId)
                 {
                     AppState.CurrentAccount.History.CurrentLessonId = _curLesson.Id;
@@ -199,6 +215,7 @@
             {
                 _curLesson = null;
                 _isCompleted = true;
+                AppState.CurrentPracticePhase = PracticePhases.NotSet;
             }
         }
 
@@ -219,7 +236,10 @@
             var stats = AppState.CurrentAccount.History.PracticeStats.Last();
             _practice?.HandleReset();
             var courseId = AppState.CurrentAccount.CourseId;
-            _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
+            var lineWidth = AppState.GetLineWidth();
+            var curLessonDto = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats, stats.Phases, lineWidth);
+            _curLesson = curLessonDto?.Lesson;
+            AppState.CurrentPracticePhase = curLessonDto?.Phase ?? PracticePhases.NotSet;
             StateHasChanged();
         }
     }

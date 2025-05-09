@@ -6,17 +6,20 @@ using TypingMaster.Business.Course;
 using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
+using TypingMaster.Core.Utility;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 
 namespace TypingMaster.Business;
 
 public class CourseService(ICourseRepository courseRepository, IAccountRepository accountRepository, IMapper mapper, ILogger logger, IConfiguration configuration)
-    : ServiceBase(logger), ICourseService
+    : ICourseService
 {
     private readonly CourseFactory _courseFactory = new CourseFactory(logger);
 
     public static Guid CourseId1 = new("AB7E8988-4E54-435F-9DC3-25D3193EC378");
+
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
     public async Task<CourseDto?> GetCourse(Guid id)
     {
@@ -257,13 +260,14 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
             KeyEvents = new Queue<KeyEvent>(),
             TypedText = string.Empty,
             StartTime = DateTime.Now,
-            FinishTime = DateTime.UtcNow
+            FinishTime = DateTime.UtcNow,
+            Phases = PracticePhases.NotSet
         };
 
         return Task.FromResult(stats);
     }
 
-    public async Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats)
+    public async Task<PracticeLessonResult?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats, PracticePhases phase, int generateRounds = 1)
     {
         try
         {
@@ -286,7 +290,8 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
             }
 
             // Process the course with the provided function
-            return course.GetPracticeLesson(lessonId, stats);
+            course.MaxCharacters = generateRounds;
+            return course.GetPracticeLesson(lessonId, stats, phase);
         }
         catch (Exception ex)
         {
@@ -325,7 +330,7 @@ public class CourseService(ICourseRepository courseRepository, IAccountRepositor
         {
             Minutes = 120,
             NewKeysPerStep = 1,
-            PracticeTextLength = 74,
+            PhaseAttemptThreshold = 74,
             TargetStats = new StatsBase { Wpm = 50, Accuracy = 90 }
         };
 

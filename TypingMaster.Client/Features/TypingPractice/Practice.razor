@@ -1,5 +1,4 @@
 ﻿@page "/typing-practice"
-@inject IJSRuntime JSRuntime
 @inject ILogger Logger
 @inject ApplicationContext AppState
 @using System.Text
@@ -8,21 +7,21 @@
     <BodyTemplate>
         <div class="d-flex justify-content-center">
             <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative"
-                  style="width: @(LineWidth * 0.88)em !important; 
+            style="width: @(LineWidth * 0.88)em !important; 
                         min-width: @(LineWidth * 0.90)em !important; 
                         max-width: @(LineWidth * 0.90)em !important;">
                 <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
-                    @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
-                    class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-                    style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted">
+                @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
+                class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
+                style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted">
                 </textarea>
                 @for (var i = 0; i < _lines.Count; i++)
                 {
                     var id = i + 1;
                     <TextDisplay Id="@id" CurrentLineId="@_currentLineId" Text="@_lines[i]" InputChars="@_textInput"
-                        IsLineCompleted="@_isLineCompleted" IsLessonCompleted="@_isCompleted"
-                        IsCourseFinished="@_isCourseFinished" CursorPosition="@_cursorPosition"
-                        IsStatsUpdating="@_isStatsUpdating" OnLineFinished="HandleLineFinished" @ref="_textDisplays[id]" />
+                    IsLineCompleted="@_isLineCompleted" IsLessonCompleted="@_isCompleted"
+                    IsCourseFinished="@_isCourseFinished" CursorPosition="@_cursorPosition"
+                    IsStatsUpdating="@_isStatsUpdating" OnLineFinished="HandleLineFinished" @ref="_textDisplays[id]" />
                 }
             </div>
         </div>
@@ -32,14 +31,14 @@
         @if (!string.IsNullOrEmpty(CurrentLesson?.Instruction))
         {
             <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false"
-                TextType="MessageTextType.Markdown" />
+            TextType="MessageTextType.Markdown" />
         }
 
         <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
-            RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys" />
+        RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys" />
 
         <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated"
-            CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs">
+        CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs">
         </KeyEventGenerator>
 
     </BodyTemplate>
@@ -51,9 +50,9 @@
 </Card>
 
 <TypingStatsCalculator Text="@CurrentLesson?.PracticeText" UserInput="@_totalInputText"
-    OnWpmChanged="@(wpm => { _wpm = wpm; StateHasChanged(); })"
-    OnAccuracyChanged="@(accuracy => { _accuracy = accuracy; StateHasChanged(); })" @ref="@_typingStats"
-    OnStatsUpdating="HandleStatsUpdating">
+OnWpmChanged="@(wpm => { _wpm = wpm; StateHasChanged(); })"
+OnAccuracyChanged="@(accuracy => { _accuracy = accuracy; StateHasChanged(); })" @ref="@_typingStats"
+OnStatsUpdating="HandleStatsUpdating">
 </TypingStatsCalculator>
 
 @code {
@@ -85,7 +84,6 @@
     [Parameter] public EventCallback<DrillStats> OnTypingCompleted { get; set; }
 
     private ElementReference _inputRef;
-    private SkillLevel Level => (_wpm, _accuracy).GetSkillLevel();
     private TypingStatsCalculator? _typingStats;
     private KeyEventGenerator? _keyEventGenerator;
     private KeyboardEventArgs? _keyEventArgs;
@@ -115,7 +113,7 @@
     private readonly Dictionary<int, TextDisplay> _textDisplays = [];
 
     private int _lineWidth;
-    private int LineWidth
+    public int LineWidth
     {
         get
         {
@@ -124,30 +122,10 @@
                 return _lineWidth;
             }
 
-            if (AppState.IsLoggedIn)
-            {
-                if (AppState.CurrentAccount == null)
-                {
-                    _lineWidth = TypingMasterConstants.DefaultTypingWindowWidth;
-
-                }
-                else
-                {
-                    _lineWidth = AppState.CurrentAccount.Settings.TryGetValue("TypingWindowWidth", out var typingWindowWidth)
-                    ? typingWindowWidth.ConvertToInt(TypingMasterConstants.DefaultTypingWindowWidth)
-                    : TypingMasterConstants.DefaultTypingWindowWidth;
-                }
-            }
-            else
-            {
-                _lineWidth = TypingMasterConstants.DefaultTypingWindowWidth;
-            }
-
+            _lineWidth = AppState.GetLineWidth();
             return _lineWidth;
         }
     }
-
-    private double _typingAreaWidthPx = 0;
 
     protected override void OnInitialized()
     {
@@ -300,7 +278,8 @@
                 KeyEvents = _keyEvents.Copy(),
                 Type = TrainingType,
                 StartTime = _keyEvents.FirstOrDefault()?.KeyDownTime,
-                FinishTime = DateTime.Now
+                FinishTime = DateTime.Now,
+                Phases = AppState.CurrentPracticePhase
             });
         }
 

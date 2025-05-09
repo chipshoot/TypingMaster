@@ -21,7 +21,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var result = await practiceLogService.GetPaginatedDrillStatsByPracticeLogIdAsync(
+                var result = await practiceLogService.GetPaginatedDrillStatsByPracticeLogId(
                     id, page, pageSize, sortByNewest, type);
 
                 return Ok(result);

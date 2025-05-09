@@ -14,7 +14,7 @@
 //        private readonly Mock<ILogger> _mockLogger;
 //        private readonly Mock<IMapper> _mockMapper;
 //        private readonly Mock<ICourseRepository> _mockRepository;
-//        private const int PracticeTextLength = 30;
+//        private const int PhaseAttemptThreshold = 30;
 //        private static BeginnerCourse _course;
 //        private static bool _initialized = false;
 //        private static readonly SemaphoreSlim _initializationLock = new SemaphoreSlim(1, 1);
@@ -87,7 +87,7 @@
 //                            Accuracy = 85,
 //                            Wpm = 30
 //                        },
-//                        PracticeTextLength = PracticeTextLength
+//                        PhaseAttemptThreshold = PhaseAttemptThreshold
 //                    };
 
 //                    var courseService = new CourseService(_mockRepository.Object, _mockMapper.Object, _mockLogger.Object);
@@ -179,7 +179,7 @@
 //            // Assert
 //            Assert.NotNull(lesson);
 //            Assert.NotEmpty(lesson.PracticeText);
-//            Assert.True(PracticeTextLength >= lesson.PracticeText.Length);
+//            Assert.True(PhaseAttemptThreshold >= lesson.PracticeText.Length);
 //            Assert.True(lesson.PracticeText.ContainsOnlyAllowedChars(['a', 's', 'd', 'f']));
 //        }
 
@@ -199,8 +199,8 @@
 //            // Assert
 //            Assert.NotNull(lesson);
 //            Assert.NotEmpty(lesson.PracticeText);
-//            Assert.True(lesson.PracticeText.Length <= _course.Settings.PracticeTextLength,
-//                $"Practice text length {lesson.PracticeText.Length} should be less than or equal to {_course.Settings.PracticeTextLength}");
+//            Assert.True(lesson.PracticeText.Length <= _course.Settings.PhaseAttemptThreshold,
+//                $"Practice text length {lesson.PracticeText.Length} should be less than or equal to {_course.Settings.PhaseAttemptThreshold}");
 //        }
 
 //        [Fact]

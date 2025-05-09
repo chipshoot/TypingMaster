@@ -10,11 +10,13 @@ public class DrillStatsDao
 
     public int LessonId { get; set; }
 
+    public int Phases { get; set; }
+
     public string? PracticeText { get; set; }
 
     public string TypedText { get; set; } = null!;
 
-    public Queue<KeyEventDao> KeyEventsJson { get; set; }
+    public Queue<KeyEventDao> KeyEventsJson { get; set; } = new();
 
     public int Wpm { get; set; }
 

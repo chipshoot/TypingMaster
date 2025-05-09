@@ -1,77 +1,71 @@
 using System.Text.RegularExpressions;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business;
 
-public class TypingMaterialGenerator : ITypingMaterialGenerator
+public class TypingMaterialGenerator(Serilog.ILogger logger) : ITypingMaterialGenerator
 {
-    private readonly HttpClient _httpClient;
-    private readonly Random _random;
-    private readonly Dictionary<SkillLevel, string[]> _levelSpecificWords;
-    private readonly string[] _commonWords;
-
-    public TypingMaterialGenerator()
+    private readonly HttpClient _httpClient = new();
+    private readonly Random _random = new();
+    private readonly Dictionary<SkillLevel, string[]> _levelSpecificWords = new()
     {
-        _httpClient = new HttpClient();
-        _random = new Random();
-        _commonWords = new[]
         {
-            "the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he",
-            "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or",
-            "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about",
-            "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know",
-            "take", "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than",
-            "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two",
-            "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give",
-            "day", "most", "us"
-        };
-
-        _levelSpecificWords = new Dictionary<SkillLevel, string[]>
-        {
+            SkillLevel.Beginner, new[]
             {
-                SkillLevel.Beginner, new[]
-                {
-                    "cat", "dog", "run", "jump", "walk", "eat", "sleep", "play", "read", "write",
-                    "book", "pen", "desk", "chair", "table", "door", "window", "wall", "floor", "roof"
-                }
-            },
-            {
-                SkillLevel.Novice, new[]
-                {
-                    "computer", "keyboard", "monitor", "screen", "mouse", "printer", "scanner", "network",
-                    "internet", "website", "email", "message", "document", "folder", "file", "program",
-                    "software", "hardware", "system", "data"
-                }
-            },
-            {
-                SkillLevel.Intermediate, new[]
-                {
-                    "algorithm", "database", "function", "variable", "parameter", "interface", "class",
-                    "method", "object", "property", "event", "handler", "service", "client", "server",
-                    "protocol", "framework", "library", "module", "component"
-                }
-            },
-            {
-                SkillLevel.Advanced, new[]
-                {
-                    "encryption", "authentication", "authorization", "validation", "optimization",
-                    "performance", "reliability", "scalability", "maintainability", "compatibility",
-                    "integration", "deployment", "configuration", "implementation", "architecture",
-                    "infrastructure", "environment", "repository", "dependency", "framework"
-                }
-            },
-            {
-                SkillLevel.Expert, new[]
-                {
-                    "microservices", "containerization", "orchestration", "virtualization", "cloud",
-                    "distributed", "concurrent", "asynchronous", "synchronous", "persistence",
-                    "transaction", "replication", "fragmentation", "normalization", "denormalization",
-                    "polymorphism", "inheritance", "encapsulation", "abstraction", "refactoring"
-                }
+                "cat", "dog", "run", "jump", "walk", "eat", "sleep", "play", "read", "write",
+                "book", "pen", "desk", "chair", "table", "door", "window", "wall", "floor", "roof"
             }
-        };
-    }
+        },
+        {
+            SkillLevel.Novice, new[]
+            {
+                "computer", "keyboard", "monitor", "screen", "mouse", "printer", "scanner", "network",
+                "internet", "website", "email", "message", "document", "folder", "file", "program",
+                "software", "hardware", "system", "data"
+            }
+        },
+        {
+            SkillLevel.Intermediate, new[]
+            {
+                "algorithm", "database", "function", "variable", "parameter", "interface", "class",
+                "method", "object", "property", "event", "handler", "service", "client", "server",
+                "protocol", "framework", "library", "module", "component"
+            }
+        },
+        {
+            SkillLevel.Advanced, new[]
+            {
+                "encryption", "authentication", "authorization", "validation", "optimization",
+                "performance", "reliability", "scalability", "maintainability", "compatibility",
+                "integration", "deployment", "configuration", "implementation", "architecture",
+                "infrastructure", "environment", "repository", "dependency", "framework"
+            }
+        },
+        {
+            SkillLevel.Expert, new[]
+            {
+                "microservices", "containerization", "orchestration", "virtualization", "cloud",
+                "distributed", "concurrent", "asynchronous", "synchronous", "persistence",
+                "transaction", "replication", "fragmentation", "normalization", "denormalization",
+                "polymorphism", "inheritance", "encapsulation", "abstraction", "refactoring"
+            }
+        }
+    };
+    private readonly string[] _commonWords = new[]
+    {
+        "the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he",
+        "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or",
+        "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about",
+        "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know",
+        "take", "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than",
+        "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two",
+        "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give",
+        "day", "most", "us"
+    };
+
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
     public Task<string> GenerateTestMaterial(SkillLevel level, int wordCount = 100)
     {

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using TypingMaster.Core.Models.Courses;
 
 namespace TypingMaster.Business.Course
 {
@@ -18,6 +19,9 @@ namespace TypingMaster.Business.Course
 
         [JsonPropertyName("instruction")]
         public string Instruction { get; set; } = string.Empty;
+
+        [JsonPropertyName("type")]
+        public LessonType Type { get; set; }
 
         [JsonPropertyName("point")]
         public int Point { get; set; }

@@ -77,7 +77,7 @@ namespace TypingMaster.Tests
                 .Returns<LoginLogDao>(dao => loginLogs.First(l => l.Id == dao.Id));
 
             // Act
-            var result = await _loginLogService.GetLoginLogsByAccountIdAsync(accountId);
+            var result = await _loginLogService.GetLoginLogsByAccountId(accountId);
 
             // Assert
             Assert.NotNull(result);
@@ -98,7 +98,7 @@ namespace TypingMaster.Tests
                 .ReturnsAsync(new List<LoginLogDao>());
 
             // Act
-            var result = await _loginLogService.GetLoginLogsByAccountIdAsync(accountId);
+            var result = await _loginLogService.GetLoginLogsByAccountId(accountId);
 
             // Assert
             Assert.NotNull(result);
@@ -116,7 +116,7 @@ namespace TypingMaster.Tests
                 .ThrowsAsync(new Exception("Test exception"));
 
             // Act
-            var result = await _loginLogService.GetLoginLogsByAccountIdAsync(accountId);
+            var result = await _loginLogService.GetLoginLogsByAccountId(accountId);
 
             // Assert
             Assert.NotNull(result);
@@ -163,7 +163,7 @@ namespace TypingMaster.Tests
                 .Returns(mappedLoginLog);
 
             // Act
-            var result = await _loginLogService.CreateLoginLogAsync(accountId, ipAddress, userAgent, isSuccessful);
+            var result = await _loginLogService.CreateLoginLog(accountId, ipAddress, userAgent, isSuccessful);
 
             // Assert
             Assert.NotNull(result);
@@ -188,7 +188,7 @@ namespace TypingMaster.Tests
                 .ThrowsAsync(new Exception("Test exception"));
 
             // Act
-            var result = await _loginLogService.CreateLoginLogAsync(accountId, ipAddress, userAgent, isSuccessful);
+            var result = await _loginLogService.CreateLoginLog(accountId, ipAddress, userAgent, isSuccessful);
 
             // Assert
             Assert.NotNull(result);
@@ -240,7 +240,7 @@ namespace TypingMaster.Tests
                 .Returns(mappedLoginLog);
 
             // Act
-            var result = await _loginLogService.CreateLoginLogAsync(accountId, ipAddress, userAgent, isSuccessful, failureReason);
+            var result = await _loginLogService.CreateLoginLog(accountId, ipAddress, userAgent, isSuccessful, failureReason);
 
             // Assert
             Assert.NotNull(result);
@@ -306,7 +306,7 @@ namespace TypingMaster.Tests
                 .Returns<LoginLogDao>(dao => loginLogs.First(l => l.Id == dao.Id));
 
             // Act
-            var result = await _loginLogService.GetRecentLoginLogsAsync(count);
+            var result = await _loginLogService.GetRecentLoginLogs(count);
 
             // Assert
             Assert.NotNull(result);
@@ -327,7 +327,7 @@ namespace TypingMaster.Tests
                 .ReturnsAsync(new List<LoginLogDao>());
 
             // Act
-            var result = await _loginLogService.GetRecentLoginLogsAsync(count);
+            var result = await _loginLogService.GetRecentLoginLogs(count);
 
             // Assert
             Assert.NotNull(result);
@@ -345,7 +345,7 @@ namespace TypingMaster.Tests
                 .ThrowsAsync(new Exception("Test exception"));
 
             // Act
-            var result = await _loginLogService.GetRecentLoginLogsAsync(count);
+            var result = await _loginLogService.GetRecentLoginLogs(count);
 
             // Assert
             Assert.NotNull(result);

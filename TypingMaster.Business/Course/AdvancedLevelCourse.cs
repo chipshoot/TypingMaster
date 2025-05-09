@@ -2,6 +2,7 @@
 using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Course
 {
@@ -9,9 +10,9 @@ namespace TypingMaster.Business.Course
     /// The course that increase the level of lesson based on the user's performance.
     /// If the user performs is better than advanced level, the lesson level will be increased.
     /// </summary>
-    public class AdvancedLevelCourse : ServiceBase, ICourse
+    public class AdvancedLevelCourse : ICourse
     {
-        public AdvancedLevelCourse(Serilog.ILogger logger,  string lessonDataFileUrl = "") : base(logger)
+        public AdvancedLevelCourse(Serilog.ILogger logger,  string lessonDataFileUrl = "")
         {
             LessonDataUrl = string.IsNullOrEmpty(lessonDataFileUrl)
                 ? "Resources/LessonData/advanced-level-course-lessons.json"
@@ -27,8 +28,11 @@ namespace TypingMaster.Business.Course
                     Accuracy = 0,
                 },
                 NewKeysPerStep = 0,
-                PracticeTextLength = 74
+                PhaseAttemptThreshold = 74
             };
+
+            Description = CourseDescription;
+            ProcessResult = new ProcessResult(logger);
         }
 
         private const string CourseDescription = "The course advances to the next level of lessons if the current typing performance level is equal to or above the advanced level.";
@@ -47,11 +51,20 @@ namespace TypingMaster.Business.Course
 
         public string CompleteText { get; }
 
+        public int MaxCharacters { get; set; } = TypingMasterConstants.DefaultTypingWindowWidth;
+
         public CourseSetting Settings { get; set; }
 
-        public string Description { get; } = CourseDescription;
+        public string Description { get; }
 
-        public Lesson? GetPracticeLesson(int curLessonId, StatsBase stats)
+        public ProcessResult ProcessResult { get; set; }
+
+        public PracticePhases AdvanceToNextPhase(PracticePhases phase, LessonType lessonType, StatsBase currentStats)
+        {
+            return PracticePhases.NotSet;
+        }
+
+        public PracticeLessonResult? GetPracticeLesson(int curLessonId, StatsBase stats, PracticePhases phase)
         {
             Lesson? nextLesson;
             if (curLessonId == 0)
@@ -88,7 +101,7 @@ namespace TypingMaster.Business.Course
                 };
             }
 
-            return nextLesson;
+            return new PracticeLessonResult { Lesson = nextLesson, Phase = PracticePhases.NotSet };
         }
     }
 }

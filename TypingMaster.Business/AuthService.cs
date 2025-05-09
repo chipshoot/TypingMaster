@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business;
 
@@ -11,12 +12,14 @@ public class AuthService(
     IIdpService idpService,
     JwtTokenGenerator tokenGenerator,
     ILogger logger)
-    : ServiceBase(logger), IAuthService
+    : IAuthService
 {
     private readonly HttpClient _httpClient = httpClient;
     private readonly JwtTokenGenerator _tokenGenerator = tokenGenerator;
 
-    public async Task<AuthResponse> LoginAsync(string email, string password)
+    public ProcessResult ProcessResult { get; set; } = new(logger);
+
+    public async Task<AuthResponse> Login(string email, string password)
     {
         try
         {
@@ -24,7 +27,7 @@ public class AuthService(
             var account = await accountService.GetAccountByEmail(email);
             if (account == null)
             {
-                await loginLogService.CreateLoginLogAsync(0, null, null, false, "Account not found");
+                await loginLogService.CreateLoginLog(0, null, null, false, "Account not found");
                 return new AuthResponse
                 {
                     Success = false,
@@ -33,10 +36,10 @@ public class AuthService(
             }
 
             // Use mock IDP service for authentication
-            var idpResponse = await idpService.AuthenticateAsync(account.AccountName, password);
+            var idpResponse = await idpService.Authenticate(account.AccountName, password);
             if (!idpResponse.Success)
             {
-                await loginLogService.CreateLoginLogAsync(account.Id, null, null, false, "IDP authentication failed");
+                await loginLogService.CreateLoginLog(account.Id, null, null, false, "IDP authentication failed");
                 return new AuthResponse
                 {
                     Success = false,
@@ -45,7 +48,7 @@ public class AuthService(
             }
 
             // Log the successful login attempt
-            await loginLogService.CreateLoginLogAsync(account.Id, null, null, true);
+            await loginLogService.CreateLoginLog(account.Id, null, null, true);
 
             return new AuthResponse
             {
@@ -59,7 +62,7 @@ public class AuthService(
         catch (Exception ex)
         {
             ProcessResult.AddException(ex);
-            await loginLogService.CreateLoginLogAsync(0, null, null, false, $"Error during login: {ex.Message}");
+            await loginLogService.CreateLoginLog(0, null, null, false, $"Error during login: {ex.Message}");
             return new AuthResponse
             {
                 Success = false,
@@ -68,13 +71,13 @@ public class AuthService(
         }
     }
 
-    public Task<bool> LogoutAsync(int accountId, string refreshToken)
+    public Task<bool> Logout(int accountId, string refreshToken)
     {
         // Implement logout logic
         return Task.FromResult(true);
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResponse> Register(RegisterRequest request)
     {
         if (request == null)
         {
@@ -87,8 +90,11 @@ public class AuthService(
 
         try
         {
-            // Check if email is already registered
-            var existingAccount = await accountService.GetAccountByEmail(request.Email);
+            // Parallelize email check and IDP registration
+            var emailCheckTask = accountService.GetAccountByEmail(request.Email);
+            var idpRegistrationTask = idpService.RegisterUser(request);
+
+            var existingAccount = await emailCheckTask;
             if (existingAccount != null)
             {
                 return new AuthResponse
@@ -98,8 +104,7 @@ public class AuthService(
                 };
             }
 
-            // Register with the identity provider
-            var idpRegistrationSuccess = await idpService.RegisterUserAsync(request);
+            var idpRegistrationSuccess = await idpRegistrationTask;
             if (!idpRegistrationSuccess)
             {
                 return new AuthResponse
@@ -154,11 +159,24 @@ public class AuthService(
         }
     }
 
-    public async Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string email)
+    public async Task<AuthResponse> RefreshToken(string token, string refreshToken, string email)
     {
         try
         {
-            var idpResponse = await idpService.RefreshTokenAsync(refreshToken, email);
+            // Use task to perform IDP refresh and account lookup in parallel
+            var idpResponseTask = idpService.RefreshToken(refreshToken, email);
+
+            // Only attempt account lookup if we have an email
+            Task<Account?> accountTask = Task.FromResult<Account?>(null);
+            if (!string.IsNullOrEmpty(email))
+            {
+                accountTask = accountService.GetAccountByEmail(email);
+            }
+
+            // Wait for both tasks to complete
+            await Task.WhenAll(idpResponseTask, accountTask);
+
+            var idpResponse = await idpResponseTask;
             if (!idpResponse.Success)
             {
                 return new AuthResponse
@@ -168,12 +186,8 @@ public class AuthService(
                 };
             }
 
-            // Try to get account information if we have a username
-            Account? account = null;
-            if (!string.IsNullOrEmpty(email))
-            {
-                account = await accountService.GetAccountByEmail(email);
-            }
+            // Get the account result from the parallel task
+            var account = await accountTask;
 
             return new AuthResponse
             {
@@ -195,25 +209,25 @@ public class AuthService(
         }
     }
 
-    public Task<bool> ChangePasswordAsync(int accountId, string currentPassword, string newPassword)
+    public Task<bool> ChangePassword(int accountId, string currentPassword, string newPassword)
     {
         // Temporarily disabled password change functionality
         return Task.FromResult(true);
     }
 
-    public Task<bool> RequestPasswordResetAsync(string email)
+    public Task<bool> RequestPasswordReset(string email)
     {
         // Temporarily disabled password reset functionality
         return Task.FromResult(true);
     }
 
-    public Task<bool> ResetPasswordAsync(string token, string newPassword)
+    public Task<bool> ResetPassword(string token, string newPassword)
     {
         // Temporarily disabled password reset functionality
         return Task.FromResult(true);
     }
 
-    public async Task<bool> ConfirmEmailAsync(string token)
+    public async Task<bool> ConfirmEmail(string token)
     {
         try
         {
@@ -229,7 +243,7 @@ public class AuthService(
             var confirmationCode = parts[1];
 
             // Confirm the registration with the identity provider
-            var success = await idpService.ConfirmRegistrationAsync(email, confirmationCode);
+            var success = await idpService.ConfirmRegistration(email, confirmationCode);
             if (!success)
             {
                 return false;
@@ -239,7 +253,7 @@ public class AuthService(
             var account = await accountService.GetAccountByEmail(email);
             if (account != null)
             {
-                await accountService.SetAccountStatusAsync(account.Id, true);
+                await accountService.SetAccountStatus(account.Id, true);
             }
 
             return true;
@@ -251,17 +265,17 @@ public class AuthService(
         }
     }
 
-    public Task<bool> ResendConfirmationEmailAsync(string email)
+    public Task<bool> ResendConfirmationEmail(string email)
     {
         // Temporarily disabled email confirmation
         return Task.FromResult(true);
     }
 
-    public async Task<bool> ResendConfirmationCodeAsync(string userName)
+    public async Task<bool> ResendConfirmationCode(string userName)
     {
         try
         {
-            var success = await idpService.ResendConfirmationCodeAsync(userName);
+            var success = await idpService.ResendConfirmationCode(userName);
             if (!success)
             {
                 return false;
@@ -276,11 +290,11 @@ public class AuthService(
         }
     }
 
-    public async Task<bool> ConfirmRegistrationAsync(string userName, string confirmationCode)
+    public async Task<bool> ConfirmRegistration(string userName, string confirmationCode)
     {
         try
         {
-            var success = await idpService.ConfirmRegistrationAsync(userName, confirmationCode);
+            var success = await idpService.ConfirmRegistration(userName, confirmationCode);
             if (!success)
             {
                 return false;

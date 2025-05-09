@@ -12,7 +12,7 @@ public class PracticeLogDao
 
     public ICollection<DrillStatsDao> PracticeStats { get; set; } = new List<DrillStatsDao>();
 
-    public Dictionary<char, KeyStatsDao> KeyStatsJson { get; set; }
+    public Dictionary<char, KeyStatsDao> KeyStatsJson { get; set; } = new();
 
     public long PracticeDuration { get; set; }
 

@@ -5,9 +5,11 @@ namespace TypingMaster.Core.Utility;
 
 public class ProcessResult(ILogger? logger = null)
 {
+    private readonly List<string> _informationList = [];
+
     public ProcessResultStatus Status { get; set; } = ProcessResultStatus.NotSet;
 
-    public IEnumerable<string> InformationList { get; set; } = [];
+    public IEnumerable<string> InformationList => _informationList;
 
     public string ErrorMessage { get; set; } = "";
 
@@ -17,10 +19,9 @@ public class ProcessResult(ILogger? logger = null)
 
     public void AddError(string errorMessage)
     {
-        var message = errorMessage;
         Status = ProcessResultStatus.Failure;
-        ErrorMessage = message;
-        logger?.Error(message);
+        ErrorMessage = errorMessage;
+        logger?.Error(errorMessage);
     }
 
     public void AddException(Exception exception)
@@ -39,11 +40,11 @@ public class ProcessResult(ILogger? logger = null)
     public void AddInformation(string message)
     {
         Status = ProcessResultStatus.NotSet;
-        InformationList.ToList().Add(message);
+        _informationList.Add(message);
         logger?.Information(message);
     }
 
-    public void PropagandaResult(ProcessResult innerResult)
+    public void PropagateResult(ProcessResult? innerResult)
     {
         if (innerResult == null)
         {
@@ -51,8 +52,11 @@ public class ProcessResult(ILogger? logger = null)
         }
 
         Status = innerResult.Status;
-        InformationList.ToList().AddRange(innerResult.InformationList);
-        ErrorMessage = $"{ErrorMessage}:{innerResult.ErrorMessage}";
+        _informationList.AddRange(innerResult.InformationList);
+        ErrorMessage = string.IsNullOrEmpty(ErrorMessage)
+            ? innerResult.ErrorMessage
+            : $"{ErrorMessage}:{innerResult.ErrorMessage}";
+
         if (InformationList.Any())
         {
             logger?.Information("{@InformationList}", InformationList);
@@ -62,5 +66,10 @@ public class ProcessResult(ILogger? logger = null)
         {
             logger?.Error(ErrorMessage);
         }
+    }
+
+    public void ClearInformation()
+    {
+        _informationList.Clear();
     }
 }

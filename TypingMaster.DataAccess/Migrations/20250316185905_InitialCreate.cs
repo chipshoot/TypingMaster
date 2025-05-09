@@ -106,6 +106,7 @@ namespace TypingMaster.DataAccess.Migrations
                     PracticeLogId = table.Column<int>(type: "integer", nullable: false),
                     CourseId = table.Column<Guid>(type: "uuid", nullable: false),
                     LessonId = table.Column<int>(type: "integer", nullable: false),
+                    Phases = table.Column<int>(type: "integer", nullable: false),
                     PracticeText = table.Column<string>(type: "text", nullable: true),
                     TypedText = table.Column<string>(type: "text", nullable: false),
                     KeyEventsJson = table.Column<string>(type: "jsonb", nullable: false),

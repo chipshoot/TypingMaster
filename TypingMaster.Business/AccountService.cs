@@ -294,7 +294,7 @@ public class AccountService(
         return guest;
     }
 
-    public async Task<bool> SetAccountStatusAsync(int accountId, bool isActive)
+    public async Task<bool> SetAccountStatus(int accountId, bool isActive)
     {
         try
         {

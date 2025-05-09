@@ -1,4 +1,6 @@
-﻿namespace TypingMaster.Core.Models;
+﻿using TypingMaster.Core.Models.Courses;
+
+namespace TypingMaster.Core.Models;
 
 public class DrillStats : StatsBase
 {
@@ -9,6 +11,8 @@ public class DrillStats : StatsBase
     public Guid CourseId { get; set; }
 
     public int LessonId { get; set; }
+
+    public PracticePhases Phases { get; set; }
 
     public string? PracticeText { get; set; }
 

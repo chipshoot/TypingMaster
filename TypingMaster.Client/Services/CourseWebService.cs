@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
 
@@ -99,14 +100,23 @@ public class CourseWebService(HttpClient httpClient, IApiConfiguration apiConfig
         }
     }
 
-    public async Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats)
+    public async Task<PracticeLessonResult?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats, PracticePhases phase, int maxCharacters = TypingMasterConstants.DefaultTypingWindowWidth)
     {
         try
         {
             var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.CourseService}/practice-lesson/{courseId}/{lessonId}");
-            var response = await httpClient.PostAsJsonAsync(url, stats);
+            var request = new LessonRequest
+            {
+                CourseId = courseId,
+                LessonId = lessonId,
+                Stats = stats,
+                Phase = phase,
+                MaxCharacters = maxCharacters
+            };
+
+            var response = await httpClient.PostAsJsonAsync(url, request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<Lesson>()
+            return await response.Content.ReadFromJsonAsync<PracticeLessonResult>()
                 ?? throw new InvalidOperationException("Failed to deserialize lesson");
         }
         catch (Exception ex)

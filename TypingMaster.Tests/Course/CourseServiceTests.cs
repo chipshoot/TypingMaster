@@ -203,7 +203,7 @@ namespace TypingMaster.Tests.Course
             {
                 Minutes = 120,
                 NewKeysPerStep = 1,
-                PracticeTextLength = 74,
+                PhaseAttemptThreshold = 74,
                 TargetStats = new StatsBase { Wpm = 50, Accuracy = 90 }
             };
 
@@ -268,7 +268,7 @@ namespace TypingMaster.Tests.Course
                 .Returns(courseDto);
 
             // Act
-            var result = await _courseService.GetPracticeLesson(courseId, lessonId, stats);
+            var result = await _courseService.GetPracticeLesson(courseId, lessonId, stats, PracticePhases.NotSet);
 
             // Assert
             result.Should().NotBeNull();

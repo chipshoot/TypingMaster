@@ -1,4 +1,5 @@
-﻿namespace TypingMaster.Core.Models;
+﻿
+namespace TypingMaster.Core.Models;
 
 public class PracticeLog
 {

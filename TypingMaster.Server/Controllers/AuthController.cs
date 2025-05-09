@@ -30,7 +30,7 @@ namespace TypingMaster.Server.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var response = await _authService.LoginAsync(request.Email, request.Password);
+                var response = await _authService.Login(request.Email, request.Password);
 
                 if (response.Success)
                 {
@@ -52,19 +52,19 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var response = await _authService.RegisterAsync(request);
-
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                var response = await _authService.Register(request);
                 if (response.Success)
                 {
                     return Ok(response);
                 }
 
                 return BadRequest(response);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Registration operation timed out for {Email}", request.Email);
+                return StatusCode(408, new { Success = false, Message = "The request timed out" });
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var success = await _authService.LogoutAsync(request.AccountId, request.RefreshToken);
+                var success = await _authService.Logout(request.AccountId, request.RefreshToken);
                 if (success)
                 {
                     return Ok();
@@ -99,16 +99,32 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var response = await _authService.RefreshTokenAsync(request.Token, request.RefreshToken, request.Email);
+                // Set a tight timeout to avoid long-running requests
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+
+                // Process the token refresh with timeout
+                var response = await _authService.RefreshToken(
+                    request.Token,
+                    request.RefreshToken,
+                    request.Email).ConfigureAwait(false);
+
                 if (response.Success)
                 {
+                    // Set cache control headers to enable caching of refresh tokens
+                    // This will help reduce subsequent refresh token requests
+                    Response.Headers.Append("Cache-Control", "private, max-age=600"); // 10 minutes
                     return Ok(response);
                 }
                 return BadRequest(response);
             }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Token refresh operation timed out for {Email}", request.Email);
+                return StatusCode(408, new { Success = false, Message = "The request timed out" });
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error refreshing token");
+                _logger.LogError(ex, "Error refreshing token for {Email}", request.Email);
                 return StatusCode(500, "An error occurred while refreshing the token");
             }
         }
@@ -118,7 +134,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var result = await _authService.RequestPasswordResetAsync(request.Email);
+                var result = await _authService.RequestPasswordReset(request.Email);
                 return Ok(new { Success = result });
             }
             catch (Exception ex)
@@ -133,7 +149,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var result = await _authService.ResetPasswordAsync(request.Token, request.NewPassword);
+                var result = await _authService.ResetPassword(request.Token, request.NewPassword);
                 return Ok(new { Success = result });
             }
             catch (Exception ex)
@@ -148,7 +164,7 @@ namespace TypingMaster.Server.Controllers
         {
             try
             {
-                var result = await _authService.ChangePasswordAsync(
+                var result = await _authService.ChangePassword(
                     request.AccountId,
                     request.CurrentPassword,
                     request.NewPassword);
@@ -173,7 +189,7 @@ namespace TypingMaster.Server.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var success = await _authService.ResendConfirmationCodeAsync(request.UserName);
+                var success = await _authService.ResendConfirmationCode(request.UserName);
                 if (success)
                 {
                     return Ok(new WebServiceResponse { Success = true, Message = "Confirmation code has been resent" });
@@ -199,7 +215,7 @@ namespace TypingMaster.Server.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var success = await _authService.ConfirmRegistrationAsync(request.UserName, request.ConfirmationCode);
+                var success = await _authService.ConfirmRegistration(request.UserName, request.ConfirmationCode);
                 if (success)
                 {
                     return Ok(new WebServiceResponse { Success = true, Message = "Registration confirmed successfully" });

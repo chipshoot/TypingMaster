@@ -39,7 +39,7 @@ public interface IPracticeLogService
     /// <param name="sortByNewest">Indicates whether to sort the results by newest first. Defaults to true.</param>
     /// <param name="type">The type of practice, if its null, take all practice</param>
     /// <returns>A paginated result containing the drill stats.</returns>
-    Task<PagedResult<DrillStats>> GetPaginatedDrillStatsByPracticeLogIdAsync(
+    Task<PagedResult<DrillStats>> GetPaginatedDrillStatsByPracticeLogId(
         int practiceLogId,
         int page = 1,
         int pageSize = 10,
@@ -56,5 +56,8 @@ public interface IPracticeLogService
     /// </summary>
     Task<bool> DeleteDrillStat(int id);
 
+    /// <summary>
+    /// Gets or sets the process result instance which holds the result information for the service operations.
+    /// </summary>
     ProcessResult ProcessResult { get; set; }
 }

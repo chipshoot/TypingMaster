@@ -25,7 +25,7 @@ namespace TypingMaster.Business.Contract
         /// <returns>The guest account temporary used by guest for playing around, when guest registered as membership, the account will convert to normal account </returns>
         Account GetGuestAccount();
 
-        Task<bool> SetAccountStatusAsync(int accountId, bool isActive);
+        Task<bool> SetAccountStatus(int accountId, bool isActive);
 
         ProcessResult ProcessResult { get; set; }
     }

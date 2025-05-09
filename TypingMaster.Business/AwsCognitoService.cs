@@ -7,6 +7,7 @@ using TypingMaster.Business.Config;
 using TypingMaster.Core.Models;
 using System.Security.Cryptography;
 using System.Text;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business;
 
@@ -29,7 +30,9 @@ public class AwsCognitoService(
         return Convert.ToBase64String(hash);
     }
 
-    public async Task<IdpAuthResponse> AuthenticateAsync(string userName, string password)
+    public ProcessResult ProcessResult { get; set; } = new(logger);
+
+    public async Task<IdpAuthResponse> Authenticate(string userName, string password)
     {
         try
         {
@@ -52,7 +55,7 @@ public class AwsCognitoService(
             {
                 // Prompt the user for a new password
                 var newPassword = "Password2@"; // Get this from your UI
-                var challengeResponse = await RespondToNewPasswordChallengeAsync(
+                var challengeResponse = await RespondToNewPasswordChallenge(
                     userName,
                     newPassword,
                     response.Session
@@ -108,7 +111,7 @@ public class AwsCognitoService(
         }
     }
 
-    public async Task<IdpAuthResponse> RespondToNewPasswordChallengeAsync(string email, string newPassword, string session)
+    public async Task<IdpAuthResponse> RespondToNewPasswordChallenge(string email, string newPassword, string session)
     {
         try
         {
@@ -163,7 +166,7 @@ public class AwsCognitoService(
         }
     }
 
-    public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken, string userName)
+    public async Task<IdpAuthResponse> RefreshToken(string refreshToken, string userName)
     {
         try
         {
@@ -218,7 +221,7 @@ public class AwsCognitoService(
             };
         }
     }
-    public async Task<bool> ResendConfirmationCodeAsync(string userName)
+    public async Task<bool> ResendConfirmationCode(string userName)
     {
         try
         {
@@ -240,7 +243,7 @@ public class AwsCognitoService(
         }
     }
 
-    public async Task<bool> RegisterUserAsync(RegisterRequest request)
+    public async Task<bool> RegisterUser(RegisterRequest request)
     {
         try
         {
@@ -269,7 +272,7 @@ public class AwsCognitoService(
         }
     }
 
-    public async Task<bool> ConfirmRegistrationAsync(string userName, string confirmationCode)
+    public async Task<bool> ConfirmRegistration(string userName, string confirmationCode)
     {
         try
         {
@@ -292,7 +295,7 @@ public class AwsCognitoService(
         }
     }
 
-    public async Task<bool> SetPermanentPasswordAsync(string email, string password)
+    public async Task<bool> SetPermanentPassword(string email, string password)
     {
         try
         {

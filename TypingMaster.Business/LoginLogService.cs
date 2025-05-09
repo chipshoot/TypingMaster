@@ -4,27 +4,21 @@ using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
+using TypingMaster.DataAccess.Utility;
 
 namespace TypingMaster.Business;
 
-public class LoginLogService : ServiceBase, ILoginLogService
+public class LoginLogService(ILoginLogRepository loginLogRepository, IMapper mapper, ILogger logger)
+    : ILoginLogService
 {
-    private readonly ILoginLogRepository _loginLogRepository;
-    private readonly IMapper _mapper;
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
-    public LoginLogService(ILoginLogRepository loginLogRepository, IMapper mapper, ILogger logger)
-        : base(logger)
-    {
-        _loginLogRepository = loginLogRepository;
-        _mapper = mapper;
-    }
-
-    public async Task<IEnumerable<LoginLog>> GetLoginLogsByAccountIdAsync(int accountId)
+    public async Task<IEnumerable<LoginLog>> GetLoginLogsByAccountId(int accountId)
     {
         try
         {
-            var loginLogDaos = await _loginLogRepository.GetLoginLogsByAccountIdAsync(accountId);
-            return loginLogDaos.Select(_mapper.Map<LoginLog>);
+            var loginLogDaos = await loginLogRepository.GetLoginLogsByAccountIdAsync(accountId);
+            return loginLogDaos.Select(mapper.Map<LoginLog>);
         }
         catch (Exception ex)
         {
@@ -33,7 +27,7 @@ public class LoginLogService : ServiceBase, ILoginLogService
         }
     }
 
-    public async Task<LoginLog> CreateLoginLogAsync(int accountId, string? ipAddress, string? userAgent, bool isSuccessful, string? failureReason = null)
+    public async Task<LoginLog> CreateLoginLog(int accountId, string? ipAddress, string? userAgent, bool isSuccessful, string? failureReason = null)
     {
         try
         {
@@ -47,8 +41,8 @@ public class LoginLogService : ServiceBase, ILoginLogService
                 FailureReason = failureReason
             };
 
-            var createdLoginLogDao = await _loginLogRepository.CreateLoginLogAsync(loginLogDao);
-            return _mapper.Map<LoginLog>(createdLoginLogDao);
+            var createdLoginLogDao = await loginLogRepository.CreateLoginLogAsync(loginLogDao);
+            return mapper.Map<LoginLog>(createdLoginLogDao);
         }
         catch (Exception ex)
         {
@@ -65,12 +59,12 @@ public class LoginLogService : ServiceBase, ILoginLogService
         }
     }
 
-    public async Task<IEnumerable<LoginLog>> GetRecentLoginLogsAsync(int count)
+    public async Task<IEnumerable<LoginLog>> GetRecentLoginLogs(int count)
     {
         try
         {
-            var loginLogDaos = await _loginLogRepository.GetRecentLoginLogsAsync(count);
-            return loginLogDaos.Select(_mapper.Map<LoginLog>);
+            var loginLogDaos = await loginLogRepository.GetRecentLoginLogsAsync(count);
+            return loginLogDaos.Select(mapper.Map<LoginLog>);
         }
         catch (Exception ex)
         {

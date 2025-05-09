@@ -22,8 +22,8 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
 
     public void SetupTrainer(Account account, CourseDto course)
     {
-        ArgumentNullException.ThrowIfNull(account, nameof(account));
-        ArgumentNullException.ThrowIfNull(course, nameof(course));
+        Guard.AgainstNull(account, nameof(account));
+        Guard.AgainstNull(course, nameof(course));
 
         _account = account;
 
@@ -72,6 +72,8 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
             _logger.Error(ex, "Error checking practice result");
         }
     }
+
+
     public async Task<bool> SavePracticeHistoryAsync(DrillStats stats)
     {
         try

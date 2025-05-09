@@ -67,7 +67,7 @@ public class ReportService(IPracticeLogService practiceLogService, ILogger logge
     {
         var dataList = new List<ProgressRecord>();
         var filteredStats =
-            await practiceLogService.GetPaginatedDrillStatsByPracticeLogIdAsync(history.Id, page, pageSize, sortByNewest);
+            await practiceLogService.GetPaginatedDrillStatsByPracticeLogId(history.Id, page, pageSize, sortByNewest);
             
         foreach (var item in filteredStats.Items)
         {

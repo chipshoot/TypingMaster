@@ -1,4 +1,5 @@
 ﻿using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Contract;
 
@@ -13,7 +14,7 @@ public interface IAuthService
     /// <param name="email">The username of the user.</param>
     /// <param name="password">The password of the user.</param>
     /// <returns>A task representing the asynchronous operation, with a <see cref="AuthResponse"/> result indicating success or failure.</returns>
-    Task<AuthResponse> LoginAsync(string email, string password);
+    Task<AuthResponse> Login(string email, string password);
 
     /// <summary>
     /// Logs out the currently logged-in user.
@@ -21,14 +22,14 @@ public interface IAuthService
     /// <param name="accountId">The ID of the account to log out.</param>
     /// <param name="refreshToken">The refresh token to invalidate.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> LogoutAsync(int accountId, string refreshToken);
+    Task<bool> Logout(int accountId, string refreshToken);
 
     /// <summary>
     /// Registers a new user with the provided registration request.
     /// </summary>
     /// <param name="request">The registration request containing user information.</param>
     /// <returns>A task representing the asynchronous operation, with a <see cref="AuthResponse"/> result indicating success or failure.</returns>
-    Task<AuthResponse> RegisterAsync(RegisterRequest request);
+    Task<AuthResponse> Register(RegisterRequest request);
 
     /// <summary>
     /// Refreshes an expired access token using a valid refresh token.
@@ -37,7 +38,7 @@ public interface IAuthService
     /// <param name="refreshToken">The refresh token to use for generating a new access token.</param>
     /// <param name="email">The email associated to refresh token.</param>
     /// <returns>A task representing the asynchronous operation, with a <see cref="AuthResponse"/> containing the new tokens if successful.</returns>
-    Task<AuthResponse> RefreshTokenAsync(string token, string refreshToken, string email);
+    Task<AuthResponse> RefreshToken(string token, string refreshToken, string email);
 
     /// <summary>
     /// Changes the password for an authenticated user.
@@ -46,14 +47,14 @@ public interface IAuthService
     /// <param name="currentPassword">The current password for verification.</param>
     /// <param name="newPassword">The new password to set.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> ChangePasswordAsync(int accountId, string currentPassword, string newPassword);
+    Task<bool> ChangePassword(int accountId, string currentPassword, string newPassword);
 
     /// <summary>
     /// Initiates the password reset process by sending a reset link to the user's email.
     /// </summary>
     /// <param name="email">The email address of the account requesting password reset.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> RequestPasswordResetAsync(string email);
+    Task<bool> RequestPasswordReset(string email);
 
     /// <summary>
     /// Completes the password reset process using a valid reset token.
@@ -61,28 +62,28 @@ public interface IAuthService
     /// <param name="token">The password reset token received via email.</param>
     /// <param name="newPassword">The new password to set.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> ResetPasswordAsync(string token, string newPassword);
+    Task<bool> ResetPassword(string token, string newPassword);
 
     /// <summary>
     /// Confirms a user's email address using the confirmation token.
     /// </summary>
     /// <param name="token">The email confirmation token received via email.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> ConfirmEmailAsync(string token);
+    Task<bool> ConfirmEmail(string token);
 
     /// <summary>
     /// Resends the email confirmation link to the user's email address.
     /// </summary>
     /// <param name="email">The email address to send the confirmation link to.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> ResendConfirmationEmailAsync(string email);
+    Task<bool> ResendConfirmationEmail(string email);
 
     /// <summary>
     /// Resends the confirmation code to a user's email address.
     /// </summary>
     /// <param name="userName">The username of the user to resend the confirmation code to.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> ResendConfirmationCodeAsync(string userName);
+    Task<bool> ResendConfirmationCode(string userName);
 
     /// <summary>
     /// Confirms a user's registration using the confirmation code.
@@ -90,5 +91,12 @@ public interface IAuthService
     /// <param name="userName">The username of the user to confirm.</param>
     /// <param name="confirmationCode">The confirmation code received via email.</param>
     /// <returns>A task representing the asynchronous operation, with a boolean indicating success or failure.</returns>
-    Task<bool> ConfirmRegistrationAsync(string userName, string confirmationCode);
+    Task<bool> ConfirmRegistration(string userName, string confirmationCode);
+
+
+    /// <summary>
+    /// Gets or sets the process result associated with authentication operations.
+    /// </summary>
+    ProcessResult ProcessResult { get; set; }
+
 }

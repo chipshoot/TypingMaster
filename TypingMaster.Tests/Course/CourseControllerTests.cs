@@ -10,6 +10,7 @@ using TypingMaster.Core.Models.Courses;
 using TypingMaster.Core.Utility;
 using TypingMaster.DataAccess.Data;
 using TypingMaster.Server.Controllers;
+using TypingMaster.Server.Models;
 
 namespace TypingMaster.Tests.Course
 {
@@ -23,7 +24,7 @@ namespace TypingMaster.Tests.Course
             // Create mock logger first
             var mockLogger = new Mock<ILogger>();
 
-            // Create a mock of the CourseService directly (not just the interface)
+            // Create mock of the CourseService directly (not just the interface)
             _mockCourseService = new Mock<CourseService>(
                 mockLogger.Object,
                 Mock.Of<ICourseRepository>(),
@@ -33,7 +34,7 @@ namespace TypingMaster.Tests.Course
 
             // Set up ProcessResult - since we're mocking the concrete class, we access it directly
             var processResult = new ProcessResult();
-            //_mockCourseService.Setup(s => s.ProcessResult).Returns(processResult);
+            _mockCourseService.Setup(s => s.ProcessResult).Returns(processResult);
 
             _controller = new CourseController(_mockCourseService.Object);
         }
@@ -241,7 +242,7 @@ namespace TypingMaster.Tests.Course
             {
                 Minutes = 60,
                 NewKeysPerStep = 1,
-                PracticeTextLength = 50,
+                PhaseAttemptThreshold = 50,
                 TargetStats = new StatsBase { Wpm = 30, Accuracy = 90 }
             };
 
@@ -338,27 +339,39 @@ namespace TypingMaster.Tests.Course
             var courseId = Guid.NewGuid();
             var lessonId = 1;
             var stats = new StatsBase { Wpm = 30, Accuracy = 85 };
-            var expectedLesson = new Lesson
+            var phase = PracticePhases.NotSet;
+            var expectedLesson = new PracticeLessonResult
             {
-                Id = lessonId,
-                Description = "Practice Lesson",
-                Target = new[] { "a", "s", "d", "f" },
-                Instruction = "Place your fingers on the home row"
+                Lesson = new Lesson
+                {
+                    Id = lessonId,
+                    Description = "Practice Lesson",
+                    Target = new[] { "a", "s", "d", "f" },
+                    Instruction = "Place your fingers on the home row"
+                },
+
+                Phase = phase
             };
 
-            _mockCourseService.Setup(s => s.GetPracticeLesson(courseId, lessonId, stats))
+            _mockCourseService.Setup(s => s.GetPracticeLesson(courseId, lessonId, stats, phase, 1))
                 .ReturnsAsync(expectedLesson);
 
             // Act
-            var result = await _controller.GetPracticeLesson(courseId, lessonId, stats);
+            var result = await _controller.GetPracticeLesson(new LessonRequest
+            {
+                CourseId = courseId,
+                LessonId = lessonId,
+                Stats = stats,
+                Phase = phase
+            });
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
             var returnedLesson = Assert.IsType<Lesson>(okResult.Value);
             Assert.Equal(lessonId, returnedLesson.Id);
-            Assert.Equal(expectedLesson.Description, returnedLesson.Description);
-            Assert.Equal(expectedLesson.Target, returnedLesson.Target);
-            Assert.Equal(expectedLesson.Instruction, returnedLesson.Instruction);
+            Assert.Equal(expectedLesson.Lesson.Description, returnedLesson.Description);
+            Assert.Equal(expectedLesson.Lesson.Target, returnedLesson.Target);
+            Assert.Equal(expectedLesson.Lesson.Instruction, returnedLesson.Instruction);
         }
 
         [Fact]
@@ -367,13 +380,20 @@ namespace TypingMaster.Tests.Course
             // Arrange
             var courseId = Guid.NewGuid();
             var lessonId = 1;
+            var phase = PracticePhases.NotSet;
             var stats = new StatsBase { Wpm = 30, Accuracy = 85 };
 
-            _mockCourseService.Setup(s => s.GetPracticeLesson(courseId, lessonId, stats))
-                .ReturnsAsync((Lesson)null);
+            _mockCourseService.Setup(s => s.GetPracticeLesson(courseId, lessonId, stats, phase, 1))
+                .ReturnsAsync((PracticeLessonResult)null);
 
             // Act
-            var result = await _controller.GetPracticeLesson(courseId, lessonId, stats);
+            var result = await _controller.GetPracticeLesson(new LessonRequest
+            {
+                CourseId = courseId,
+                LessonId = lessonId,
+                Stats = stats,
+                Phase = phase
+            });
 
             // Assert
             Assert.IsType<NotFoundResult>(result.Result);
@@ -384,10 +404,17 @@ namespace TypingMaster.Tests.Course
         {
             // Arrange
             var courseId = Guid.NewGuid();
+            var phase = PracticePhases.NotSet;
             var lessonId = 1;
 
             // Act
-            var result = await _controller.GetPracticeLesson(courseId, lessonId, null);
+            var result = await _controller.GetPracticeLesson(new LessonRequest
+            {
+                CourseId = courseId,
+                LessonId = lessonId,
+                Stats = null,
+                Phase = phase
+            });
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result.Result);

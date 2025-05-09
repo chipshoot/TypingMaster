@@ -160,7 +160,7 @@ public class PracticeLogServiceTests
             .ReturnsAsync(new ValueTuple<IEnumerable<DrillStatsDao>, int>(drillStatsDao, drillStatsDao.Count));
 
         // Act
-        var result = await _service.GetPaginatedDrillStatsByPracticeLogIdAsync(practiceLogId);
+        var result = await _service.GetPaginatedDrillStatsByPracticeLogId(practiceLogId);
 
         // Assert
         var resultList = result.Items.ToList();

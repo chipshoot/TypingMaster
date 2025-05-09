@@ -17,5 +17,5 @@ public interface ICourseWebService
 
     Task<DrillStats?> GenerateStartStats();
 
-    Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats);
+    Task<PracticeLessonResult?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats, PracticePhases phase, int maxCharacters);
 }

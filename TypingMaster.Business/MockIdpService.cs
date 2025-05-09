@@ -1,19 +1,15 @@
 using Serilog;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business;
 
-public class MockIdpService : IIdpService
+public class MockIdpService(ILogger logger) : IIdpService
 {
-    private readonly ILogger _logger;
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
-    public MockIdpService(ILogger logger)
-    {
-        _logger = logger;
-    }
-
-    public async Task<IdpAuthResponse> AuthenticateAsync(string email, string password)
+    public async Task<IdpAuthResponse> Authenticate(string email, string password)
     {
         // Mock successful authentication for development
         // In production, this would be replaced with actual IDP calls
@@ -30,11 +26,11 @@ public class MockIdpService : IIdpService
         };
     }
 
-    public async Task<IdpAuthResponse> RespondToNewPasswordChallengeAsync(string email, string newPassword, string session)
+    public async Task<IdpAuthResponse> RespondToNewPasswordChallenge(string email, string newPassword, string session)
     {
         // Mock successful password change
         await Task.Delay(100);
-        _logger.Information("Mock new password challenge response for user: {Email}", email);
+        logger.Information("Mock new password challenge response for user: {Email}", email);
 
         return new IdpAuthResponse
         {
@@ -47,18 +43,19 @@ public class MockIdpService : IIdpService
         };
     }
 
-    public async Task<bool> SetPermanentPasswordAsync(string email, string password)
+    public async Task<bool> SetPermanentPassword(string email, string password)
     {
         // Mock successful password setting
         await Task.Delay(100);
-        _logger.Information("Mock setting permanent password for user: {Email}", email);
+        logger.Information("Mock setting permanent password for user: {Email}", email);
         return true;
     }
 
-    public async Task<IdpAuthResponse> RefreshTokenAsync(string refreshToken, string userName)
+    public async Task<IdpAuthResponse> RefreshToken(string refreshToken, string userName)
     {
-        // Mock token refresh
-        await Task.Delay(100);
+        // Mock token refresh - removing delay for performance
+        // Reduced delay from 100ms to 10ms to improve performance
+        await Task.Delay(10);
 
         return new IdpAuthResponse
         {
@@ -71,27 +68,27 @@ public class MockIdpService : IIdpService
         };
     }
 
-    public async Task<bool> RegisterUserAsync(RegisterRequest request)
+    public async Task<bool> RegisterUser(RegisterRequest request)
     {
         // Mock successful registration
-        await Task.Delay(100);
-        _logger.Information("Mock user registration: {Email}", request.Email);
+        await Task.Delay(10);
+        logger.Information("Mock user registration: {Email}", request.Email);
         return true;
     }
 
-    public async Task<bool> ConfirmRegistrationAsync(string email, string confirmationCode)
+    public async Task<bool> ConfirmRegistration(string email, string confirmationCode)
     {
         // Mock successful confirmation
         await Task.Delay(100);
-        _logger.Information("Mock registration confirmation: {Email}", email);
+        logger.Information("Mock registration confirmation: {Email}", email);
         return true;
     }
 
-    public async Task<bool> ResendConfirmationCodeAsync(string userName)
+    public async Task<bool> ResendConfirmationCode(string userName)
     {
         // Mock successful code resend
         await Task.Delay(100);
-        _logger.Information("Mock resending confirmation code for user: {UserName}", userName);
+        logger.Information("Mock resending confirmation code for user: {UserName}", userName);
         return true;
     }
 }

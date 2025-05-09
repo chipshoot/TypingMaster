@@ -11,7 +11,7 @@ namespace TypingMaster.Business.Course
     public class CourseFactory(ILogger logger)
     {
         private static readonly Dictionary<string, List<Lesson>> LessonCache = new();
-        private static readonly object CacheLock = new();
+        private static readonly Lock CacheLock = new();
 
         public ICourse? CreateCourseInstance(CourseDto courseDto)
         {
@@ -151,6 +151,7 @@ namespace TypingMaster.Business.Course
                     PracticeText = lessonData.PracticeText,
                     Description = lessonData.Description,
                     Instruction = lessonData.Instruction,
+                    Type = lessonData.Type,
                     Point = lessonData.Point,
                     CommonWords = lessonData.CommonWords
                 }).ToList();
@@ -181,7 +182,7 @@ namespace TypingMaster.Business.Course
             {
                 Minutes = 0,
                 NewKeysPerStep = 1,
-                PracticeTextLength = 47,
+                PhaseAttemptThreshold = 47,
                 TargetStats = new StatsBase { Wpm = 0, Accuracy = 0 }
             };
         }

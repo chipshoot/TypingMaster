@@ -30,9 +30,12 @@
         </Step>
     </BodyTemplate>
     <FooterTemplate>
-        <Button Color="Color.Primary" OnClick="()=>PrevStep(_step)" IsDisabled="@_isFirstStep">Back</Button>
-        <Button Color="Color.Primary" OnClick="()=>NextStep(_step)" IsDisabled="@_isFinished">Next</Button>
-        <Button Color="Color.Primary" OnClick="()=>Reset(_step)">Reset</Button>
+        @if (_step != null)
+        {
+            <Button Color="Color.Primary" OnClick="() => PrevStep(_step)" IsDisabled="@_isFirstStep">Back</Button>
+            <Button Color="Color.Primary" OnClick="() => NextStep(_step)" IsDisabled="@_isFinished">Next</Button>
+            <Button Color="Color.Primary" OnClick="() => Reset(_step)">Reset</Button>
+        }
     </FooterTemplate>
 </Card>
 @code
@@ -50,7 +53,7 @@
                 Accuracy = 85,
                 Wpm = 25
             },
-            PracticeTextLength = 30
+            PhaseAttemptThreshold = 30
         };
 
 

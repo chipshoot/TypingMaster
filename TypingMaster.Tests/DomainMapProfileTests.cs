@@ -274,6 +274,7 @@ namespace TypingMaster.Tests
                 PracticeLogId = 1,
                 CourseId = Guid.NewGuid(),
                 LessonId = 1,
+                Phases = 2, // Should map to PracticePhases.Patterns
                 PracticeText = "Test text",
                 TypedText = "Test typed text",
                 KeyEventsJson = new Queue<KeyEventDao>(),
@@ -293,6 +294,7 @@ namespace TypingMaster.Tests
             Assert.Equal(drillStatsDao.PracticeLogId, drillStats.PracticeLogId);
             Assert.Equal(drillStatsDao.CourseId, drillStats.CourseId);
             Assert.Equal(drillStatsDao.LessonId, drillStats.LessonId);
+            Assert.Equal(PracticePhases.Patterns, drillStats.Phases);
             Assert.Equal(drillStatsDao.PracticeText, drillStats.PracticeText);
             Assert.Equal(drillStatsDao.TypedText, drillStats.TypedText);
             Assert.Equal(drillStatsDao.Wpm, drillStats.Wpm);
@@ -315,6 +317,7 @@ namespace TypingMaster.Tests
                 PracticeLogId = 1,
                 CourseId = Guid.NewGuid(),
                 LessonId = 1,
+                Phases = PracticePhases.RealWords, // Should map to 3
                 PracticeText = "Test text",
                 TypedText = "Test typed text",
                 KeyEvents = new Queue<KeyEvent>(),
@@ -334,6 +337,7 @@ namespace TypingMaster.Tests
             Assert.Equal(drillStats.PracticeLogId, drillStatsDao.PracticeLogId);
             Assert.Equal(drillStats.CourseId, drillStatsDao.CourseId);
             Assert.Equal(drillStats.LessonId, drillStatsDao.LessonId);
+            Assert.Equal(3, drillStatsDao.Phases); // PracticePhases.RealWords is 3
             Assert.Equal(drillStats.PracticeText, drillStatsDao.PracticeText);
             Assert.Equal(drillStats.TypedText, drillStatsDao.TypedText);
             Assert.Equal(drillStats.Wpm, drillStatsDao.Wpm);
@@ -630,10 +634,12 @@ namespace TypingMaster.Tests
             // Test enum to int mapping
             var mappedDao = _mapper.Map<DrillStatsDao>(drillStats);
             Assert.Equal(daoValue, mappedDao.TrainingType);
+            Assert.Equal((int)drillStats.Phases, mappedDao.Phases);
 
             // Test int to enum mapping
             var mappedModel = _mapper.Map<DrillStats>(drillStatsDao);
             Assert.Equal(enumValue, mappedModel.Type);
+            Assert.Equal((PracticePhases)drillStatsDao.Phases, mappedModel.Phases);
         }
 
         private DrillStats GetTestDrillStatsWithType(TrainingType type)
@@ -648,7 +654,8 @@ namespace TypingMaster.Tests
                 FinishTime = DateTime.Now,
                 PracticeText = "actual text",
                 TypedText = "typed text",
-                KeyEvents = new Queue<KeyEvent>()
+                KeyEvents = new Queue<KeyEvent>(),
+                Phases = PracticePhases.Patterns
             };
         }
 
@@ -664,7 +671,8 @@ namespace TypingMaster.Tests
                 PracticeText = "actual text",
                 TypedText = "typed text",
                 StartTime = DateTime.Now,
-                KeyEventsJson = new Queue<KeyEventDao>()
+                KeyEventsJson = new Queue<KeyEventDao>(),
+                Phases = 2
             };
         }
 
@@ -948,7 +956,7 @@ namespace TypingMaster.Tests
             Assert.NotNull(courseDto.Settings);
             Assert.Equal(courseDao.SettingsJson.Minutes, courseDto.Settings.Minutes);
             Assert.Equal(courseDao.SettingsJson.NewKeysPerStep, courseDto.Settings.NewKeysPerStep);
-            Assert.Equal(courseDao.SettingsJson.PracticeTextLength, courseDto.Settings.PracticeTextLength);
+            Assert.Equal(courseDao.SettingsJson.PracticeTextLength, courseDto.Settings.PhaseAttemptThreshold);
             Assert.NotNull(courseDto.Settings.TargetStats);
             Assert.Equal(courseDao.SettingsJson.TargetStats.Wpm, courseDto.Settings.TargetStats.Wpm);
             Assert.Equal(courseDao.SettingsJson.TargetStats.Accuracy, courseDto.Settings.TargetStats.Accuracy);
@@ -970,7 +978,7 @@ namespace TypingMaster.Tests
                 {
                     Minutes = 30,
                     NewKeysPerStep = 1,
-                    PracticeTextLength = 50,
+                    PhaseAttemptThreshold = 50,
                     TargetStats = new StatsBase
                     {
                         Wpm = 50,
@@ -995,7 +1003,7 @@ namespace TypingMaster.Tests
             Assert.NotNull(courseDao.SettingsJson);
             Assert.Equal(courseDto.Settings.Minutes, courseDao.SettingsJson.Minutes);
             Assert.Equal(courseDto.Settings.NewKeysPerStep, courseDao.SettingsJson.NewKeysPerStep);
-            Assert.Equal(courseDto.Settings.PracticeTextLength, courseDao.SettingsJson.PracticeTextLength);
+            Assert.Equal(courseDto.Settings.PhaseAttemptThreshold, courseDao.SettingsJson.PracticeTextLength);
             Assert.NotNull(courseDao.SettingsJson.TargetStats);
             Assert.Equal(courseDto.Settings.TargetStats.Wpm, courseDao.SettingsJson.TargetStats.Wpm);
             Assert.Equal(courseDto.Settings.TargetStats.Accuracy, courseDao.SettingsJson.TargetStats.Accuracy);

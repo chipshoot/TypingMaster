@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using TypingMaster.Client.Services;
-using TypingMaster.Core.Models;
 using TypingMaster.Shared.Utility;
 
 namespace TypingMaster.Client;

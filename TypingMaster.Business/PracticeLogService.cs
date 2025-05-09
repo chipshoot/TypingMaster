@@ -244,7 +244,7 @@ public class PracticeLogService(
         }
     }
 
-    public async Task<PagedResult<DrillStats>> GetPaginatedDrillStatsByPracticeLogIdAsync(
+    public async Task<PagedResult<DrillStats>> GetPaginatedDrillStatsByPracticeLogId(
         int practiceLogId,
         int page = 1,
         int pageSize = 10,

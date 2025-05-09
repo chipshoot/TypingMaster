@@ -59,7 +59,7 @@ namespace TypingMaster.Tests
                 {
                     Minutes = 30,
                     NewKeysPerStep = 1,
-                    PracticeTextLength = 50,
+                    PhaseAttemptThreshold = 50,
                     TargetStats = new StatsBase
                     {
                         Wpm = 50,

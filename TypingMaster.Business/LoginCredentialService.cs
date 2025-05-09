@@ -2,35 +2,27 @@ using AutoMapper;
 using Serilog;
 using TypingMaster.Business.Contract;
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
 
 namespace TypingMaster.Business;
 
-public class LoginCredentialService : ServiceBase, ILoginCredentialService
+public class LoginCredentialService(
+    ILoginCredentialRepository repository,
+    IMapper mapper,
+    ILoginLogService loginLogService,
+    ILogger logger)
+    : ILoginCredentialService
 {
-    private readonly ILoginCredentialRepository _repository;
-    private readonly IMapper _mapper;
-    private readonly ILoginLogService _loginLogService;
+    public ProcessResult ProcessResult { get; set; } = new(logger);
 
-    public LoginCredentialService(
-        ILoginCredentialRepository repository,
-        IMapper mapper,
-        ILoginLogService loginLogService,
-        ILogger logger)
-        : base(logger)
-    {
-        _repository = repository;
-        _mapper = mapper;
-        _loginLogService = loginLogService;
-    }
-
-    public async Task<LoginCredential?> GetByAccountIdAsync(int accountId)
+    public async Task<LoginCredential?> GetByAccountId(int accountId)
     {
         try
         {
-            var credentialDao = await _repository.GetByAccountIdAsync(accountId);
-            return credentialDao != null ? _mapper.Map<LoginCredential>(credentialDao) : null;
+            var credentialDao = await repository.GetByAccountIdAsync(accountId);
+            return credentialDao != null ? mapper.Map<LoginCredential>(credentialDao) : null;
         }
         catch (Exception ex)
         {
@@ -39,12 +31,12 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
         }
     }
 
-    public async Task<LoginCredential?> GetByEmailAsync(string email)
+    public async Task<LoginCredential?> GetByEmail(string email)
     {
         try
         {
-            var credentialDao = await _repository.GetByEmailAsync(email);
-            return credentialDao != null ? _mapper.Map<LoginCredential>(credentialDao) : null;
+            var credentialDao = await repository.GetByEmailAsync(email);
+            return credentialDao != null ? mapper.Map<LoginCredential>(credentialDao) : null;
         }
         catch (Exception ex)
         {
@@ -53,7 +45,7 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
         }
     }
 
-    public async Task<LoginCredential> CreateAsync(int accountId, string email)
+    public async Task<LoginCredential> Create(int accountId, string email)
     {
         try
         {
@@ -67,8 +59,8 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
                 LastUpdated = DateTime.UtcNow
             };
 
-            var createdCredential = await _repository.CreateAsync(credential);
-            return _mapper.Map<LoginCredential>(createdCredential);
+            var createdCredential = await repository.CreateAsync(credential);
+            return mapper.Map<LoginCredential>(createdCredential);
         }
         catch (Exception ex)
         {
@@ -86,13 +78,13 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
         }
     }
 
-    public async Task<LoginCredential?> UpdateAsync(LoginCredential credential)
+    public async Task<LoginCredential?> Update(LoginCredential credential)
     {
         try
         {
-            var credentialDao = _mapper.Map<LoginCredentialDao>(credential);
-            var updatedCredentialDao = await _repository.UpdateAsync(credentialDao);
-            return updatedCredentialDao != null ? _mapper.Map<LoginCredential>(updatedCredentialDao) : null;
+            var credentialDao = mapper.Map<LoginCredentialDao>(credential);
+            var updatedCredentialDao = await repository.UpdateAsync(credentialDao);
+            return updatedCredentialDao != null ? mapper.Map<LoginCredential>(updatedCredentialDao) : null;
         }
         catch (Exception ex)
         {
@@ -101,11 +93,11 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
         }
     }
 
-    public async Task<bool> UpdateExternalIdpInfoAsync(int accountId, string externalIdpId, string externalIdpType)
+    public async Task<bool> UpdateExternalIdpInfo(int accountId, string externalIdpId, string externalIdpType)
     {
         try
         {
-            var credentialDao = await _repository.GetByAccountIdAsync(accountId);
+            var credentialDao = await repository.GetByAccountIdAsync(accountId);
             if (credentialDao == null)
             {
                 ProcessResult.AddError("Account not found");
@@ -116,7 +108,7 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
             credentialDao.ExternalIdpType = externalIdpType;
             credentialDao.LastUpdated = DateTime.UtcNow;
 
-            var updatedCredentialDao = await _repository.UpdateAsync(credentialDao);
+            var updatedCredentialDao = await repository.UpdateAsync(credentialDao);
             return updatedCredentialDao != null;
         }
         catch (Exception ex)
@@ -126,15 +118,15 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
         }
     }
 
-    public async Task<bool> UpdateLastLoginAsync(int accountId)
+    public async Task<bool> UpdateLastLogin(int accountId)
     {
         try
         {
-            var success = await _repository.UpdateLastLoginAsync(accountId, DateTime.UtcNow);
+            var success = await repository.UpdateLastLoginAsync(accountId, DateTime.UtcNow);
             if (success)
             {
                 // Log successful login
-                await _loginLogService.CreateLoginLogAsync(
+                await loginLogService.CreateLoginLog(
                     accountId,
                     null, // IP address will be set by the API layer
                     null, // User agent will be set by the API layer
@@ -150,15 +142,15 @@ public class LoginCredentialService : ServiceBase, ILoginCredentialService
         }
     }
 
-    public async Task<bool> SetAccountStatusAsync(int accountId, bool isActive)
+    public async Task<bool> SetAccountStatus(int accountId, bool isActive)
     {
         try
         {
-            var success = await _repository.SetAccountStatusAsync(accountId, isActive);
+            var success = await repository.SetAccountStatusAsync(accountId, isActive);
             if (success)
             {
                 // Log account status change
-                await _loginLogService.CreateLoginLogAsync(
+                await loginLogService.CreateLoginLog(
                     accountId,
                     null, // IP address will be set by the API layer
                     null, // User agent will be set by the API layer

@@ -1,5 +1,6 @@
 ﻿using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Contract
 {
@@ -15,8 +16,10 @@ namespace TypingMaster.Business.Contract
 
         Task<CourseDto> GenerateBeginnerCourse(CourseSetting settings);
 
-        Task<Lesson?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats);
+        Task<PracticeLessonResult?> GetPracticeLesson(Guid courseId, int lessonId, StatsBase stats, PracticePhases phase, int generateRounds = 1);
 
         Task<DrillStats> GenerateStartStats();
+
+        ProcessResult ProcessResult { get; set; }
     }
 }

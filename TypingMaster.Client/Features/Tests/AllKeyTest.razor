@@ -28,7 +28,7 @@
         </HeaderTemplate>
         <BodyTemplate>
             <Practice CurrentLesson="@_curLesson" TrainingType="@_trainingType" OnTypingCompleted="OnPracticeFinished"
-                @ref="@_practice">
+            @ref="@_practice">
             </Practice>
         </BodyTemplate>
     </Card>
@@ -44,7 +44,7 @@ else
 
     private const string NullAccountFound = "Null account found in AllKeyTest component Initialized method";
     private const string NullCourseFound = "Null course found in AllKeyTest component Initialized method";
-    private Practice? _practice;
+    private Practice _practice = new();
     private bool _isCompleted;
     private Lesson? _curLesson;
     private const int PageSize = 10;
@@ -128,7 +128,7 @@ else
 
         stats.CourseId = AppState.CurrentAccount.TestCourseId;
         TypingTrainer?.CheckPracticeResult(stats);
-        _practice?.HandleReset(_isCompleted);
+        _practice.HandleReset(_isCompleted);
 
         if (AppState.IsLoggedIn)
         {
@@ -150,7 +150,14 @@ else
         {
             var stats = AppState.CurrentAccount.History.PracticeStats.Last();
             var courseId = AppState.CurrentAccount.TestCourseId;
-            _curLesson = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats);
+            var curLessonDto = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats, stats.Phases, _practice.LineWidth);
+            if (curLessonDto == null)
+            {
+                Logger.Error("Cannot get lesson");
+                return;
+            }
+
+            _curLesson = curLessonDto.Lesson;
         }
 
         _practice?.HandleReset();

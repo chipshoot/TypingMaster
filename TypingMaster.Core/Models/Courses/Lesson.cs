@@ -11,6 +11,8 @@ public class Lesson
 
     public string PracticeText { get; set; } = null!;
 
+    public LessonType Type { get; set; } = LessonType.NotSet;
+
     public bool IsCourseComplete { get; set; } = false;
 
     /// <summary>

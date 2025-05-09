@@ -1,20 +1,28 @@
 using TypingMaster.Core.Models;
+using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Contract;
 
 public interface ILoginCredentialService
 {
-    Task<LoginCredential?> GetByAccountIdAsync(int accountId);
+    Task<LoginCredential?> GetByAccountId(int accountId);
 
-    Task<LoginCredential?> GetByEmailAsync(string email);
+    Task<LoginCredential?> GetByEmail(string email);
 
-    Task<LoginCredential> CreateAsync(int accountId, string email);
+    Task<LoginCredential> Create(int accountId, string email);
 
-    Task<LoginCredential?> UpdateAsync(LoginCredential credential);
+    Task<LoginCredential?> Update(LoginCredential credential);
 
-    Task<bool> UpdateExternalIdpInfoAsync(int accountId, string externalIdpId, string externalIdpType);
+    Task<bool> UpdateExternalIdpInfo(int accountId, string externalIdpId, string externalIdpType);
 
-    Task<bool> UpdateLastLoginAsync(int accountId);
+    Task<bool> UpdateLastLogin(int accountId);
 
-    Task<bool> SetAccountStatusAsync(int accountId, bool isActive);
+    Task<bool> SetAccountStatus(int accountId, bool isActive);
+
+    /// <summary>
+    /// Gets or sets the result of the process, including status, error messages, and additional information.
+    /// </summary>
+    ProcessResult ProcessResult { get; set; }
+
+
 }

@@ -69,7 +69,7 @@ namespace TypingMaster.Business.Mapping
             //        {
             //            Minutes = src.SettingsJson.Minutes,
             //            NewKeysPerStep = src.SettingsJson.NewKeysPerStep,
-            //            PracticeTextLength = src.SettingsJson.PracticeTextLength,
+            //            PhaseAttemptThreshold = src.SettingsJson.PhaseAttemptThreshold,
             //            TargetStats = new StatsBase
             //            {
             //                Wpm = src.SettingsJson.TargetStats.Wpm,
@@ -87,7 +87,7 @@ namespace TypingMaster.Business.Mapping
             //        {
             //            Minutes = src.Settings.Minutes,
             //            NewKeysPerStep = src.Settings.NewKeysPerStep,
-            //            PracticeTextLength = src.Settings.PracticeTextLength,
+            //            PhaseAttemptThreshold = src.Settings.PhaseAttemptThreshold,
             //            TargetStats = new StatsDao
             //            {
             //                Wpm = src.Settings.TargetStats.Wpm,
@@ -110,7 +110,7 @@ namespace TypingMaster.Business.Mapping
                 {
                     Minutes = src.SettingsJson.Minutes,
                     NewKeysPerStep = src.SettingsJson.NewKeysPerStep,
-                    PracticeTextLength = src.SettingsJson.PracticeTextLength,
+                    PhaseAttemptThreshold = src.SettingsJson.PracticeTextLength,
                     TargetStats = new StatsBase
                     {
                         Wpm = src.SettingsJson.TargetStats.Wpm,
@@ -132,7 +132,7 @@ namespace TypingMaster.Business.Mapping
                     {
                         Minutes = src.Settings.Minutes,
                         NewKeysPerStep = src.Settings.NewKeysPerStep,
-                        PracticeTextLength = src.Settings.PracticeTextLength,
+                        PracticeTextLength = src.Settings.PhaseAttemptThreshold,
                         TargetStats = new StatsDao
                         {
                             Wpm = src.Settings.TargetStats.Wpm,
@@ -171,14 +171,14 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.Minutes, opt => opt.MapFrom(src => src.Minutes))
                 .ForMember(dest => dest.TargetStats, opt => opt.MapFrom(src => src.TargetStats))
                 .ForMember(dest => dest.NewKeysPerStep, opt => opt.MapFrom(src => src.NewKeysPerStep))
-                .ForMember(dest => dest.PracticeTextLength, opt => opt.MapFrom(src => src.PracticeTextLength));
+                .ForMember(dest => dest.PhaseAttemptThreshold, opt => opt.MapFrom(src => src.PracticeTextLength));
 
             // Map from CourseSetting to CourseSettingDao (reverse mapping)
             CreateMap<CourseSetting, CourseSettingDao>()
                 .ForMember(dest => dest.Minutes, opt => opt.MapFrom(src => src.Minutes))
                 .ForMember(dest => dest.TargetStats, opt => opt.MapFrom(src => src.TargetStats))
                 .ForMember(dest => dest.NewKeysPerStep, opt => opt.MapFrom(src => src.NewKeysPerStep))
-                .ForMember(dest => dest.PracticeTextLength, opt => opt.MapFrom(src => src.PracticeTextLength));
+                .ForMember(dest => dest.PracticeTextLength, opt => opt.MapFrom(src => src.PhaseAttemptThreshold));
 
             // Map from UserProfileDao to UserProfile
             CreateMap<UserProfileDao, UserProfile>()
@@ -268,6 +268,7 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.PracticeLogId, opt => opt.MapFrom(src => src.PracticeLogId))
                 .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId))
                 .ForMember(dest => dest.LessonId, opt => opt.MapFrom(src => src.LessonId))
+                .ForMember(dest => dest.Phases, opt => opt.MapFrom(src => (PracticePhases)src.Phases))
                 .ForMember(dest => dest.PracticeText, opt => opt.MapFrom(src => src.PracticeText))
                 .ForMember(dest => dest.TypedText, opt => opt.MapFrom(src => src.TypedText))
                 .ForMember(dest => dest.KeyEvents, opt => opt.MapFrom(src => src.KeyEventsJson))
@@ -283,6 +284,7 @@ namespace TypingMaster.Business.Mapping
                 .ForMember(dest => dest.PracticeLogId, opt => opt.MapFrom(src => src.PracticeLogId))
                 .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId))
                 .ForMember(dest => dest.LessonId, opt => opt.MapFrom(src => src.LessonId))
+                .ForMember(dest => dest.Phases, opt => opt.MapFrom(src => (int)src.Phases))
                 .ForMember(dest => dest.PracticeText, opt => opt.MapFrom(src => src.PracticeText))
                 .ForMember(dest => dest.TypedText, opt => opt.MapFrom(src => src.TypedText))
                 .ForMember(dest => dest.KeyEventsJson, opt =>

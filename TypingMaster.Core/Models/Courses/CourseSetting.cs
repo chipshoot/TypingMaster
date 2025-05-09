@@ -9,5 +9,8 @@ public class CourseSetting
 
     public int NewKeysPerStep { get; set; }
 
-    public int PracticeTextLength { get; set; }
+    /// <summary>
+    /// The time of tries before trainer move to next phase.
+    /// </summary>
+    public int PhaseAttemptThreshold { get; set; }
 }
