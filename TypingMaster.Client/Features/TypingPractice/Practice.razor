@@ -2,12 +2,13 @@
 @inject ILogger Logger
 @inject ApplicationContext AppState
 @using System.Text
+@using TypingMaster.Client.Features.Models
 
 <Card class="mt-3">
     <BodyTemplate>
+
         <div class="d-flex justify-content-center">
-            <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative"
-            style="width: @(LineWidth * 0.88)em !important; 
+            <div id="inputArea" class="mb-4 p-4 bg-body-secondary rounded relative" style="width: @(LineWidth * 0.88)em !important; 
                         min-width: @(LineWidth * 0.90)em !important; 
                         max-width: @(LineWidth * 0.90)em !important;">
                 <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
@@ -28,9 +29,14 @@
         <div class="d-flex justify-content-center mb-4">
             <TypingStats Wpm="@_wpm" Accuracy="@_accuracy" ShowLevel="true" Class="compact" />
         </div>
-        @if (!string.IsNullOrEmpty(CurrentLesson?.Instruction))
+        @if (IsShowProgress)
         {
-            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson?.Instruction" IsCollapse="false"
+            <ProgressPanel Model="@_progressPanelModel"/>
+        }
+
+        @if (!string.IsNullOrEmpty(CurrentLesson?.Lesson.Instruction))
+        {
+            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson.Lesson?.Instruction" IsCollapse="false"
             TextType="MessageTextType.Markdown" />
         }
 
@@ -49,7 +55,7 @@
     </FooterTemplate>
 </Card>
 
-<TypingStatsCalculator Text="@CurrentLesson?.PracticeText" UserInput="@_totalInputText"
+<TypingStatsCalculator Text="@CurrentLesson?.Lesson.PracticeText" UserInput="@_totalInputText"
 OnWpmChanged="@(wpm => { _wpm = wpm; StateHasChanged(); })"
 OnAccuracyChanged="@(accuracy => { _accuracy = accuracy; StateHasChanged(); })" @ref="@_typingStats"
 OnStatsUpdating="HandleStatsUpdating">
@@ -64,14 +70,14 @@ OnStatsUpdating="HandleStatsUpdating">
     // todo: fix the issue of calculating the accuracy for the last key, currently the last key is not counted
     // todo: fix the issue lesson event handler for beginning course
     [Parameter]
-    public Lesson? CurrentLesson
+    public PracticeLessonResult? CurrentLesson
     {
-        get => _currentLesson;
+        get => _lessonDto;
         set
         {
-            if (_currentLesson != value)
+            if (value != null && _lessonDto != value)
             {
-                _currentLesson = value;
+                _lessonDto = value;
                 SetupPracticeText();
             }
         }
@@ -83,13 +89,15 @@ OnStatsUpdating="HandleStatsUpdating">
 
     [Parameter] public EventCallback<DrillStats> OnTypingCompleted { get; set; }
 
+    [Parameter] public bool IsShowProgress { get; set; }
+
     private ElementReference _inputRef;
     private TypingStatsCalculator? _typingStats;
     private KeyEventGenerator? _keyEventGenerator;
     private KeyboardEventArgs? _keyEventArgs;
     private Queue<KeyEvent> _keyEvents = [];
 
-    private Lesson? _currentLesson;
+    private PracticeLessonResult? _lessonDto;
     private List<string> _lines = [];
     private List<string> _lineTypedTexts = [];
     private int _currentLineId = 1;
@@ -111,6 +119,7 @@ OnStatsUpdating="HandleStatsUpdating">
     private bool _isStatsUpdating;
     private bool _isProcessingKeyEvent;
     private readonly Dictionary<int, TextDisplay> _textDisplays = [];
+    private ProgressPanelModel? _progressPanelModel;
 
     private int _lineWidth;
     public int LineWidth
@@ -132,11 +141,24 @@ OnStatsUpdating="HandleStatsUpdating">
         _typingStats = new TypingStatsCalculator();
         _keyEventGenerator = new KeyEventGenerator();
         _nextKeyExpected = string.IsNullOrEmpty(_text) ? '\0' : _text[0];
-        _lessonHeader = $"Lesson: {CurrentLesson?.Id}";
-        _focusKeys = CurrentLesson == null ? [] : CurrentLesson.Target.ToList();
+        _lessonHeader = $"Lesson: {_lessonDto?.Lesson?.Id}";
+        _focusKeys = _lessonDto?.Lesson == null ? [] : _lessonDto?.Lesson?.Target.ToList();
 
-        // Initialize _lineTypedTexts
         _lineTypedTexts = _lines.Select(_ => string.Empty).ToList();
+
+        _progressPanelModel = _lessonDto != null
+            ? new ProgressPanelModel
+            {
+                StatTarget = _lessonDto.TargetStats,
+                LessonNumber = _lessonDto.Lesson.Id,
+                TotalLessons = _lessonDto.LessonCount
+            }
+            : new ProgressPanelModel
+            {
+                StatTarget = new StatsBase(),
+                LessonNumber = 0,
+                TotalLessons = 0
+            };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -261,16 +283,18 @@ OnStatsUpdating="HandleStatsUpdating">
         }
         else
         {
+            var curLesson = _lessonDto?.Lesson;
+
             // All lines completed, mark as finished
             _isLineCompleted = true;
             _isCompleted = true;
-            _isCourseFinished = CurrentLesson?.IsCourseComplete ?? false;
+            _isCourseFinished = curLesson?.IsCourseComplete ?? false;
             StateHasChanged();
 
             // Trigger the typing completed event
             OnTypingCompleted.InvokeAsync(new DrillStats
             {
-                LessonId = CurrentLesson?.Id ?? 0,
+                LessonId = curLesson?.Id ?? 0,
                 PracticeText = string.Join("", _lines),
                 TypedText = string.Join("", _lineTypedTexts),
                 Wpm = _wpm,
@@ -287,11 +311,12 @@ OnStatsUpdating="HandleStatsUpdating">
 
     private void SetupPracticeText()
     {
-        _lessonHeader = $"Lesson: {_currentLesson?.Id}";
-        _focusKeys = _currentLesson == null ? [] : _currentLesson.Target.ToList();
+        _lessonHeader = $"Lesson: {_lessonDto?.Lesson.Id}";
+        _focusKeys = _lessonDto?.Lesson == null ? [] : _lessonDto.Lesson.Target.ToList();
 
         // get lines of text
-        _lines = GetPracticeText(CurrentLesson?.PracticeText ?? string.Empty);
+        var curLesson = _lessonDto?.Lesson;
+        _lines = GetPracticeText(curLesson?.PracticeText ?? string.Empty);
 
         // set text
         if (_lines.Count > 0 && _currentLineId > 0 && _currentLineId <= _lines.Count)
@@ -308,6 +333,14 @@ OnStatsUpdating="HandleStatsUpdating">
         // Reset stats when setting up new practice text
         _wpm = 0;
         _accuracy = 0;
+        if (_progressPanelModel != null)
+        {
+            _progressPanelModel.CurrentWpm = 0;
+            _progressPanelModel.CurrentAccuracy = 0;
+            _progressPanelModel.StatTarget = _lessonDto?.TargetStats;
+            _progressPanelModel.LessonNumber = _lessonDto?.Lesson.Id ?? 0;
+            _progressPanelModel.TotalLessons = _lessonDto?.LessonCount ?? 0;
+        }
         _typingStats?.Reset();
         _isLineCompleted = false;
         _isCompleted = false;
@@ -321,6 +354,11 @@ OnStatsUpdating="HandleStatsUpdating">
         _cursorPosition = 0;
         _wpm = 0;
         _accuracy = 0;
+        if (_progressPanelModel != null)
+        {
+            _progressPanelModel.CurrentWpm = 0;
+            _progressPanelModel.CurrentAccuracy = 0;
+        }
         _lastKeyPressed = null;
         _leftShiftPressed = false;
         _rightShiftPressed = false;
@@ -330,7 +368,7 @@ OnStatsUpdating="HandleStatsUpdating">
         _keyEvents.Clear();
         _nextKeyExpected = _text[0];
         _keyEventGenerator?.Reset();
-        _focusKeys = [];
+        //_focusKeys = [];
         _lineTypedTexts = _lines.Select(_ => string.Empty).ToList();
 
         foreach (var textDisplay in _textDisplays.Values)
@@ -365,6 +403,8 @@ OnStatsUpdating="HandleStatsUpdating">
     private void HandleStatsUpdating(bool isStatsUpdating)
     {
         _isStatsUpdating = isStatsUpdating;
+        _progressPanelModel.CurrentWpm = _wpm;
+        _progressPanelModel.CurrentAccuracy = _accuracy;
         StateHasChanged();
     }
 

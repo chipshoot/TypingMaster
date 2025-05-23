@@ -1,4 +1,5 @@
-﻿.login-container {
+﻿/* Auth component styles */
+.login-container {
     max-width: 450px;
     margin: 80px auto;
     padding: 35px;
@@ -47,6 +48,16 @@
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
+    background-color: #3498db;
+    border-color: #3498db;
+    flex: 1;
+}
+
+.btn-login:hover, .btn-login:focus {
+    background-color: #2980b9;
+    border-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .spinner-border-sm {
@@ -82,19 +93,6 @@
     font-size: 0.95rem;
     margin-bottom: 0;
     line-height: 1.5;
-}
-
-.btn-login {
-    background-color: #3498db;
-    border-color: #3498db;
-    flex: 1;
-}
-
-.btn-login:hover, .btn-login:focus {
-    background-color: #2980b9;
-    border-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .btn-register {

@@ -46,7 +46,7 @@ else
     private const string NullCourseFound = "Null course found in AllKeyTest component Initialized method";
     private Practice _practice = new();
     private bool _isCompleted;
-    private Lesson? _curLesson;
+    private PracticeLessonResult? _curLesson;
     private const int PageSize = 10;
 
     private PagedResult<DrillStats> _statsList = new();
@@ -76,7 +76,15 @@ else
         }
 
         var course = AppState.CurrentCourse;
-        _curLesson = course?.Lessons.FirstOrDefault(l => l.Id == LessonId);
+        var statLst = AppState.CurrentAccount.History.PracticeStats.ToArray();
+        var stats = statLst.Any()? statLst.Last() : GetDefaultStat();
+        _curLesson = new PracticeLessonResult
+        {
+            Lesson = course?.Lessons.FirstOrDefault(l => l.Id == LessonId),
+            Phase = PracticePhases.NotSet,
+            LessonCount = course?.Lessons.Count() ?? 0,
+            TargetStats = stats
+        };
         AppState.CurrentAccount.TestCourseId = course.Id;
         _trainingType = course.Type;
 
@@ -157,10 +165,19 @@ else
                 return;
             }
 
-            _curLesson = curLessonDto.Lesson;
+            _curLesson = curLessonDto;
         }
 
         _practice?.HandleReset();
         StateHasChanged();
+    }
+
+    private StatsBase GetDefaultStat()
+    {
+        return new StatsBase
+            {
+                Wpm = 60,
+                Accuracy = 90
+            };
     }
 }

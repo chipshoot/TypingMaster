@@ -1,0 +1,39 @@
+@using TypingMaster.Client.Features.Models
+
+<div class="goal-panel mb-4 p-3 border rounded bg-light">
+    <div class="practice-progress border-bottom pb-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="m-0">Practice Progress</h5>
+            <span>Lesson @Model.LessonNumber of @Model.TotalLessons</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: @ProgressPercentage%;"
+            aria-valuenow="@ProgressPercentage" aria-valuemin="0" aria-valuemax="100">
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <div class="text-center p-3 bg-white rounded flex-grow-1 me-3 border">
+            <div class="text-muted">Words Per Minute</div>
+            <div class="d-flex justify-content-center align-items-center">
+                <span class="stat-value">@Model.CurrentWpm</span>
+                <span class="ms-1 text-muted">/ @Model.StatTarget.Wpm Target</span>
+            </div>
+        </div>
+        <div class="text-center p-3 bg-white rounded flex-grow-1 border">
+            <div class="text-muted">Accuracy</div>
+            <div class="d-flex justify-content-center align-items-center">
+                <span class="stat-value">@AccuracyFormatted%</span>
+                <span class="ms-1 text-muted">/ @Model.StatTarget.Accuracy% Target</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ProgressPanelModel Model { get; set; } = null!;
+
+    private string AccuracyFormatted => Math.Round(Model.CurrentAccuracy, 1).ToString("0.0");
+    private int ProgressPercentage => (int)Math.Round((double)Model.LessonNumber / Model.TotalLessons * 100);
+}

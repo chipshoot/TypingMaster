@@ -106,7 +106,9 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
                         Instruction = CompleteText,
                         PracticeText = string.Empty
                     },
-                    Phase = PracticePhases.NotSet
+                    Phase = PracticePhases.NotSet,
+                    LessonCount = Lessons.Count(),
+                    TargetStats = Settings.TargetStats
                 };
             }
 
@@ -129,7 +131,9 @@ public class BeginnerCourse(Serilog.ILogger logger, string lessonDataFileUrl = "
         return new PracticeLessonResult
         {
             Lesson = lesson,
-            Phase = nextPhase
+            Phase = nextPhase,
+            LessonCount = Lessons.Count(),
+            TargetStats = Settings.TargetStats
         };
     }
 

@@ -30,3 +30,99 @@ h1:focus {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+/* Common Layout Utilities */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.absolute { position: absolute; }
+.relative { position: relative; }
+.top-0 { top: 0; }
+.left-0 { left: 0; }
+
+/* Spacing Utilities */
+.p-4 { padding: 1rem; }
+.space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(.5rem * var(--tw-space-y-reverse))
+}
+.space-x-1 > *:not(:last-child) {
+    margin-right: 0.25rem;
+}
+
+/* Flexbox Utilities */
+.flex { display: flex; }
+.justify-between { justify-content: space-between; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+
+/* Input Styling */
+.bg-transparent { background-color: transparent; }
+.resize-none { resize: none; }
+.outline-none { 
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+/* Common Typography */
+.monospace-font {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+    font-size: 1.2rem;
+    letter-spacing: 0.03em;
+    line-height: 1.8;
+    font-feature-settings: "calt" 1, "ss01" 1, "ss02" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Common Border Utilities */
+.border { border: 1px solid #ccc; }
+.rounded { border-radius: 0.25rem; }
+
+/* Color Utilities */
+.bg-body-secondary { background-color: #f8f9fa; }
+.text-success { color: #28a745; }
+.text-danger { color: #dc3545; }
+.bg-red-100 { background-color: #fee2e2; }
+.bg-primary { background-color: #007bff; }
+.text-white { color: white; }
+
+/* Whitespace Control */
+.whitespace-pre { white-space: pre; }
+
+/* Common Animation */
+.loading-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Arrow Styling */
+.arrowUp {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 0.5ch solid transparent;
+    border-right: 0.5ch solid transparent;
+    border-bottom: 1ch solid black;
+    margin-left: calc(var(--arrow-position, 0) * 1ch);
+}
+
+.arrow.hidden {
+    visibility: hidden;
+}
+
+/* Common Interaction States */
+.pointer-events-none {
+    pointer-events: none;
+}

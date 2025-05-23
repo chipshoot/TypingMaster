@@ -75,7 +75,8 @@
         box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
     }
 
-    }</style>
+    }
+</style>
 <div class="d-flex flex-column items-center space-y-2">
     @for (var rowIndex = 0; rowIndex < _keyboardLayout.Length; rowIndex++)
     {
@@ -128,7 +129,7 @@
         displayKey = key is "ShiftLeft" or "ShiftRight" ? "Shift" : displayKey;
         var isShiftKey = key is "ShiftLeft" or "ShiftRight";
         var isSpaceKey = key == "Space";
-        var isFocused = FocusKeys.Contains(key.ToLower());
+        var isFocused = FocusKeys.Select(k => k.ToLower()).Contains(key.ToLower());
 
         // Determine key class based on state
         string keyClass;
@@ -146,7 +147,7 @@
         }
 
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", $"{(isShiftKey ? "keyboard-w-16" : isSpaceKey ? "keyboard-w-40" : "keyboard-w-10")} keyboard-h-10 flex items-center justify-center border rounded {keyClass}");
+        builder.AddAttribute(1, "class", $"{(isShiftKey ? "keyboard-w-16" : isSpaceKey ? "keyboard-w-40" : "keyboard-w-10")} keyboard-h-10 d-flex items-center justify-center border rounded {keyClass}");
         builder.AddContent(2, isSpaceKey ? " " : displayKey);
         builder.CloseElement();
     };

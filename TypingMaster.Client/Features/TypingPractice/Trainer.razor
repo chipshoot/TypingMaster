@@ -24,19 +24,19 @@
         </div>
     </HeaderTemplate>
     <BodyTemplate>
-        <Practice CurrentLesson="@_curLesson" TrainingType="@TrainingType.Course" OnTypingCompleted="OnPracticeFinished"
-        @ref="@_practice">
+        <Practice CurrentLesson="@_lessonDto" TrainingType="@TrainingType.Course" OnTypingCompleted="OnPracticeFinished"
+        @ref="@_practice" IsShowProgress="true" >
         </Practice>
     </BodyTemplate>
 </Card>
 
 @code {
-    private const int MaxCharacters = TypingMasterConstants.DefaultTypingWindowWidth; // Max number of characters generating
+    private const int PageSize = 10;
+
     private Practice _practice = new();
     private bool _isCompleted;
-    private Lesson? _curLesson;
     private PagedResult<DrillStats> _practiceHistory = new();
-    private const int PageSize = 10;
+    private PracticeLessonResult _lessonDto;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,7 +75,7 @@
             return;
         }
 
-        _curLesson = lessonDto.Lesson;
+        _lessonDto = lessonDto;
         AppState.CurrentPracticePhase = lessonDto.Phase;
 
         TypingTrainer.SetupTrainer(AppState.CurrentAccount, AppState.CurrentCourse);
@@ -203,17 +203,15 @@
             var nextLesson = nextLessonDto.Lesson;
             if (!nextLesson.IsCourseComplete)
             {
-                _curLesson = nextLesson;
                 _isCompleted = false;
                 AppState.CurrentPracticePhase = nextLessonDto.Phase;
-                if (_curLesson.Id != AppState.CurrentAccount.History.CurrentLessonId)
+                if (nextLesson.Id != AppState.CurrentAccount.History.CurrentLessonId)
                 {
-                    AppState.CurrentAccount.History.CurrentLessonId = _curLesson.Id;
+                    AppState.CurrentAccount.History.CurrentLessonId = nextLesson.Id;
                 }
             }
             else
             {
-                _curLesson = null;
                 _isCompleted = true;
                 AppState.CurrentPracticePhase = PracticePhases.NotSet;
             }
@@ -238,7 +236,6 @@
             var courseId = AppState.CurrentAccount.CourseId;
             var lineWidth = AppState.GetLineWidth();
             var curLessonDto = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats, stats.Phases, lineWidth);
-            _curLesson = curLessonDto?.Lesson;
             AppState.CurrentPracticePhase = curLessonDto?.Phase ?? PracticePhases.NotSet;
             StateHasChanged();
         }
