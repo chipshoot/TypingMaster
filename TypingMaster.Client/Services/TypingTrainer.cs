@@ -6,7 +6,7 @@ using ILogger = Serilog.ILogger;
 
 namespace TypingMaster.Client.Services;
 
-public class TypingTrainer(IAccountWebService accountService, ILogger logger) : ITypingTrainer
+public class TypingTrainer(IPracticeLogWebService practiceService, ILogger logger) : ITypingTrainer
 {
     private const string NoCourse = "Cannot find course.";
     private const string NoPracticeLog = "Cannot find practice log.";
@@ -62,9 +62,8 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
             }
 
             ConvertKeyEventToKeyStats(stats.KeyEvents);
-            var practiceStatsList = _practiceLog.PracticeStats.ToList();
-            practiceStatsList.Add(stats);
-            _practiceLog.PracticeStats = practiceStatsList;
+            _practiceLog.PracticeDuration += (long)(stats.FinishTime?.Subtract(stats.StartTime ?? DateTime.Now) ?? TimeSpan.Zero).TotalSeconds;
+            _practiceLog.PracticeStats.Add(stats);
         }
         catch (Exception ex)
         {
@@ -88,19 +87,37 @@ public class TypingTrainer(IAccountWebService accountService, ILogger logger) : 
             }
 
             // Now persist the updated account to the database
-            _account.History = _practiceLog;
-            var updateResult = await accountService.UpdateAccountAsync(_account);
-
-            if (!updateResult.Success)
+            if (_practiceLog == null)
             {
-                ProcessResult.AddError("Failed to save practice history");
+                ProcessResult.AddError("Null practiceLog found");
                 return false;
             }
 
-            // Update the local account reference with the latest version from the database
-            _account = updateResult.AccountReturned;
-            _practiceLog = _account?.History;
+            var statsToSaveLst = _practiceLog.PracticeStats.Where(d => d.Id <= 0).Select(d=>d).ToList();
+            if (statsToSaveLst.Count == 0)
+            {
+                return true;
+            }
 
+            var tempList = _practiceLog.PracticeStats;
+
+            // only save the stats that are not already saved (id <= 0)
+            _practiceLog.PracticeStats = statsToSaveLst;
+            var updatedLog = await practiceService.UpdatePracticeLog(_practiceLog);
+            if (updatedLog == null)
+            {
+                ProcessResult.AddError("Failed to save drill stat");
+                return false;
+            }
+
+            var newId= updatedLog.PracticeStats.FirstOrDefault()?.Id ?? 0;
+            var newStat = tempList.FirstOrDefault(d => d.Id == 0);
+            if (newStat != null)
+            {
+                newStat.Id = newId;
+            }
+
+            _practiceLog.PracticeStats = tempList; // restore the original list
             return true;
         }
         catch (Exception ex)

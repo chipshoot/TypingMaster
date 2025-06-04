@@ -44,12 +44,6 @@ public class PracticeLogRepository(ApplicationDbContext context, Serilog.ILogger
     {
         try
         {
-            // Ensure the PracticeStats collection is initialized to avoid null reference 
-            if (practiceLog.PracticeStats == null)
-            {
-                practiceLog.PracticeStats = new List<DrillStatsDao>();
-            }
-
             // Verify that AccountId is set
             if (practiceLog.AccountId == 0)
             {
@@ -116,6 +110,36 @@ public class PracticeLogRepository(ApplicationDbContext context, Serilog.ILogger
         }
     }
 
+
+    public async Task<IEnumerable<DrillStatsDao>> AddBulkDrillStatsAsync(int practiceLogId, IEnumerable<DrillStatsDao> drillStats)
+    {
+        try
+        {
+            // Verify the practice log exists
+            var practiceLogExists = await context.PracticeLogs.AnyAsync(p => p.Id == practiceLogId);
+            if (!practiceLogExists)
+            {
+                ProcessResult.AddError($"Practice log with ID {practiceLogId} not found");
+                return new List<DrillStatsDao>();
+            }
+
+            var drillStatsList = drillStats.ToList();
+            foreach (var drillStat in drillStatsList)
+            {
+                drillStat.PracticeLogId = practiceLogId;
+                context.DrillStats.Add(drillStat);
+            }
+
+            await context.SaveChangesAsync();
+            return drillStatsList;
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return new List<DrillStatsDao>();
+        }
+    }
+
     public async Task<DrillStatsDao?> AddDrillStatAsync(int practiceLogId, DrillStatsDao drillStat)
     {
         try
@@ -136,12 +160,6 @@ public class PracticeLogRepository(ApplicationDbContext context, Serilog.ILogger
 
             // Add the drill stat
             context.DrillStats.Add(drillStat);
-
-            // Make sure the practice log's PracticeStats collection is initialized
-            if (practiceLog.PracticeStats == null)
-            {
-                practiceLog.PracticeStats = new List<DrillStatsDao>();
-            }
 
             await context.SaveChangesAsync();
             return drillStat;

@@ -183,10 +183,19 @@ public class AccountService(
                         return null;
                     }
 
-                    // Map the account with updated practice log
-                    var accountDao = mapper.Map<AccountDao>(account);
-                    var practiceLogDao = mapper.Map<PracticeLogDao>(practiceLogSaved);
-                    accountDao.History = practiceLogDao;
+                    // Map the account to DAO (without the history to avoid conflicts)
+                    var accountToUpdate = new Account
+                    {
+                        Id = account.Id,
+                        AccountName = account.AccountName,
+                        AccountEmail = account.AccountEmail,
+                        GoalStats = account.GoalStats,
+                        Version = account.Version,
+                        User = account.User,
+                        // Don't set History here - let the repository handle the existing relationship
+                    };
+
+                    var accountDao = mapper.Map<AccountDao>(accountToUpdate);
 
                     var updatedAccountDao = await accountRepository.UpdateAccountAsync(accountDao);
                     if (updatedAccountDao == null)
@@ -195,7 +204,15 @@ public class AccountService(
                         return null;
                     }
 
-                    var updatedAccount = mapper.Map<Account>(updatedAccountDao);
+                    // Get the final account with updated practice log
+                    var finalAccountDao = await accountRepository.GetAccountByIdAsync(account.Id);
+                    if (finalAccountDao == null)
+                    {
+                        ProcessResult.AddError("Failed to retrieve updated account");
+                        return null;
+                    }
+
+                    var updatedAccount = mapper.Map<Account>(finalAccountDao);
                     return updatedAccount;
                 }
                 else

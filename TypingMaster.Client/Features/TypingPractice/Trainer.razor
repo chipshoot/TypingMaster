@@ -200,6 +200,7 @@
         var nextLessonDto = await CourseService.GetPracticeLesson(courseId, stats.LessonId, stats, stats.Phases, lineWidth);
         if (nextLessonDto != null)
         {
+            _lessonDto = nextLessonDto;
             var nextLesson = nextLessonDto.Lesson;
             if (!nextLesson.IsCourseComplete)
             {

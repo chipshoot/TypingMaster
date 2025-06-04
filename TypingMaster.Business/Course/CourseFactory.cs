@@ -24,7 +24,7 @@ namespace TypingMaster.Business.Course
 
             return (courseDto.Type, courseDto.Name) switch
             {
-                (TrainingType.Course, TypingMasterConstants.BeginnerCourseName) => new BeginnerCourse(logger,
+                (TrainingType.Course, TypingMasterConstants.BeginnerCourseName) => new BeginnerCourse(logger, new RandomNumberGenerator(),
                     courseDto.LessonDataUrl)
                 {
                     Id = courseDto.Id,

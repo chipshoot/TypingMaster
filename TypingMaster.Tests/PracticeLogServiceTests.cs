@@ -91,7 +91,7 @@ public class PracticeLogServiceTests
 
         _practiceLogRepositoryMock.Setup(x => x.GetPracticeLogByIdAsync(practiceLogId))
             .ReturnsAsync(practiceLogDao);
-        _drillStatsRepositoryMock.Setup(x => x.CreateDrillStatAsync(It.IsAny<DrillStatsDao>()))
+        _drillStatsRepositoryMock.Setup(x => x.CreateDrillStatAsync(It.IsAny<DrillStatsDao>(), It.IsAny<bool>()))
             .ReturnsAsync(drillStatDao);
 
         // Act
@@ -126,7 +126,7 @@ public class PracticeLogServiceTests
 
         // Assert
         Assert.Null(result);
-        _drillStatsRepositoryMock.Verify(x => x.CreateDrillStatAsync(It.IsAny<DrillStatsDao>()), Times.Never);
+        _drillStatsRepositoryMock.Verify(x => x.CreateDrillStatAsync(It.IsAny<DrillStatsDao>(), It.IsAny<bool>()), Times.Never);
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class PracticeLogServiceTests
 
         var drillStatDao = _mapper.Map<DrillStatsDao>(drillStat);
 
-        _drillStatsRepositoryMock.Setup(x => x.UpdateDrillStatAsync(It.IsAny<DrillStatsDao>()))
+        _drillStatsRepositoryMock.Setup(x => x.UpdateDrillStatAsync(It.IsAny<DrillStatsDao>(), It.IsAny<bool>()))
             .ReturnsAsync(drillStatDao);
 
         // Act

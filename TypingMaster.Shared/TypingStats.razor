@@ -25,6 +25,16 @@
             <div class="stat-value">@Level.ToString()</div>
         </div>
     }
+    @if (ShowDuration)
+    {
+        <div class="stat-item">
+            <div class="stat-label">
+                <i class="fas fa-clock"></i>
+                <span>Duration</span>
+            </div>
+            <div class="stat-value">@FormattedDuration</div>
+        </div>
+    }
 </div>
 
 <style>
@@ -83,7 +93,41 @@
     public bool ShowLevel { get; set; } = true;
 
     [Parameter]
+    public bool ShowDuration { get; set; } = false;
+
+    [Parameter]
+    public long PracticeDurationSeconds { get; set; } = 0;
+
+    [Parameter]
     public string Class { get; set; } = "";
 
     private SkillLevel Level => (Wpm, Accuracy).GetSkillLevel();
+
+    private string FormattedDuration
+    {
+        get
+        {
+            if (PracticeDurationSeconds <= 0)
+                return "0s";
+
+            var timeSpan = TimeSpan.FromSeconds(PracticeDurationSeconds);
+
+            if (timeSpan.TotalDays >= 1)
+            {
+                return $"{(int)timeSpan.TotalDays}d {timeSpan.Hours}h {timeSpan.Minutes}m";
+            }
+            else if (timeSpan.TotalHours >= 1)
+            {
+                return $"{timeSpan.Hours}h {timeSpan.Minutes}m {timeSpan.Seconds}s";
+            }
+            else if (timeSpan.TotalMinutes >= 1)
+            {
+                return $"{timeSpan.Minutes}m {timeSpan.Seconds}s";
+            }
+            else
+            {
+                return $"{timeSpan.Seconds}s";
+            }
+        }
+    }
 }

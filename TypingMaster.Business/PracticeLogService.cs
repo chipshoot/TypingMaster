@@ -58,9 +58,6 @@ public class PracticeLogService(
     {
         try
         {
-            // Store drill stats temporarily
-            var drillStats = practiceLog.PracticeStats?.ToList() ?? [];
-
             // Validate AccountId
             if (practiceLog.AccountId <= 0)
             {
@@ -68,7 +65,10 @@ public class PracticeLogService(
                 return null;
             }
 
-            // Create a new practice log without drill stats
+            // Store drill stats temporarily
+            var drillStats = practiceLog.PracticeStats?.ToList() ?? [];
+
+            // Create a new practice log without drill stats first
             var practiceLogToCreate = new PracticeLog
             {
                 AccountId = practiceLog.AccountId,
@@ -88,19 +88,17 @@ public class PracticeLogService(
                 return null;
             }
 
-            // Add drill stats one by one using the service method
-            var updatedDrillStats = new List<DrillStats>();
-            foreach (var drillStat in drillStats)
+            // Add drill stats in bulk if any exist
+            if (drillStats.Any())
             {
-                var addedDrillStat = await AddDrillStat(createdPracticeLogDao.Id, drillStat);
-                if (addedDrillStat == null)
+                var drillStatDaos = drillStats.Select(mapper.Map<DrillStatsDao>);
+                var addedDrillStatDaos = await practiceLogRepository.AddBulkDrillStatsAsync(
+                    createdPracticeLogDao.Id, drillStatDaos);
+
+                if (!addedDrillStatDaos.Any() && drillStats.Any())
                 {
-                    logger.Warning("Failed to add drill stat during practice log creation. PracticeLogId: {PracticeLogId}, DrillStat: {@DrillStat}",
-                        createdPracticeLogDao.Id, drillStat);
-                }
-                else
-                {
-                    updatedDrillStats.Add(addedDrillStat);
+                    logger.Warning("Failed to add drill stats during practice log creation. PracticeLogId: {PracticeLogId}",
+                        createdPracticeLogDao.Id);
                 }
             }
 
@@ -108,10 +106,7 @@ public class PracticeLogService(
             var finalPracticeLogDao = await practiceLogRepository.GetPracticeLogByIdAsync(createdPracticeLogDao.Id);
             if (finalPracticeLogDao == null) return null;
 
-            var result = mapper.Map<PracticeLog>(finalPracticeLogDao);
-            // Ensure we use our updated drill stats with proper IDs
-            result.PracticeStats = updatedDrillStats;
-            return result;
+            return mapper.Map<PracticeLog>(finalPracticeLogDao);
         }
         catch (Exception ex)
         {
@@ -124,19 +119,20 @@ public class PracticeLogService(
     {
         try
         {
-            // Get existing practice log to compare drill stats
-            var existingPracticeLogDao = await practiceLogRepository.GetPracticeLogByIdAsync(practiceLog.Id);
-            if (existingPracticeLogDao == null)
+            // Validate input
+            if (practiceLog.AccountId <= 0)
             {
-                ProcessResult.AddError($"Practice log with ID {practiceLog.Id} not found");
+                ProcessResult.AddError("AccountId must be greater than 0");
                 return null;
             }
 
-            // Store drill stats temporarily
-            var newDrillStats = practiceLog.PracticeStats?.ToList() ?? [];
-            var existingDrillStatIds = existingPracticeLogDao.PracticeStats?.Select(ds => ds.Id).ToHashSet() ?? [];
+            // Separate new and existing drill stats
+            var allDrillStats = practiceLog.PracticeStats?.ToList() ?? [];
+            var newDrillStats = allDrillStats.Where(s => s.Id == 0).ToList();
+            var existingDrillStats = allDrillStats.Where(s => s.Id > 0).ToList();
 
-            // Create a practice log without drill stats for updating
+
+            // Create practice log DAO for update (without drill stats)
             var practiceLogToUpdate = new PracticeLog
             {
                 AccountId = practiceLog.AccountId,
@@ -147,58 +143,61 @@ public class PracticeLogService(
                 PracticeDuration = practiceLog.PracticeDuration
             };
 
-            // Update practice log first
+            var createdDrillStats = await AddDrillStats(practiceLog.Id, newDrillStats);
+            if (createdDrillStats == null)
+            {
+                ProcessResult.AddError("Failed to update practice log");
+                return null;
+            }
+
+            var updatedDrillStats = await UpdateDrillStats(existingDrillStats);
+
             var practiceLogDao = mapper.Map<PracticeLogDao>(practiceLogToUpdate);
             var updatedPracticeLogDao = await practiceLogRepository.UpdatePracticeLogAsync(practiceLogDao);
+
             if (updatedPracticeLogDao == null)
             {
                 ProcessResult.AddError("Failed to update practice log");
                 return null;
             }
 
-            // Handle drill stats using service methods
-            var updatedDrillStats = new List<DrillStats>();
-            foreach (var drillStat in newDrillStats)
+            // Map back to domain model
+            var result = mapper.Map<PracticeLog>(updatedPracticeLogDao);
+            result.PracticeStats = createdDrillStats;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return null;
+        }
+    }
+
+
+    private async Task<List<DrillStats>?> AddDrillStats(int practiceLogId, List<DrillStats> drillStats)
+    {
+        try
+        {
+            // Map and add the drill stat
+            var drillStatDao = drillStats.Select(d =>
             {
-                if (drillStat.Id == 0 || !existingDrillStatIds.Contains(drillStat.Id))
-                {
-                    // New drill stat - add it using service method
-                    var addedDrillStat = await AddDrillStat(updatedPracticeLogDao.Id, drillStat);
-                    if (addedDrillStat == null)
-                    {
-                        logger.Warning("Failed to add new drill stat during practice log update. PracticeLogId: {PracticeLogId}, DrillStat: {@DrillStat}",
-                            updatedPracticeLogDao.Id, drillStat);
-                    }
-                    else
-                    {
-                        updatedDrillStats.Add(addedDrillStat);
-                    }
-                }
-                else
-                {
-                    // Existing drill stat - update it using service method
-                    drillStat.PracticeLogId = updatedPracticeLogDao.Id; // Ensure correct practice log ID
-                    var updatedDrillStat = await UpdateDrillStat(drillStat);
-                    if (updatedDrillStat == null)
-                    {
-                        logger.Warning("Failed to update drill stat during practice log update. PracticeLogId: {PracticeLogId}, DrillStat: {@DrillStat}",
-                            updatedPracticeLogDao.Id, drillStat);
-                    }
-                    else
-                    {
-                        updatedDrillStats.Add(updatedDrillStat);
-                    }
-                }
+                var dao = mapper.Map<DrillStatsDao>(d);
+                dao.PracticeLogId = practiceLogId;
+                return dao;
+            }).ToList();
+
+            var addedDrillStatDaos = await drillStatsRepository.BatchCreateDrillStatAsync(drillStatDao);
+            if (addedDrillStatDaos == null)
+            {
+                ProcessResult.AddError("Failed to add drill stat");
+                return null;
             }
 
-            // Get the complete updated practice log with all drill stats
-            var finalPracticeLogDao = await practiceLogRepository.GetPracticeLogByIdAsync(updatedPracticeLogDao.Id);
-            if (finalPracticeLogDao == null) return null;
+            // Update the original drillStat object with the new data
+            var addedDrillStats = addedDrillStatDaos.Select(mapper.Map<DrillStats>).ToList();
 
-            var result = mapper.Map<PracticeLog>(finalPracticeLogDao);
-            // Ensure we use our updated drill stats with proper IDs
-            result.PracticeStats = updatedDrillStats;
-            return result;
+            // Return the updated original object instead of creating a new mapped one
+            return addedDrillStats;
         }
         catch (Exception ex)
         {
@@ -223,7 +222,7 @@ public class PracticeLogService(
             var drillStatDao = mapper.Map<DrillStatsDao>(drillStat);
             drillStatDao.PracticeLogId = practiceLogId;
 
-            var addedDrillStatDao = await drillStatsRepository.CreateDrillStatAsync(drillStatDao);
+            var addedDrillStatDao = await drillStatsRepository.CreateDrillStatAsync(drillStatDao, false);
             if (addedDrillStatDao == null)
             {
                 ProcessResult.AddError("Failed to add drill stat");
@@ -292,7 +291,7 @@ public class PracticeLogService(
         try
         {
             var drillStatDao = mapper.Map<DrillStatsDao>(drillStat);
-            var updatedDrillStatDao = await drillStatsRepository.UpdateDrillStatAsync(drillStatDao);
+            var updatedDrillStatDao = await drillStatsRepository.UpdateDrillStatAsync(drillStatDao, false);
             if (updatedDrillStatDao == null)
             {
                 ProcessResult.AddError("Failed to update drill stat");
@@ -300,6 +299,33 @@ public class PracticeLogService(
             }
 
             return mapper.Map<DrillStats>(updatedDrillStatDao);
+        }
+        catch (Exception ex)
+        {
+            ProcessResult.AddException(ex);
+            return null;
+        }
+    }
+
+    private async Task<List<DrillStats>?> UpdateDrillStats(List<DrillStats> drillStats)
+    {
+        try
+        {
+            if (drillStats.Count == 0)
+            {
+                return [];
+            }
+
+            var drillStatDaos = drillStats.Select(mapper.Map<DrillStatsDao>).ToList();
+            var updatedDrillStatDaos = await drillStatsRepository.BatchUpdateDrillStatAsync(drillStatDaos);
+            if (updatedDrillStatDaos == null)
+            {
+                ProcessResult.AddError("Failed to update drill stat");
+                return null;
+            }
+
+            var updateDrillStats = updatedDrillStatDaos.Select(mapper.Map<DrillStats>).ToList();
+            return updateDrillStats;
         }
         catch (Exception ex)
         {

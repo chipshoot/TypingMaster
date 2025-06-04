@@ -1,83 +1,4 @@
-﻿<style>
-    .keyboard-w-10 {
-        width: 2.5rem;
-    }
-
-    .keyboard-w-16 {
-        width: 4rem;
-    }
-
-    .keyboard-w-40 {
-        width: 15rem;
-    }
-
-    .keyboard-h-10 {
-        height: 2.5rem;
-    }
-
-    .space-x-1 > *:not(:last-child) {
-        margin-right: 0.25rem;
-    }
-
-    .flex {
-        display: flex;
-    }
-
-    .items-center {
-        align-items: center;
-    }
-
-    .justify-center {
-        justify-content: center;
-    }
-
-    .border {
-        border: 1px solid #ccc;
-    }
-
-    .rounded {
-        border-radius: 0.25rem;
-    }
-
-    .bg-primary {
-        background-color: #007bff;
-    }
-
-    .keyboard-text-white {
-        color: white;
-    }
-
-    .bg-body-secondary {
-        background-color: #f8f9fa;
-    }
-
-    /* New styles for focused keys */
-    .keyboard-key-focus {
-        background-color: #ffc107;
-        border: 2px solid #ff9800;
-        color: #212529;
-        box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
-        animation: pulse-focus 1.5s infinite;
-    }
-
-    @@keyframes pulse-focus {
-        0%
-
-    {
-        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
-    }
-
-    70% {
-        box-shadow: 0 0 0 6px rgba(255, 193, 7, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
-    }
-
-    }
-</style>
-<div class="d-flex flex-column items-center space-y-2">
+﻿<div class="d-flex flex-column items-center space-y-2">
     @for (var rowIndex = 0; rowIndex < _keyboardLayout.Length; rowIndex++)
     {
         <div key="@rowIndex" class="d-flex space-x-1">
@@ -114,6 +35,9 @@
     [Parameter]
     public List<string> FocusKeys { get; set; } = [];
 
+    [Parameter]
+    public bool ShowFingerColors { get; set; } = false;
+
     private readonly string[][] _keyboardLayout =
                 [
                     ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="],
@@ -122,9 +46,31 @@
     ["Z", "X", "C", "V", "B", "N", "M", ",", ".", "/"]
     ];
 
+    private readonly Dictionary<string, string> _fingerColorMap = new()
+    {
+        // Left pinky (green)
+        ["`"] = "finger-pinky-left", ["1"] = "finger-pinky-left", ["Q"] = "finger-pinky-left", ["A"] = "finger-pinky-left", ["Z"] = "finger-pinky-left",
+        // Left ring (blue)
+        ["2"] = "finger-ring-left", ["W"] = "finger-ring-left", ["S"] = "finger-ring-left", ["X"] = "finger-ring-left",
+        // Left middle (yellow)
+        ["3"] = "finger-middle-left", ["E"] = "finger-middle-left", ["D"] = "finger-middle-left", ["C"] = "finger-middle-left",
+        // Left index (red)
+        ["4"] = "finger-index-left", ["5"] = "finger-index-left", ["R"] = "finger-index-left", ["T"] = "finger-index-left", ["F"] = "finger-index-left", ["G"] = "finger-index-left", ["V"] = "finger-index-left", ["B"] = "finger-index-left",
+        // Right index (light green)
+        ["6"] = "finger-index-right", ["7"] = "finger-index-right", ["Y"] = "finger-index-right", ["U"] = "finger-index-right", ["H"] = "finger-index-right", ["J"] = "finger-index-right", ["N"] = "finger-index-right", ["M"] = "finger-index-right",
+        // Right middle (pink)
+        ["8"] = "finger-middle-right", ["I"] = "finger-middle-right", ["K"] = "finger-middle-right", [","] = "finger-middle-right",
+        // Right ring (purple)
+        ["9"] = "finger-ring-right", ["O"] = "finger-ring-right", ["L"] = "finger-ring-right", ["."] = "finger-ring-right",
+        // Right pinky (orange)
+        ["0"] = "finger-pinky-right", ["-"] = "finger-pinky-right", ["="] = "finger-pinky-right", ["P"] = "finger-pinky-right", ["["] = "finger-pinky-right", ["]"] = "finger-pinky-right", [";"] = "finger-pinky-right", ["'"] = "finger-pinky-right", ["/"] = "finger-pinky-right",
+        // Thumbs (spacebar, purple)
+        ["Space"] = "finger-thumb"
+    };
+
     private RenderFragment RenderKey(string key) => builder =>
     {
-        var isPressed = key == LastKeyPressed;
+        var isPressed = string.Equals(key, LastKeyPressed, StringComparison.OrdinalIgnoreCase);
         var displayKey = (LeftShiftPressed || RightShiftPressed) && key.Length == 1 && char.IsLetter(key[0]) ? key.ToUpper() : key;
         displayKey = key is "ShiftLeft" or "ShiftRight" ? "Shift" : displayKey;
         var isShiftKey = key is "ShiftLeft" or "ShiftRight";
@@ -133,7 +79,19 @@
 
         // Determine key class based on state
         string keyClass;
-        if (isPressed || (key == "ShiftLeft" && LeftShiftPressed) || (key == "ShiftRight" && RightShiftPressed))
+        if (ShowFingerColors && _fingerColorMap.TryGetValue(key, out var fingerClass))
+        {
+            keyClass = fingerClass;
+            if (isPressed)
+            {
+                keyClass += " finger-key-active";
+            }
+            else if (isFocused)
+            {
+                keyClass += " finger-key-target";
+            }
+        }
+        else if (isPressed || (key == "ShiftLeft" && LeftShiftPressed) || (key == "ShiftRight" && RightShiftPressed))
         {
             keyClass = "bg-primary keyboard-text-white";
         }

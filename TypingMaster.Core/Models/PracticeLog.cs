@@ -11,7 +11,7 @@ public class PracticeLog
 
     public int CurrentLessonId { get; set; }
 
-    public IEnumerable<DrillStats> PracticeStats { get; set; } = new List<DrillStats>();
+    public List<DrillStats> PracticeStats { get; set; } = [];
 
     // Hold the states of each key of keyboard
     public Dictionary<char, KeyStats> KeyStats { get; set; } = new();

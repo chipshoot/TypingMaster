@@ -6,7 +6,7 @@ using TypingMaster.DataAccess.Utility;
 
 namespace TypingMaster.DataAccess.Data;
 
-public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger logger) :  IDrillStatsRepository
+public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger logger) : IDrillStatsRepository
 {
     public async Task<DrillStatsDao?> GetDrillStatByIdAsync(int id)
     {
@@ -36,7 +36,7 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             // Validate parameters
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
-        
+
             // Create base query
             IQueryable<DrillStatsDao> query;
             if (type != null)
@@ -52,16 +52,16 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
 
             // Get total count for pagination info
             var totalCount = await query.CountAsync();
-        
+
             // Apply sorting
             query = sortByNewest ? query.OrderByDescending(d => d.StartTime ?? DateTime.MinValue) : query.OrderBy(d => d.Id);
-        
+
             // Apply pagination
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-            
+
             return (items, totalCount);
         }
         catch (Exception e)
@@ -71,7 +71,7 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
         }
     }
 
-    public async Task<DrillStatsDao?> CreateDrillStatAsync(DrillStatsDao drillStat)
+    public async Task<DrillStatsDao?> CreateDrillStatAsync(DrillStatsDao drillStat, bool batchCreate = false)
     {
         try
         {
@@ -88,14 +88,14 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
                 {
                     keyEvent.Key = SanitizeChar(keyEvent.Key);
 
-                    keyEvent.KeyDownTime = keyEvent.KeyDownTime.Kind != DateTimeKind.Utc 
-                        ? DateTime.SpecifyKind(keyEvent.KeyDownTime, DateTimeKind.Utc) 
+                    keyEvent.KeyDownTime = keyEvent.KeyDownTime.Kind != DateTimeKind.Utc
+                        ? DateTime.SpecifyKind(keyEvent.KeyDownTime, DateTimeKind.Utc)
                         : keyEvent.KeyDownTime;
-                
-                    keyEvent.KeyUpTime = keyEvent.KeyUpTime.Kind != DateTimeKind.Utc 
-                        ? DateTime.SpecifyKind(keyEvent.KeyUpTime, DateTimeKind.Utc) 
+
+                    keyEvent.KeyUpTime = keyEvent.KeyUpTime.Kind != DateTimeKind.Utc
+                        ? DateTime.SpecifyKind(keyEvent.KeyUpTime, DateTimeKind.Utc)
                         : keyEvent.KeyUpTime;
-                
+
                     convertedEvents.Enqueue(keyEvent);
                 }
                 drillStat.KeyEventsJson = convertedEvents;
@@ -124,7 +124,11 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             drillStat.TypedText = SanitizeString(drillStat.TypedText);
 
             context.DrillStats.Add(drillStat);
-            await context.SaveChangesAsync();
+            if (!batchCreate)
+            {
+                await context.SaveChangesAsync();
+            }
+
             return drillStat;
         }
         catch (Exception e)
@@ -134,7 +138,47 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
         }
     }
 
-    public async Task<DrillStatsDao?> UpdateDrillStatAsync(DrillStatsDao drillStat)
+    public async Task<List<DrillStatsDao>?> BatchCreateDrillStatAsync(List<DrillStatsDao> drillStats)
+    {
+        try
+        {
+            // Check if drill stat exists
+            var ids = drillStats.Where(d => d.Id > 0).Select(d => d.Id).ToList();
+            foreach (var id in ids)
+            {
+                var drillStat = await context.DrillStats
+                    .FirstOrDefaultAsync(d => d.Id == id);
+                if (drillStat == null)
+                {
+                    continue;
+                }
+
+                var idList = string.Join(", ", ids);
+                ProcessResult.AddError($"One of drill stats already exists in database: {idList}");
+                return null;
+            }
+
+            foreach (var drillStat in drillStats)
+            {
+                var savedStat = await CreateDrillStatAsync(drillStat, true);
+                if (savedStat == null)
+                {
+                    ProcessResult.AddError("Cannot add stat to database");
+                    return null;
+                }
+            }
+
+            await context.SaveChangesAsync();
+            return drillStats;
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return null;
+        }
+    }
+
+    public async Task<DrillStatsDao?> UpdateDrillStatAsync(DrillStatsDao drillStat, bool batchUpdate = false)
     {
         try
         {
@@ -154,7 +198,11 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             // Update KeyEventsJson separately since it's a complex type
             existingDrillStat.KeyEventsJson = drillStat.KeyEventsJson;
 
-            await context.SaveChangesAsync();
+            if (!batchUpdate)
+            {
+                await context.SaveChangesAsync();
+            }
+
             return existingDrillStat;
         }
         catch (Exception e)
@@ -162,6 +210,40 @@ public class DrillStatsRepository(ApplicationDbContext context, Serilog.ILogger 
             ProcessResult.AddException(e);
             return null;
         }
+    }
+
+    public async Task<List<DrillStatsDao>?> BatchUpdateDrillStatAsync(List<DrillStatsDao> drillStats)
+    {
+        try
+        {
+            // Check if drill stat exists
+            var ids = drillStats.Select(d => d.Id == 0).ToList();
+            if (ids.Count > 0)
+            {
+                ProcessResult.AddError("One of drill stats already exists in database");
+                return null;
+            }
+
+
+            foreach (var drillStat in drillStats)
+            {
+                var savedStat = await UpdateDrillStatAsync(drillStat, true);
+                if (savedStat == null)
+                {
+                    ProcessResult.AddError("Cannot add stat to database");
+                    return null;
+                }
+            }
+
+            await context.SaveChangesAsync();
+            return drillStats;
+        }
+        catch (Exception e)
+        {
+            ProcessResult.AddException(e);
+            return null;
+        }
+
     }
 
     public async Task<bool> DeleteDrillStatAsync(int id)

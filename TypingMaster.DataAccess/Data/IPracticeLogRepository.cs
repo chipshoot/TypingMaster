@@ -41,6 +41,15 @@ public interface IPracticeLogRepository
     /// <returns>The added drill stat with ID populated</returns>
     Task<DrillStatsDao?> AddDrillStatAsync(int practiceLogId, DrillStatsDao drillStat);
 
+
+    /// <summary>
+    /// Add multiple drill stats to a practice log in bulk
+    /// </summary>
+    /// <param name="practiceLogId">The ID of the practice log</param>
+    /// <param name="drillStats">The drill stats to add</param>
+    /// <returns>The added drill stats with IDs populated</returns>
+    Task<IEnumerable<DrillStatsDao>> AddBulkDrillStatsAsync(int practiceLogId, IEnumerable<DrillStatsDao> drillStats);
+
     /// <summary>
     /// Check if a practice log can be safely deleted
     /// </summary>

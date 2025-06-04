@@ -35,7 +35,7 @@ public class AccountRepository(
             var accountDao = await context.Accounts
                 .Where(a => !a.IsDeleted)
                 .Include(a => a.User)
-                .Include(a=>a.Courses)
+                .Include(a => a.Courses)
                 .Include(a => a.History)
                 .FirstOrDefaultAsync(a => a.Id == id);
             return accountDao;
@@ -87,8 +87,6 @@ public class AccountRepository(
         {
             // Ensure the account exists
             var existingAccount = await context.Accounts
-                .Include(a => a.User)
-                .Include(a => a.History)
                 .FirstOrDefaultAsync(a => a.Id == account.Id);
 
             if (existingAccount == null)
@@ -124,41 +122,9 @@ public class AccountRepository(
                 }
             }
 
-            // Update History if needed
-            if (account.History != null)
-            {
-                if (existingAccount.History != null)
-                {
-                    // Delegate history update to the practice log repository
-                    account.History.Id = existingAccount.History.Id;
-                    var updatedPracticeLog = await practiceLogRepository.UpdatePracticeLogAsync(account.History);
-                    if (updatedPracticeLog == null)
-                    {
-                        // Transfer any errors from the practice log repository
-                        if (practiceLogRepository.ProcessResult.HasErrors)
-                        {
-                            ProcessResult.PropagandaResult(practiceLogRepository.ProcessResult);
-                        }
-                        return null;
-                    }
-                    existingAccount.History = updatedPracticeLog;
-                }
-                else
-                {
-                    // Create new practice log
-                    var newPracticeLog = await practiceLogRepository.CreatePracticeLogAsync(account.History);
-                    if (newPracticeLog == null)
-                    {
-                        // Transfer any errors from the practice log repository
-                        if (practiceLogRepository.ProcessResult.HasErrors)
-                        {
-                            ProcessResult.PropagandaResult(practiceLogRepository.ProcessResult);
-                        }
-                        return null;
-                    }
-                    existingAccount.History = newPracticeLog;
-                }
-            }
+            // Note: Practice log updates are handled entirely by the service layer
+            // The repository should not perform additional practice log operations
+            // as this would cause double updates and potential concurrency issues
 
             // Save changes
             await context.SaveChangesAsync();

@@ -32,5 +32,47 @@ namespace TypingMaster.Server.Controllers
                 return StatusCode(500, new { message = "An error occurred while retrieving drill stats" });
             }
         }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<PracticeLog>> UpdatePracticeLog(int id, [FromBody] PracticeLog practiceLog)
+        {
+            try
+            {
+                var result = await practiceLogService.UpdatePracticeLog(practiceLog);
+                if (result == null)
+                {
+                    return BadRequest(new
+                        { message = $"Fail to add drill stat: {practiceLogService.ProcessResult.ErrorMessage}" });
+                }
+
+                return CreatedAtAction(nameof(AddDrillStats), new { id = id }, result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error update practice log {PracticeLogId}", id);
+                return StatusCode(500, new { message = "An error occurred while adding drill stats" });
+            }
+        }
+
+        [HttpPost("{id}/drill-stats")]
+        public async Task<ActionResult<DrillStats>> AddDrillStats(int id, [FromBody] DrillStats drillStats)
+        {
+            try
+            {
+                var result = await practiceLogService.AddDrillStat(id, drillStats);
+                if (result == null)
+                {
+                    return BadRequest(new
+                        { message = $"Fail to add drill stat: {practiceLogService.ProcessResult.ErrorMessage}" });
+                }
+
+                return CreatedAtAction(nameof(AddDrillStats), new { id = id }, result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error adding drill stat to practice log {PracticeLogId}", id);
+                return StatusCode(500, new { message = "An error occurred while adding drill stats" });
+            }
+        }
     }
 }

@@ -33,15 +33,36 @@ public interface IDrillStatsRepository
     /// Create a new drill stat
     /// </summary>
     /// <param name="drillStat">The drill stat to create</param>
+    /// <param name="batchCreate">The new record should be added in a batch</param>
     /// <returns>The created drill stat with ID populated</returns>
-    Task<DrillStatsDao?> CreateDrillStatAsync(DrillStatsDao drillStat);
+    Task<DrillStatsDao?> CreateDrillStatAsync(DrillStatsDao drillStat, bool batchCreate);
+
+    /// <summary>
+    /// Create multiple drill stats in a batch operation.
+    /// </summary>
+    /// <param name="drillStats">The list of drill stats to create.</param>
+    /// <returns>
+    /// A list of created drill stats with their IDs populated, or null if the operation fails.
+    /// </returns>
+    Task<List<DrillStatsDao>?> BatchCreateDrillStatAsync(List<DrillStatsDao> drillStats);
 
     /// <summary>
     /// Update an existing drill stat
     /// </summary>
     /// <param name="drillStat">The drill stat with updated values</param>
     /// <returns>The updated drill stat if successful, null otherwise</returns>
-    Task<DrillStatsDao?> UpdateDrillStatAsync(DrillStatsDao drillStat);
+    Task<DrillStatsDao?> UpdateDrillStatAsync(DrillStatsDao drillStat, bool batchCreate);
+
+
+    /// <summary>
+    /// Update multiple drill stats in a batch operation.
+    /// </summary>
+    /// <param name="drillStats">The list of drill stats with updated values.</param>
+    /// <returns>
+    /// A list of updated drill stats if the operation is successful, or null if the operation fails.
+    /// </returns>
+    Task<List<DrillStatsDao>?> BatchUpdateDrillStatAsync(List<DrillStatsDao> drillStats);
+
 
     /// <summary>
     /// Delete a drill stat

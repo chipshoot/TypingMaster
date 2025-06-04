@@ -49,3 +49,51 @@
 .bg-body-secondary {
     background-color: #f8f9fa;
 }
+
+/* New styles for focused keys */
+.keyboard-key-focus {
+    background-color: #ffc107;
+    border: 2px solid #ff9800;
+    color: #212529;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+    animation: pulse-focus 1.5s infinite;
+}
+
+@keyframes pulse-focus {
+    0%
+
+{
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+}
+
+70% {
+    box-shadow: 0 0 0 6px rgba(255, 193, 7, 0);
+}
+
+100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+}
+
+}
+
+.finger-pinky-left { background-color: #4caf50; color: white; }      /* Green */
+.finger-ring-left { background-color: #2196f3; color: white; }      /* Blue */
+.finger-middle-left { background-color: #ffeb3b; color: black; }    /* Yellow */
+.finger-index-left { background-color: #f44336; color: white; }     /* Red */
+.finger-index-right { background-color: #8bc34a; color: black; }    /* Light Green */
+.finger-middle-right { background-color: #e91e63; color: white; }   /* Pink */
+.finger-ring-right { background-color: #9c27b0; color: white; }     /* Purple */
+.finger-pinky-right { background-color: #ff9800; color: black; }    /* Orange */
+.finger-thumb { background-color: #b39ddb; color: black; }          /* Light Purple */
+.finger-key-target {
+    border: 3px solid #ffd600 !important;   /* Bright yellow border */
+    box-shadow: 0 0 10px 2px #ffd60080;     /* Soft yellow glow */
+    z-index: 1;
+    filter: brightness(0.75);               /* Darken the key */
+}
+.finger-key-active {
+    outline: 3px solid #00e676 !important;   /* Bright green outline */
+    box-shadow: 0 0 16px 4px #00e67680;      /* Green glow */
+    filter: brightness(0.55);                /* Even darker for strong feedback */
+    z-index: 2;
+}

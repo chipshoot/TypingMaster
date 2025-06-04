@@ -265,7 +265,7 @@ public class AuthWebService(HttpClient httpClient,
             var drillStats = await practiceLogService.GetPaginatedDrillStatsAsync(account.History.Id);
             if (drillStats != null)
             {
-                account.History.PracticeStats = drillStats.Items;
+                account.History.PracticeStats = drillStats.Items.ToList();
             }
 
             // Load course information if available

@@ -12,39 +12,52 @@
                         min-width: @(LineWidth * 0.90)em !important; 
                         max-width: @(LineWidth * 0.90)em !important;">
                 <textarea id="typingInput" @ref="_inputRef" @bind="_textInput" @oninput="HandleInputChange"
-                @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
-                class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
-                style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted">
+                    @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" spellcheck="false"
+                    class="w-full h-full bg-transparent absolute p-4 resize-none outline-none top-0 left-0 monospace-font"
+                    style="color: transparent; caret-color: transparent; overflow:hidden" disabled="@_isCompleted">
                 </textarea>
                 @for (var i = 0; i < _lines.Count; i++)
                 {
                     var id = i + 1;
                     <TextDisplay Id="@id" CurrentLineId="@_currentLineId" Text="@_lines[i]" InputChars="@_textInput"
-                    IsLineCompleted="@_isLineCompleted" IsLessonCompleted="@_isCompleted"
-                    IsCourseFinished="@_isCourseFinished" CursorPosition="@_cursorPosition"
-                    IsStatsUpdating="@_isStatsUpdating" OnLineFinished="HandleLineFinished" @ref="_textDisplays[id]" />
+                        IsLineCompleted="@_isLineCompleted" IsLessonCompleted="@_isCompleted"
+                        IsCourseFinished="@_isCourseFinished" CursorPosition="@_cursorPosition"
+                        IsStatsUpdating="@_isStatsUpdating" OnLineFinished="HandleLineFinished" @ref="_textDisplays[id]" />
                 }
             </div>
         </div>
         <div class="d-flex justify-content-center mb-4">
-            <TypingStats Wpm="@_wpm" Accuracy="@_accuracy" ShowLevel="true" Class="compact" />
+            <TypingStats Wpm="@_wpm" Accuracy="@_accuracy" ShowLevel="true" ShowDuration="true"
+                PracticeDurationSeconds="@(AppState.CurrentAccount?.History?.PracticeDuration ?? 0)" Class="compact" />
         </div>
         @if (IsShowProgress)
         {
-            <ProgressPanel Model="@_progressPanelModel"/>
+            <ProgressPanel Model="@_progressPanelModel" />
         }
 
         @if (!string.IsNullOrEmpty(CurrentLesson?.Lesson.Instruction))
         {
             <MessageBox Header="@_lessonHeader" Message="@CurrentLesson.Lesson?.Instruction" IsCollapse="false"
-            TextType="MessageTextType.Markdown" />
+                TextType="MessageTextType.Markdown" />
         }
 
-        <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
-        RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys" />
+        <div class="d-flex justify-content-center">
+            <div class="position-relative">
+                <!-- Finger Colors Toggle positioned above keyboard with proper spacing -->
+                <div class="position-absolute" style="top: -45px; right: 0; z-index: 10;">
+                    <Switch @bind-Value="_showFingerColors" DisplayText="Show Finger Colors" ShowLabel="true"
+                        OnColor="Color.Primary" OffColor="Color.Secondary" Size="Size.ExtraSmall" />
+                </div>
+
+                <!-- Keyboard Component -->
+                <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
+                    RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys"
+                    ShowFingerColors="@_showFingerColors" />
+            </div>
+        </div>
 
         <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated"
-        CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs">
+            CharExpected="@_nextKeyExpected" KeyEventArgs="@_keyEventArgs">
         </KeyEventGenerator>
 
     </BodyTemplate>
@@ -56,9 +69,9 @@
 </Card>
 
 <TypingStatsCalculator Text="@CurrentLesson?.Lesson.PracticeText" UserInput="@_totalInputText"
-OnWpmChanged="@(wpm => { _wpm = wpm; StateHasChanged(); })"
-OnAccuracyChanged="@(accuracy => { _accuracy = accuracy; StateHasChanged(); })" @ref="@_typingStats"
-OnStatsUpdating="HandleStatsUpdating">
+    OnWpmChanged="@(wpm => { _wpm = wpm; StateHasChanged(); })"
+    OnAccuracyChanged="@(accuracy => { _accuracy = accuracy; StateHasChanged(); })" @ref="@_typingStats"
+    OnStatsUpdating="HandleStatsUpdating">
 </TypingStatsCalculator>
 
 @code {
@@ -119,6 +132,7 @@ OnStatsUpdating="HandleStatsUpdating">
     private bool _isStatsUpdating;
     private bool _isProcessingKeyEvent;
     private readonly Dictionary<int, TextDisplay> _textDisplays = [];
+    private bool _showFingerColors = false;
     private ProgressPanelModel? _progressPanelModel;
 
     private int _lineWidth;
@@ -147,18 +161,18 @@ OnStatsUpdating="HandleStatsUpdating">
         _lineTypedTexts = _lines.Select(_ => string.Empty).ToList();
 
         _progressPanelModel = _lessonDto != null
-            ? new ProgressPanelModel
-            {
-                StatTarget = _lessonDto.TargetStats,
-                LessonNumber = _lessonDto.Lesson.Id,
-                TotalLessons = _lessonDto.LessonCount
-            }
-            : new ProgressPanelModel
-            {
-                StatTarget = new StatsBase(),
-                LessonNumber = 0,
-                TotalLessons = 0
-            };
+        ? new ProgressPanelModel
+        {
+            StatTarget = _lessonDto.TargetStats,
+            LessonNumber = _lessonDto.Lesson.Id,
+            TotalLessons = _lessonDto.LessonCount
+        }
+        : new ProgressPanelModel
+        {
+            StatTarget = new StatsBase(),
+            LessonNumber = 0,
+            TotalLessons = 0
+        };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

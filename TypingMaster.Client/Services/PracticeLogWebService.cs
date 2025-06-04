@@ -48,5 +48,63 @@ namespace TypingMaster.Client.Services
                 };
             }
         }
+
+        public async Task<PracticeLog?> UpdatePracticeLog(PracticeLog practiceLog)
+        {
+            try
+            {
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.PracticeLogService}/{practiceLog.Id}");
+
+                // Add Authorization header with Bearer token if available
+                if (!string.IsNullOrEmpty(appContext.Token))
+                {
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appContext.Token);
+                }
+
+                var response = await httpClient.PutAsJsonAsync(url, practiceLog);
+        
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<PracticeLog>();
+                    return result;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error update practice log");
+                return null;
+            }
+        }
+
+        public async Task<DrillStats?> AddDrillStatAsync(int practiceLogId, DrillStats drillStat)
+        {
+            try
+            {
+                var url = apiConfig.BuildApiUrl($"{apiConfig.ApiSettings.PracticeLogService}/{practiceLogId}/drill-stats");
+
+                // Add Authorization header with Bearer token if available
+                if (!string.IsNullOrEmpty(appContext.Token))
+                {
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appContext.Token);
+                }
+
+                var response = await httpClient.PostAsJsonAsync(url, drillStat);
+        
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<DrillStats>();
+                    return result;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error adding drill stats");
+                return null;
+            }
+        }
     }
 }
