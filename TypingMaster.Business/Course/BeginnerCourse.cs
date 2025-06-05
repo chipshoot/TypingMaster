@@ -12,11 +12,15 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
     private const string CourseDescription =
         "Master Touch Typing from Scratch: This structured beginner's course guides you from the home row keys (a, s, d, f, j, k, l, ;) to full keyboard proficiency. Starting with your finger placement on home keys, each lesson gradually introduces new keys while reinforcing previously learned ones. Progress at your own pace through interactive exercises designed to build muscle memory, improve accuracy, and increase typing speed. Perfect for new typists or anyone looking to develop proper touch typing technique without looking at the keyboard. Track your WPM and accuracy as you transform from hunt-and-peck to confident touch typing.";
 
+    private const string RepetitionInst = "**Repetition Phase**: Focus on finger position and accuracy. Type the repeated characters.";
+    private const string PatternsInst = "**Patterns Phase**: Practice key patterns to build finger coordination.";
+    private const string RealWordsInst = "**RealWord Phase**: Apply your skills by typing these common words.";
+
     private const string KeyboardSectionNumber = "Number Row";
 
     private readonly IRandomNumberGenerator _randomGenerator = randomGenerator ?? new RandomNumberGenerator();
     private static readonly List<char> LeftHandDigits = ['1', '2', '3', '4', '5'];
-    private static readonly List<char> RightHandDigits = ['6', '7', '8', '9', '0']; 
+    private static readonly List<char> RightHandDigits = ['6', '7', '8', '9', '0'];
 
     public Guid Id { get; set; }
 
@@ -170,15 +174,29 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
 
     private string GetInstructionForPhase(string baseInstruction, PracticePhases phase)
     {
+        var cleanedInst= baseInstruction;
+        if (cleanedInst.Contains(RepetitionInst))
+        {
+            cleanedInst= cleanedInst.Replace($"\n\n{RepetitionInst}", string.Empty);
+        }
+        if (cleanedInst.Contains(PatternsInst))
+        {
+            cleanedInst= cleanedInst.Replace($"\n\n{PatternsInst}", string.Empty);
+        }
+        if (cleanedInst.Contains(RealWordsInst))
+        {
+            cleanedInst= cleanedInst.Replace($"\n\n{RealWordsInst}", string.Empty);
+        }
+
         var phaseText = phase switch
         {
-            PracticePhases.SimpleRepetition => "Focus on finger position and accuracy. Type the repeated characters:",
-            PracticePhases.Patterns => "Practice these key patterns to build finger coordination:",
-            PracticePhases.RealWords => "Apply your skills by typing these common words:",
+            PracticePhases.SimpleRepetition => RepetitionInst,
+            PracticePhases.Patterns => PatternsInst,
+            PracticePhases.RealWords => RealWordsInst,
             _ => string.Empty
         };
 
-        return $"{baseInstruction}\n\n{phaseText}";
+        return $"{cleanedInst}\n\n{phaseText}";
     }
 
     public string GeneratePracticeText(IEnumerable<string> targetKeys, string[] commonWords, PracticePhases phase)
@@ -278,10 +296,10 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
                         break;
                     }
                 case PracticePhases.RealWords:
-                {
-                    practiceText.Append(GenerateFingerSwapPattern());
-                    break;
-                }
+                    {
+                        practiceText.Append(GenerateFingerSwapPattern());
+                        break;
+                    }
             }
         }
 

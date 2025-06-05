@@ -1,5 +1,5 @@
 ﻿.keyboard-w-10 {
-    width: 2.5rem;
+    width: 2.5rem !important;
 }
 
 .keyboard-w-16 {
@@ -11,7 +11,7 @@
 }
 
 .keyboard-h-10 {
-    height: 2.5rem;
+    height: 2.5rem !important;
 }
 
 .space-x-1 > *:not(:last-child) {

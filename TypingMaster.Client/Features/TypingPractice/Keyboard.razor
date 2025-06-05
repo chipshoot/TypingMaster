@@ -1,27 +1,181 @@
-﻿<div class="d-flex flex-column items-center space-y-2">
-    @for (var rowIndex = 0; rowIndex < _keyboardLayout.Length; rowIndex++)
-    {
-        <div key="@rowIndex" class="d-flex space-x-1">
-            @if (rowIndex == 3)
-            {
-                @RenderKey("ShiftLeft")
-            }
-            @foreach (var key in _keyboardLayout[rowIndex])
-            {
-                @RenderKey(key)
-            }
-            @if (rowIndex == 3)
-            {
-                @RenderKey("ShiftRight")
-            }
-        </div>
-    }
-    <div class="d-flex space-x-1">
-        @RenderKey("Space")
-    </div>
-</div>
+﻿@using Markdig
 
+<style>
+    .keyboard-w-10 {
+        width: 2.5rem !important;
+    }
+
+    .keyboard-w-16 {
+        width: 4rem;
+    }
+
+    .keyboard-w-40 {
+        width: 15rem;
+    }
+
+    .keyboard-h-10 {
+        height: 2.5rem !important;
+    }
+
+    .space-x-1 > *:not(:last-child) {
+        margin-right: 0.25rem;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .items-center {
+        align-items: center;
+    }
+
+    .justify-center {
+        justify-content: center;
+    }
+
+    .border {
+        border: 1px solid #ccc;
+    }
+
+    .rounded {
+        border-radius: 0.25rem;
+    }
+
+    .bg-primary {
+        background-color: #007bff;
+    }
+
+    .keyboard-text-white {
+        color: white;
+    }
+
+    .bg-body-secondary {
+        background-color: #f8f9fa;
+    }
+
+    /* New styles for focused keys */
+    .keyboard-key-focus {
+        background-color: #ffc107;
+        border: 2px solid #ff9800;
+        color: #212529;
+        box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+        animation: pulse-focus 1.5s infinite;
+    }
+
+    @@keyframes pulse-focus {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 6px rgba(255, 193, 7, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+        }
+    }
+
+    .finger-pinky-left {
+        background-color: #4caf50;
+        color: white;
+    }
+    /* Green */
+    .finger-ring-left {
+        background-color: #2196f3;
+        color: white;
+    }
+    /* Blue */
+    .finger-middle-left {
+        background-color: #ffeb3b;
+        color: black;
+    }
+    /* Yellow */
+    .finger-index-left {
+        background-color: #f44336;
+        color: white;
+    }
+    /* Red */
+    .finger-index-right {
+        background-color: #8bc34a;
+        color: black;
+    }
+    /* Light Green */
+    .finger-middle-right {
+        background-color: #e91e63;
+        color: white;
+    }
+    /* Pink */
+    .finger-ring-right {
+        background-color: #9c27b0;
+        color: white;
+    }
+    /* Purple */
+    .finger-pinky-right {
+        background-color: #ff9800;
+        color: black;
+    }
+    /* Orange */
+    .finger-thumb {
+        background-color: #b39ddb;
+        color: black;
+    }
+    /* Light Purple */
+    .finger-key-target {
+        border: 3px solid #ffd600 !important; /* Bright yellow border */
+        box-shadow: 0 0 10px 2px #ffd60080; /* Soft yellow glow */
+        z-index: 1;
+        filter: brightness(0.75); /* Darken the key */
+    }
+
+    .finger-key-active {
+        outline: 3px solid #00e676 !important; /* Bright green outline */
+        box-shadow: 0 0 16px 4px #00e67680; /* Green glow */
+        filter: brightness(0.55); /* Even darker for strong feedback */
+        z-index: 2;
+    }
+</style>
+<Card HeaderText="@Header" Color="Color.Primary" >
+    <HeaderTemplate>
+        <div>
+            <Toggle @bind-Value="_showFingerColors" OnText="Hide Finger Colors" OffText="Show Finger Color"
+                    OnColor="Color.Primary" Width="145" />
+        </div>
+    </HeaderTemplate>
+    <BodyTemplate>
+        <div>
+            @GetMessage()
+        </div>
+        <div class="d-flex flex-column items-center justify-content-center space-y-2 w-100">
+            @for (var rowIndex = 0; rowIndex < _keyboardLayout.Length; rowIndex++)
+            {
+                <div key="@rowIndex" class="d-flex space-x-1 justify-content-center">
+                    @if (rowIndex == 3)
+                    {
+                        @RenderKey("ShiftLeft")
+                    }
+                    @foreach (var key in _keyboardLayout[rowIndex])
+                    {
+                        @RenderKey(key)
+                    }
+                    @if (rowIndex == 3)
+                    {
+                        @RenderKey("ShiftRight")
+                    }
+                </div>
+            }
+            <div class="d-flex space-x-1 justify-content-center">
+                @RenderKey("Space")
+            </div>
+        </div>
+    </BodyTemplate>
+</Card>
 @code {
+
+    [Parameter]
+    public string Header { get; set; } = string.Empty;
+
+    [Parameter] public string Description { get; set; } = string.Empty;
 
     [Parameter]
     public string? LastKeyPressed { get; set; } = null;
@@ -32,11 +186,11 @@
     [Parameter]
     public bool RightShiftPressed { get; set; }
 
+
     [Parameter]
     public List<string> FocusKeys { get; set; } = [];
 
-    [Parameter]
-    public bool ShowFingerColors { get; set; } = false;
+    private bool _showFingerColors = false;
 
     private readonly string[][] _keyboardLayout =
                 [
@@ -49,21 +203,59 @@
     private readonly Dictionary<string, string> _fingerColorMap = new()
     {
         // Left pinky (green)
-        ["`"] = "finger-pinky-left", ["1"] = "finger-pinky-left", ["Q"] = "finger-pinky-left", ["A"] = "finger-pinky-left", ["Z"] = "finger-pinky-left",
+        ["`"] = "finger-pinky-left",
+        ["1"] = "finger-pinky-left",
+        ["Q"] = "finger-pinky-left",
+        ["A"] = "finger-pinky-left",
+        ["Z"] = "finger-pinky-left",
         // Left ring (blue)
-        ["2"] = "finger-ring-left", ["W"] = "finger-ring-left", ["S"] = "finger-ring-left", ["X"] = "finger-ring-left",
+        ["2"] = "finger-ring-left",
+        ["W"] = "finger-ring-left",
+        ["S"] = "finger-ring-left",
+        ["X"] = "finger-ring-left",
         // Left middle (yellow)
-        ["3"] = "finger-middle-left", ["E"] = "finger-middle-left", ["D"] = "finger-middle-left", ["C"] = "finger-middle-left",
+        ["3"] = "finger-middle-left",
+        ["E"] = "finger-middle-left",
+        ["D"] = "finger-middle-left",
+        ["C"] = "finger-middle-left",
         // Left index (red)
-        ["4"] = "finger-index-left", ["5"] = "finger-index-left", ["R"] = "finger-index-left", ["T"] = "finger-index-left", ["F"] = "finger-index-left", ["G"] = "finger-index-left", ["V"] = "finger-index-left", ["B"] = "finger-index-left",
+        ["4"] = "finger-index-left",
+        ["5"] = "finger-index-left",
+        ["R"] = "finger-index-left",
+        ["T"] = "finger-index-left",
+        ["F"] = "finger-index-left",
+        ["G"] = "finger-index-left",
+        ["V"] = "finger-index-left",
+        ["B"] = "finger-index-left",
         // Right index (light green)
-        ["6"] = "finger-index-right", ["7"] = "finger-index-right", ["Y"] = "finger-index-right", ["U"] = "finger-index-right", ["H"] = "finger-index-right", ["J"] = "finger-index-right", ["N"] = "finger-index-right", ["M"] = "finger-index-right",
+        ["6"] = "finger-index-right",
+        ["7"] = "finger-index-right",
+        ["Y"] = "finger-index-right",
+        ["U"] = "finger-index-right",
+        ["H"] = "finger-index-right",
+        ["J"] = "finger-index-right",
+        ["N"] = "finger-index-right",
+        ["M"] = "finger-index-right",
         // Right middle (pink)
-        ["8"] = "finger-middle-right", ["I"] = "finger-middle-right", ["K"] = "finger-middle-right", [","] = "finger-middle-right",
+        ["8"] = "finger-middle-right",
+        ["I"] = "finger-middle-right",
+        ["K"] = "finger-middle-right",
+        [","] = "finger-middle-right",
         // Right ring (purple)
-        ["9"] = "finger-ring-right", ["O"] = "finger-ring-right", ["L"] = "finger-ring-right", ["."] = "finger-ring-right",
+        ["9"] = "finger-ring-right",
+        ["O"] = "finger-ring-right",
+        ["L"] = "finger-ring-right",
+        ["."] = "finger-ring-right",
         // Right pinky (orange)
-        ["0"] = "finger-pinky-right", ["-"] = "finger-pinky-right", ["="] = "finger-pinky-right", ["P"] = "finger-pinky-right", ["["] = "finger-pinky-right", ["]"] = "finger-pinky-right", [";"] = "finger-pinky-right", ["'"] = "finger-pinky-right", ["/"] = "finger-pinky-right",
+        ["0"] = "finger-pinky-right",
+        ["-"] = "finger-pinky-right",
+        ["="] = "finger-pinky-right",
+        ["P"] = "finger-pinky-right",
+        ["["] = "finger-pinky-right",
+        ["]"] = "finger-pinky-right",
+        [";"] = "finger-pinky-right",
+        ["'"] = "finger-pinky-right",
+        ["/"] = "finger-pinky-right",
         // Thumbs (spacebar, purple)
         ["Space"] = "finger-thumb"
     };
@@ -79,7 +271,7 @@
 
         // Determine key class based on state
         string keyClass;
-        if (ShowFingerColors && _fingerColorMap.TryGetValue(key, out var fingerClass))
+        if (_showFingerColors && _fingerColorMap.TryGetValue(key, out var fingerClass))
         {
             keyClass = fingerClass;
             if (isPressed)
@@ -109,4 +301,11 @@
         builder.AddContent(2, isSpaceKey ? " " : displayKey);
         builder.CloseElement();
     };
+
+    private MarkupString GetMessage()
+    {
+        return string.IsNullOrEmpty(Description) 
+            ? new MarkupString(string.Empty) 
+            : new MarkupString(Markdown.ToHtml(Description));
+    }
 }

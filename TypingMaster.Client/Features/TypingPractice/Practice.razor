@@ -35,25 +35,10 @@
             <ProgressPanel Model="@_progressPanelModel" />
         }
 
-        @if (!string.IsNullOrEmpty(CurrentLesson?.Lesson.Instruction))
-        {
-            <MessageBox Header="@_lessonHeader" Message="@CurrentLesson.Lesson?.Instruction" IsCollapse="false"
-                TextType="MessageTextType.Markdown" />
-        }
-
-        <div class="d-flex justify-content-center">
-            <div class="position-relative">
-                <!-- Finger Colors Toggle positioned above keyboard with proper spacing -->
-                <div class="position-absolute" style="top: -45px; right: 0; z-index: 10;">
-                    <Switch @bind-Value="_showFingerColors" DisplayText="Show Finger Colors" ShowLabel="true"
-                        OnColor="Color.Primary" OffColor="Color.Secondary" Size="Size.ExtraSmall" />
-                </div>
-
-                <!-- Keyboard Component -->
-                <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
-                    RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys"
-                    ShowFingerColors="@_showFingerColors" />
-            </div>
+        <!-- Keyboard Component - Full width like MessageBox -->
+        <div class="w-100">
+            <Keyboard LastKeyPressed="@_lastKeyPressed" LeftShiftPressed="@_leftShiftPressed"
+                RightShiftPressed="@_rightShiftPressed" FocusKeys="@_focusKeys" Header="@_lessonHeader" Description="@CurrentLesson?.Lesson.Instruction"/>
         </div>
 
         <KeyEventGenerator @ref="_keyEventGenerator" OnKeyEventGenerated="HandleKeyEventGenerated"
