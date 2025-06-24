@@ -1,4 +1,5 @@
 ﻿@using Markdig
+@inject IJSRuntime JSRuntime
 
 <style>
     .keyboard-w-10 {
@@ -135,11 +136,161 @@
         z-index: 2;
     }
 </style>
+
+<script>
+    let audioContext;
+    
+    // Initialize audio context once
+    window.initKeyboardAudioContext = () => {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return audioContext.state;
+    };
+
+    window.playMechanicalKeyPressSound = async () => {
+        try {
+            // Initialize audio context if needed
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            // Resume audio context if suspended (required for some browsers)
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            
+            const currentTime = audioContext.currentTime;
+            const duration = 0.08; // 80ms total duration
+            
+            // Create master gain node
+            const masterGain = audioContext.createGain();
+            masterGain.connect(audioContext.destination);
+            masterGain.gain.setValueAtTime(0.12, currentTime);
+            
+            // === MECHANICAL CLICK COMPONENT ===
+            // High-frequency click for the tactile feedback
+            const clickOsc = audioContext.createOscillator();
+            const clickGain = audioContext.createGain();
+            const clickFilter = audioContext.createBiquadFilter();
+            
+            clickOsc.type = 'square';
+            clickOsc.frequency.setValueAtTime(2200, currentTime);
+            clickOsc.frequency.exponentialRampToValueAtTime(1800, currentTime + 0.002);
+            
+            clickFilter.type = 'bandpass';
+            clickFilter.frequency.setValueAtTime(2000, currentTime);
+            clickFilter.Q.setValueAtTime(8, currentTime);
+            
+            clickGain.gain.setValueAtTime(0.8, currentTime);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.008);
+            
+            clickOsc.connect(clickFilter);
+            clickFilter.connect(clickGain);
+            clickGain.connect(masterGain);
+            
+            // === SPRING RESONANCE COMPONENT ===
+            // Lower frequency for the spring mechanism
+            const springOsc = audioContext.createOscillator();
+            const springGain = audioContext.createGain();
+            const springFilter = audioContext.createBiquadFilter();
+            
+            springOsc.type = 'sawtooth';
+            springOsc.frequency.setValueAtTime(350, currentTime);
+            springOsc.frequency.exponentialRampToValueAtTime(250, currentTime + 0.015);
+            
+            springFilter.type = 'lowpass';
+            springFilter.frequency.setValueAtTime(800, currentTime);
+            springFilter.Q.setValueAtTime(2, currentTime);
+            
+            springGain.gain.setValueAtTime(0.3, currentTime);
+            springGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.025);
+            
+            springOsc.connect(springFilter);
+            springFilter.connect(springGain);
+            springGain.connect(masterGain);
+            
+            // === METALLIC RESONANCE COMPONENT ===
+            // Mid-range metallic ping
+            const metalOsc = audioContext.createOscillator();
+            const metalGain = audioContext.createGain();
+            const metalFilter = audioContext.createBiquadFilter();
+            
+            metalOsc.type = 'triangle';
+            metalOsc.frequency.setValueAtTime(1200, currentTime);
+            metalOsc.frequency.exponentialRampToValueAtTime(900, currentTime + 0.012);
+            
+            metalFilter.type = 'peaking';
+            metalFilter.frequency.setValueAtTime(1100, currentTime);
+            metalFilter.Q.setValueAtTime(4, currentTime);
+            metalFilter.gain.setValueAtTime(6, currentTime);
+            
+            metalGain.gain.setValueAtTime(0.15, currentTime + 0.003);
+            metalGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.035);
+            
+            metalOsc.connect(metalFilter);
+            metalFilter.connect(metalGain);
+            metalGain.connect(masterGain);
+            
+            // === NOISE COMPONENT ===
+            // White noise for texture
+            const bufferSize = audioContext.sampleRate * 0.015; // 15ms of noise
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+            }
+            
+            const noiseSource = audioContext.createBufferSource();
+            const noiseGain = audioContext.createGain();
+            const noiseFilter = audioContext.createBiquadFilter();
+            
+            noiseSource.buffer = buffer;
+            
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.setValueAtTime(3000, currentTime);
+            noiseFilter.Q.setValueAtTime(3, currentTime);
+            
+            noiseGain.gain.setValueAtTime(0.25, currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.015);
+            
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(masterGain);
+            
+            // Start all components
+            clickOsc.start(currentTime);
+            clickOsc.stop(currentTime + 0.008);
+            
+            springOsc.start(currentTime);
+            springOsc.stop(currentTime + 0.025);
+            
+            metalOsc.start(currentTime + 0.003);
+            metalOsc.stop(currentTime + 0.035);
+            
+            noiseSource.start(currentTime);
+            noiseSource.stop(currentTime + 0.015);
+            
+        } catch (error) {
+            console.warn('Audio playback failed:', error);
+        }
+    };
+</script>
+
+
+
 <Card HeaderText="@Header" Color="Color.Primary" >
     <HeaderTemplate>
-        <div>
-            <Toggle @bind-Value="_showFingerColors" OnText="Hide Finger Colors" OffText="Show Finger Color"
-                    OnColor="Color.Primary" Width="145" />
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <Toggle @bind-Value="_showFingerColors" OnText="Hide Finger Colors" OffText="Show Finger Color"
+                        OnColor="Color.Primary" Width="145" />
+            </div>
+            <div>
+                <Toggle @bind-Value="_soundEnabled" OnText="Sound On" OffText="Sound Off"
+                        OnColor="Color.Success" Width="100" />
+            </div>
         </div>
     </HeaderTemplate>
     <BodyTemplate>
@@ -191,6 +342,8 @@
     public List<string> FocusKeys { get; set; } = [];
 
     private bool _showFingerColors = false;
+    private bool _soundEnabled = true;
+    private string? _previousLastKeyPressed = null;
 
     private readonly string[][] _keyboardLayout =
                 [
@@ -301,6 +454,49 @@
         builder.AddContent(2, isSpaceKey ? " " : displayKey);
         builder.CloseElement();
     };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Initialize audio context on first render
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("initKeyboardAudioContext");
+            }
+            catch (Exception)
+            {
+                // Silently handle initialization errors
+            }
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Play sound when a new key is pressed
+        if (!string.IsNullOrEmpty(LastKeyPressed) && LastKeyPressed != _previousLastKeyPressed)
+        {
+            if (_soundEnabled)
+            {
+                // Use Task.Run to avoid blocking the UI and allow rapid keystrokes
+                _ = Task.Run(async () => await PlayKeyPressSound());
+            }
+            _previousLastKeyPressed = LastKeyPressed;
+        }
+    }
+
+    private async Task PlayKeyPressSound()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("playMechanicalKeyPressSound");
+        }
+        catch (Exception)
+        {
+            // Silently handle any JS execution errors
+            // This prevents the app from crashing if audio fails
+        }
+    }
 
     private MarkupString GetMessage()
     {
