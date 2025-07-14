@@ -9,10 +9,10 @@ public enum NumericPracticePhases
     SingleKeyFocus = 1,
 
     // Part 2: Simple patterns with keys
-    HorizontalCombination = 2,
+    SequenceCombos = 2,
 
     // Part 3: Simple patterns with keys
-    VerticalCombos = 3,
+    HorizontalCombination = 3,
 
     // Part 4: real number patterns with keys
     PracticalPatterns = 4,
