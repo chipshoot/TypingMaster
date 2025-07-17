@@ -38,8 +38,17 @@ public class NumericDrillGenerator : INumericDrillGenerator
 
     public int MaxCharacters { get; set; } = TypingMasterConstants.DefaultTypingWindowWidth;
 
+    public bool EnableCapital { get; set; }
+
+    public bool EnableSymbol { get; set; }
+
     public string GenerateDrill(NumericPracticePhases phases, int count)
     {
+        if (count <= 0)
+        {
+            return string.Empty;
+        }
+
         switch (phases)
         {
             case NumericPracticePhases.NotSet:
@@ -62,25 +71,23 @@ public class NumericDrillGenerator : INumericDrillGenerator
             case NumericPracticePhases.PracticalPatterns:
 
                 // Real number patterns, e.g., dates, times, formatted numbers
-                var drills2 = GenerateStage2Drills(1, 2);
-                return drills2.Count > 0 ? drills2[0] : string.Empty;
+                return GenerateStage2Drills(count);
 
             case NumericPracticePhases.FullIntegration:
 
                 // Full key and number mix application
-                var drills3 = GenerateStage3Drills(1, 2);
-                return drills3.Count > 0 ? drills3[0] : string.Empty;
+                return GenerateStage3Drills(count);
 
             case NumericPracticePhases.DomainSpecialization:
 
                 // Domain specific numbers, e.g., phone, zip, scientific
                 var domainTemplates = new List<string>
                 {
-                    "phone: {0}", "zip: {0}", "isbn: {0}", "ein: {0}", "score: {0}", "temp: {0}C"
+                    "Phone: {0}", "ZIP: {0}", "ISBN: {0}", "EIN: {0}", "Score: {0}", "Temp: {0}C"
                 };
 
-                string template = domainTemplates[_random.Next(domainTemplates.Count)];
-                string value = GenerateNumericPattern(3);
+                var template = domainTemplates[_random.Next(domainTemplates.Count)];
+                var value = GenerateNumericPattern();
                 return string.Format(template, value);
 
             case NumericPracticePhases.CompetitiveSpeed:
@@ -130,14 +137,14 @@ public class NumericDrillGenerator : INumericDrillGenerator
     /// </summary>
     private string GenerateDigitSequence(int count)
     {
-        var baseString = "";
         var sb = new StringBuilder();
 
         while (sb.Length < MaxCharacters)
         {
             sb.Append("1234567890");
         }
-        baseString = sb.ToString().Trim();
+
+        var baseString = sb.ToString().Trim();
         sb.Clear();
 
         var insertPoint = 0;
@@ -167,11 +174,12 @@ public class NumericDrillGenerator : INumericDrillGenerator
 
         while (sb.Length < MaxCharacters)
         {
-            for (var i = 0; i <= repeatCount; i++)
+            for (var i = 0; i < repeatCount; i++)
             {
                 sb.Append(fingerPairs[_random.Next(0, fingerPairs.Count - 1)]);
             }
 
+            sb.Append(' ');
         }
 
         var result = sb.ToString().Trim();
@@ -181,55 +189,79 @@ public class NumericDrillGenerator : INumericDrillGenerator
     /// <summary>
     /// Generate third stage string
     /// </summary>
-    private List<string> GenerateStage2Drills(int count = 10, int difficulty = 2)
+    private string GenerateStage2Drills(int count = 10)
     {
         var drills = new List<string>();
 
-        for (var i = 0; i < count; i++)
+        var rawText = string.Empty;
+        while (rawText.Length <= MaxCharacters)
         {
-            var template = Stage2Templates[_random.Next(Stage2Templates.Count)];
-            var result = ReplacePatterns(template, difficulty);
-            drills.Add(result);
+            for (var i = 0; i <= count; i++)
+            {
+                var template = Stage2Templates[_random.Next(Stage2Templates.Count)];
+                if (template.IsDateTimeTemplate())
+                {
+                    var year = _random.Next(1000, 3000);
+                    var month = _random.Next(1, 13);
+                    var day = _random.Next(1, 32);
+                    var hour = _random.Next(0, 24);
+                    var min = _random.Next(0, 60);
+                    var second = _random.Next(0, 60);
+                    var randomDate = new DateTime(year, month, day, hour, min, second);
+                    var dateText = ModifyTextBasedOnFlagSetting(randomDate.ToString(template));
+                    drills.Add(dateText);
+                }
+                else
+                {
+                    var result = ReplacePatterns(template);
+                    drills.Add(result);
+                }
+            }
+
+            rawText = $"{rawText} {string.Join(" ", drills).Trim()}";
         }
 
-        return drills;
-    }
-
-    private string GenerateRealWords(int count)
-    {
-        // Example: generate a numeric drill with real words (could be numbers as words)
-        return string.Join(" ", Enumerable.Range(1, count).Select(i => i.ToString()));
+        var finalText = rawText[..Math.Min(rawText.Length, MaxCharacters)].Trim();
+        return finalText;
     }
 
     /// <summary>
     /// Generate forth stage string - all keys and numbers mixed
     /// </summary>
-    private List<string> GenerateStage3Drills(int count = 15, int difficulty = 2)
+    private string GenerateStage3Drills(int count = 10)
     {
         var drills = new List<string>();
+        var rawText = string.Empty;
 
-        for (var i = 0; i < count; i++)
+        while (rawText.Length <= MaxCharacters)
         {
-            var template = Stage3Templates[_random.Next(Stage3Templates.Count)];
-            var numericPart = GenerateNumericPattern(difficulty + 1);
-            var result = string.Format(template, numericPart);
-
-            // add random point
-            if (_random.NextDouble() > 0.7)
+            for (var i = 0; i < count; i++)
             {
-                result += _random.NextDouble() > 0.5 ? ";" : ".";
-            }
+                var template = Stage3Templates[_random.Next(Stage3Templates.Count)];
+                var numericPart = GenerateNumericPattern();
+                var result = string.Format(template, numericPart);
 
-            drills.Add(result);
+                // add random point
+                if (_random.NextDouble() > 0.7)
+                {
+                    result += _random.NextDouble() > 0.5 ? ";" : ".";
+                }
+
+                drills.Add(result);
+                rawText = $"{rawText} {string.Join(" ", drills).Trim()}";
+            }
         }
 
-        return drills;
+        rawText = ModifyTextBasedOnFlagSetting(rawText);
+        var finalText = rawText[..Math.Min(rawText.Length, MaxCharacters)].Trim();
+        
+        return finalText;
     }
 
     /// <summary>
-    /// Replaces template patterns with actual numbers based on difficulty
+    /// Replaces template patterns with actual numbers
     /// </summary>
-    private string ReplacePatterns(string template, int difficulty)
+    private string ReplacePatterns(string template)
     {
         var sb = new StringBuilder();
         var isEscape = true;
@@ -251,39 +283,7 @@ public class NumericDrillGenerator : INumericDrillGenerator
 
             switch (c)
             {
-                case 'y': // year
-                    sb.Append(GenerateYear(difficulty));
-                    break;
-
-                case 'M': // month
-                    sb.Append(GenerateMonth(difficulty));
-                    break;
-
-                case 'd': // date
-                    sb.Append(GenerateDay(difficulty));
-                    break;
-
-                case 'H': // 24 hours
-                    sb.Append(Generate24Hour());
-                    break;
-
-                case 'h': // 12 hours
-                    sb.Append(Generate12Hour());
-                    break;
-
-                case 'm': // minute
-                case 's': // second
-                    sb.Append(GenerateMinuteSec());
-                    break;
-
-                case 't': // AM/PM
-                    sb.Append(_random.NextDouble() > 0.5 ? "AM" : "PM");
-                    break;
-
                 case '*': // mask character
-                    sb.Append(_random.Next(10));
-                    break;
-
                 case '#': // random digit
                 case '0': // fixed digit
                     sb.Append(_random.Next(10));
@@ -303,115 +303,103 @@ public class NumericDrillGenerator : INumericDrillGenerator
             }
         }
 
-        return sb.ToString();
+        return ModifyTextBasedOnFlagSetting(sb.ToString());
     }
 
     /// <summary>
-    ///  Random year generator
+    /// Replace all symbols with spaces when EnableSymbol is false
     /// </summary>
-    private string GenerateYear(int difficulty)
+    private string ModifyTextBasedOnFlagSetting(string input)
     {
-        return difficulty switch
+        var result = input;
+        if (!EnableSymbol)
         {
-            1 => _random.Next(2020, 2030).ToString(), // 简单：近期年份
-            2 => _random.Next(1900, 2100).ToString(), // 中等：任意年份
-            _ => _random.Next(1000, 3000).ToString()  // 复杂：宽范围年份
-        };
-    }
+            var sb = new StringBuilder();
 
-    /// <summary>
-    ///  Random month generator
-    /// </summary>
-    private string GenerateMonth(int difficulty)
-    {
-        int month = _random.Next(1, 13);
-        return difficulty == 1 ? month.ToString("D2") : month.ToString();
-    }
+            foreach (var c in input)
+            {
+                // Keep letters, digits, and existing spaces
+                if (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c))
+                {
+                    sb.Append(c);
+                }
+                else
+                {
+                    // Replace symbols with space
+                    sb.Append(' ');
+                }
+            }
 
-    /// <summary>
-    /// Random time generator
-    /// </summary>
-    private string GenerateDay(int difficulty)
-    {
-        int day = _random.Next(1, 32);
-        return difficulty == 1 ? day.ToString("D2") : day.ToString();
-    }
+            // Clean up multiple consecutive spaces
+            result = sb.ToString();
+            while (result.Contains("  "))
+            {
+                result = result.Replace("  ", " ");
+            }
 
-    /// <summary>
-    /// 24 hour time generator
-    /// </summary>
-    private string Generate24Hour()
-    {
-        return _random.Next(0, 24).ToString("D2");
-    }
+            result = result.Trim();
+        }
 
-    /// <summary>
-    /// 12 Hours time generator
-    /// </summary>
-    private string Generate12Hour()
-    {
-        return _random.Next(1, 13).ToString("D2");
-    }
+        if (!EnableCapital)
+        {
+            result = result.ToLower();
 
-    /// <summary>
-    /// Minute/Second generator
-    /// </summary>
-    private string GenerateMinuteSec()
-    {
-        return _random.Next(0, 60).ToString("D2");
+        }
+
+        return result;
     }
 
     /// <summary>
     /// Complexity formatted generator
     /// </summary>
-    private string GenerateNumericPattern(int complexity)
+    private string GenerateNumericPattern()
     {
         int patternType = _random.Next(1, 7);
 
         return patternType switch
         {
-            1 => GenerateDecimal(complexity),        // decimal number
-            2 => GenerateFormattedNumber(complexity), // format number
-            3 => GenerateRange(complexity),          // range number
+            1 => GenerateDecimal(),        // decimal number
+            2 => GenerateFormattedNumber(), // format number
+            3 => GenerateRange(),          // range number
             4 => GenerateFraction(),                 // fraction number
             5 => GeneratePhoneNumber(),              // telephone number
-            _ => GenerateDigitSequence(complexity)   // normal digit sequence
+            _ => GenerateDigitSequence(3)   // normal digit sequence
         };
     }
 
     /// <summary>
     /// Decimal number generator
     /// </summary>
-    private string GenerateDecimal(int complexity)
+    private string GenerateDecimal()
     {
-        int wholePart = _random.Next(0, complexity * 1000);
-        int decimalPlaces = _random.Next(1, complexity + 2);
-        int decimalPart = _random.Next(0, (int)Math.Pow(10, decimalPlaces));
+        var wholePart = _random.Next(0, 1000);
+        var decimalPlaces = _random.Next(1, 2);
+        var decimalPart = _random.Next(0, (int)Math.Pow(10, decimalPlaces));
         return $"{wholePart}.{decimalPart.ToString().PadRight(decimalPlaces, '0')}";
     }
 
     /// <summary>
     /// Formatted number generator, e.g."1,234,567.89", "$1,234.56", "12.3%"
     /// </summary>
-    private string GenerateFormattedNumber(int complexity)
+    private string GenerateFormattedNumber()
     {
-        int number = _random.Next(1000, 1000000);
+        var number = _random.Next(1000, 1000000);
 
         return _random.Next(3) switch
         {
-            0 => number.ToString("N0"),    // 千位分隔符
-            1 => number.ToString("C"),     // 货币格式
-            _ => (number / 10000.0).ToString("P1") // 百分比
+            0 => number.ToString("N0"),
+            1 => number.ToString("C"),
+            _ => (number / 10000.0).ToString("P1")
         };
     }
 
     /// <summary>
     /// Number range generator
     /// </summary>
-    private string GenerateRange(int complexity)
+    private string GenerateRange()
     {
-        int start = _random.Next(0, 100 * complexity);
-        int end = start + _random.Next(10, 100 * complexity);
+        var start = _random.Next(0, 100);
+        var end = start + _random.Next(10, 100);
         return $"{start}-{end}";
     }
 
@@ -420,8 +408,8 @@ public class NumericDrillGenerator : INumericDrillGenerator
     /// </summary>
     private string GenerateFraction()
     {
-        int numerator = _random.Next(1, 10);
-        int denominator = _random.Next(2, 20);
+        var numerator = _random.Next(1, 10);
+        var denominator = _random.Next(2, 20);
         return $"{numerator}/{denominator}";
     }
 
@@ -434,37 +422,4 @@ public class NumericDrillGenerator : INumericDrillGenerator
             ? $"{_random.Next(100, 1000)}-{_random.Next(100, 1000)}-{_random.Next(1000, 10000)}"
             : $"+{_random.Next(1, 99)} {_random.Next(100, 1000)}-{_random.Next(100, 1000)}-{_random.Next(1000, 10000)}";
     }
-
-    /// <summary>
-    /// Generate space-separated number sequences like "123 456 789"
-    /// </summary>
-    /// <param name="difficulty">Number of digit groups to generate</param>
-    /// <returns>Space-separated number string</returns>
-    private string GenerateNumberSequence(int difficulty)
-    {
-        var sb = new StringBuilder();
-        int startNumber = _random.Next(100, 900); // Start with 3-digit number
-
-        var length = difficulty switch
-        {
-            1 => _random.Next(2, 5),  // easy：2-4
-            2 => _random.Next(4, 7),  // medium：4-6
-            _ => _random.Next(6, 10)  // difficult：6-9
-        };
-        for (int i = 0; i < length; i++)
-        {
-            if (sb.Length > 0)
-                sb.Append(' ');
-
-            int currentNumber = startNumber + i;
-            sb.Append(currentNumber);
-
-            // Check if adding another number would exceed max characters
-            if (sb.Length + currentNumber.ToString().Length + 1 > MaxCharacters)
-                break;
-        }
-
-        return sb.ToString();
-    }
-
 }

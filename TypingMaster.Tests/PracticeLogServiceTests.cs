@@ -1,13 +1,14 @@
-using System.Security.Cryptography;
 using AutoMapper;
 using Moq;
 using Serilog;
+using Serilog.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using TypingMaster.Business;
 using TypingMaster.Business.Mapping;
 using TypingMaster.Core.Models;
 using TypingMaster.DataAccess.Dao;
 using TypingMaster.DataAccess.Data;
-using Xunit;
+using ILogger = Serilog.ILogger;
 
 namespace TypingMaster.Tests;
 
@@ -16,7 +17,6 @@ public class PracticeLogServiceTests
     private readonly Mock<IPracticeLogRepository> _practiceLogRepositoryMock;
     private readonly Mock<IDrillStatsRepository> _drillStatsRepositoryMock;
     private readonly IMapper _mapper;
-    private readonly ILogger _logger;
     private readonly PracticeLogService _service;
 
     public PracticeLogServiceTests()
@@ -24,19 +24,18 @@ public class PracticeLogServiceTests
         _practiceLogRepositoryMock = new Mock<IPracticeLogRepository>();
         _drillStatsRepositoryMock = new Mock<IDrillStatsRepository>();
 
-        // Setup AutoMapper with real configuration
-        var config = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<DomainMapProfile>();
-        });
-        _mapper = config.CreateMapper();
 
-        _logger = new LoggerConfiguration().CreateLogger();
+        ILogger logger = new LoggerConfiguration().CreateLogger();
+        ILoggerFactory loggerFactory = new SerilogLoggerFactory(logger);
+
+        // Setup AutoMapper with real configuration
+        var config = new MapperConfiguration(cfg => {cfg.AddProfile<DomainMapProfile>();}, loggerFactory);
+        _mapper = config.CreateMapper();
         _service = new PracticeLogService(
             _practiceLogRepositoryMock.Object,
             _drillStatsRepositoryMock.Object,
             _mapper,
-            _logger);
+            logger);
     }
 
     [Fact]

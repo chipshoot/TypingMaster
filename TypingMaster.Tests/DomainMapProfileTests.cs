@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
+using Moq;
 using TypingMaster.Business.Mapping;
 using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
@@ -14,8 +16,10 @@ namespace TypingMaster.Tests
 
         public DomainMapProfileTests()
         {
+            var fakeLogger = new Mock<ILoggerFactory>();
+            
             // Configure AutoMapper
-            var config = new MapperConfiguration(cfg => { cfg.AddProfile<DomainMapProfile>(); });
+            var config = new MapperConfiguration(cfg => { cfg.AddProfile<DomainMapProfile>();}, fakeLogger.Object);
 
             _mapper = config.CreateMapper();
         }

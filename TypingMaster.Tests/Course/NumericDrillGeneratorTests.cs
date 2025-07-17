@@ -78,48 +78,56 @@ public class NumericDrillGeneratorTests
     }
 
     [Theory]
-    [InlineData(1, 74, "10 29 38 47 56")]
-    [InlineData(3, 74, "102938 293847 384756")]
-    [InlineData(5, 74, "1029384756 ")]
-    public void GenerateDrill_HorizontalCombination_ReturnsFingerPairPatterns(int count, int maxTextLength, string expectText)
+    [InlineData(1, 74)]
+    [InlineData(3, 74)]
+    [InlineData(5, 24)]
+    public void GenerateDrill_HorizontalCombination_ReturnsFingerPairPatterns(int count, int maxTextLength)
     {
+        // Arrange
+        var seeds = new List<string> { "10", "29", "38", "47", "56" };
+
         // Act
         _generator.MaxCharacters = maxTextLength;
         var result = _generator.GenerateDrill(NumericPracticePhases.HorizontalCombination, count);
+        var testTexts = result.Split(" ").ToList();
+        var testLen = count * 2;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(result.Length, maxTextLength);
+        Assert.True(result.Length <= maxTextLength);
+        Assert.True(testTexts[..^1].All(t => t.Length == testLen));
+        Assert.True(testTexts[^1].Length <= testLen);
+        Assert.True(testTexts.All(t => SplitPracticeString(t, 2).All(c => seeds.Contains(c))));
+    }
 
+    private static List<string> SplitPracticeString(string text, int len)
+    {
+        var ret = string.IsNullOrEmpty(text) ? [] : text.Chunk(len).Select(chars => new string(chars)).ToList();
+        return ret;
     }
 
 
     [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    [InlineData(5)]
-    public void GenerateDrill_PracticalPatterns_ReturnsFormattedPatterns(int count)
+    [InlineData(1, 74)]
+    [InlineData(3, 74)]
+    [InlineData(5, 74)]
+    [InlineData(15, 24)]
+    public void GenerateDrill_PracticalPatterns_ReturnsFormattedPatterns(int count, int maxTextLength)
     {
         // Act
+        _generator.MaxCharacters = maxTextLength;
         var result = _generator.GenerateDrill(NumericPracticePhases.PracticalPatterns, count);
 
         // Assert
         Assert.NotEmpty(result);
-
-        // Should contain common formatting characters
-        var hasFormattingChars = result.Any(c =>
-            c == '-' || c == '/' || c == '.' || c == ':' ||
-            c == '$' || c == '%' || c == '#' || c == '(' || c == ')');
-
-        // Result should be a formatted pattern (dates, times, money, etc.)
-        Assert.True(hasFormattingChars || result.All(char.IsDigit));
+        Assert.True(result.Length <= maxTextLength);
     }
 
     [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    [InlineData(5)]
-    public void GenerateDrill_FullIntegration_ReturnsCodePatterns(int count)
+    [InlineData(1, 74)]
+    [InlineData(3, 74)]
+    [InlineData(5, 74)]
+    public void GenerateDrill_FullIntegration_ReturnsCodePatterns(int count, int maxTextLength)
     {
         // Act
         var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, count);
@@ -132,8 +140,279 @@ public class NumericDrillGeneratorTests
         var hasDigits = result.Any(char.IsDigit);
 
         Assert.True(hasLetters || hasDigits);
+        Assert.True(result.Length <= maxTextLength);
     }
 
+    [Theory]
+    [InlineData(1, 74)]
+    [InlineData(3, 74)]
+    [InlineData(5, 74)]
+    [InlineData(10, 100)]
+    [InlineData(15, 200)]
+    public void GenerateStage3Drills_WithValidCount_ReturnsFormattedCodePatterns(int count, int maxCharacters)
+    {
+        // Arrange
+        _generator.MaxCharacters = maxCharacters;
+        _generator.EnableSymbol = true;
+
+        // Act
+        var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, count);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.True(result.Length <= maxCharacters);
+
+        // Should contain programming/code-like patterns
+        var hasCodeElements = result.Contains("=") || result.Contains(":") ||
+                             result.Contains("int") || result.Contains("var") ||
+                             result.Contains("const") || result.Contains("double") ||
+                             result.Contains("ID") || result.Contains("Code") ||
+                             result.Contains("Price") || result.Contains("Balance");
+
+        Assert.True(hasCodeElements);
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_DefaultCount_GeneratesValidOutput()
+    {
+        // Act
+        var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, 10);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.True(result.Length <= _generator.MaxCharacters);
+
+        // Should contain both letters and numbers
+        var hasLetters = result.Any(char.IsLetter);
+        var hasDigits = result.Any(char.IsDigit);
+
+        Assert.True(hasLetters);
+        Assert.True(hasDigits);
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_ContainsExpectedTemplatePatterns()
+    {
+        // Arrange
+        var expectedPatterns = new[]
+        {
+            "int x", "const double PI", "var id", "userID:", "errorCode:", "version:",
+            "Yield:", "Price:", "Volume:", "Balance:", "Interest:", "Tax:",
+            "ZIP:", "Room:", "Phone:", "Code:", "ID:", "Serial:",
+            "Speed of light:", "Gravity:", "Avogadro:", "Planck:",
+            "Meeting:", "Order#:", "Account:", "Reference#:", "Transaction#:", "Confirmation:"
+        };
+        _generator.EnableSymbol = true;
+
+        // Act
+        var results = new List<string>();
+        for (var i = 0; i < 50; i++) // Multiple attempts to catch various templates
+        {
+            results.Add(_generator.GenerateDrill(NumericPracticePhases.FullIntegration, 5));
+        }
+
+        var allResults = string.Join(" ", results);
+
+        // Assert
+        var foundPatterns = expectedPatterns.Count(pattern => allResults.Contains(pattern));
+        Assert.True(foundPatterns >= 3, "Should find at least 3 different template patterns");
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_RespectsMaxCharacters()
+    {
+        // Arrange
+        var testLengths = new[] { 50, 100, 200, 500 };
+
+        foreach (var maxLength in testLengths)
+        {
+            // Act
+            _generator.MaxCharacters = maxLength;
+            var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, 10);
+
+            // Assert
+            Assert.True(result.Length <= maxLength, $"Result length {result.Length} exceeds max {maxLength}");
+        }
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_ContainsRandomPunctuation()
+    {
+        // Arrange
+        _generator.EnableSymbol = true;
+
+        // Act
+        var results = new List<string>();
+        for (var i = 0; i < 20; i++)
+        {
+            results.Add(_generator.GenerateDrill(NumericPracticePhases.FullIntegration, 10));
+        }
+
+        var allResults = string.Join(" ", results);
+
+        // Assert
+        // Should occasionally contain semicolons or periods (30% chance in implementation)
+        var hasPunctuation = allResults.Contains(";") || allResults.Contains(".");
+        Assert.True(hasPunctuation, "Should contain some punctuation over multiple generations");
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_ContainsNumericPatterns()
+    {
+        // Act
+        var results = new List<string>();
+        for (var i = 0; i < 10; i++)
+        {
+            results.Add(_generator.GenerateDrill(NumericPracticePhases.FullIntegration, 5));
+        }
+
+        // Assert
+        foreach (var result in results)
+        {
+            Assert.True(result.Any(char.IsDigit), "Each result should contain numeric characters");
+        }
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_EnableSymbolFalse_ReplacesSymbolsWithSpaces()
+    {
+        // Arrange
+        _generator.EnableSymbol = false;
+
+        // Act
+        var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, 10);
+
+        // Assert
+        Assert.NotEmpty(result);
+
+        // Should not contain symbols like =, :, #, $, %, etc.
+        var symbols = new[] { '=', ':', '#', '$', '%', '(', ')', '-', '+' };
+        var containsSymbols = result.Any(c => symbols.Contains(c));
+
+        Assert.False(containsSymbols, "Should not contain symbols when EnableSymbol is false");
+
+        // Should still contain letters and digits
+        var hasLettersOrDigits = result.Any(c => char.IsLetterOrDigit(c));
+        Assert.True(hasLettersOrDigits);
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_EnableCapitalFalse_ReturnsLowerCase()
+    {
+        // Arrange
+        _generator.EnableCapital = false;
+
+        // Act
+        var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, 10);
+
+        // Assert
+        Assert.NotEmpty(result);
+
+        // Should not contain uppercase letters
+        var hasUpperCase = result.Any(char.IsUpper);
+        Assert.False(hasUpperCase, "Should not contain uppercase letters when EnableCapital is false");
+
+        // Should still contain lowercase letters and digits
+        var hasLowerCaseOrDigits = result.Any(c => char.IsLower(c) || char.IsDigit(c));
+        Assert.True(hasLowerCaseOrDigits);
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_BothFlagsDisabled_ReturnsCleanText()
+    {
+        // Arrange
+        _generator.EnableSymbol = false;
+        _generator.EnableCapital = false;
+
+        // Act
+        var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, 10);
+
+        // Assert
+        Assert.NotEmpty(result);
+
+        // Should not contain symbols or uppercase
+        var hasSymbols = result.Any(c => !char.IsLetterOrDigit(c) && !char.IsWhiteSpace(c));
+        var hasUpperCase = result.Any(char.IsUpper);
+
+        Assert.False(hasSymbols, "Should not contain symbols");
+        Assert.False(hasUpperCase, "Should not contain uppercase letters");
+
+        // Should contain lowercase letters, digits, and spaces only
+        var validChars = result.All(c => char.IsLower(c) || char.IsDigit(c) || char.IsWhiteSpace(c));
+        Assert.True(validChars, "Should only contain lowercase letters, digits, and spaces");
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_ConsistentStructure_AcrossMultipleCalls()
+    {
+        // Act
+        var results = new List<string>();
+        for (var i = 0; i < 10; i++)
+        {
+            results.Add(_generator.GenerateDrill(NumericPracticePhases.FullIntegration, 3));
+        }
+
+        // Assert
+        Assert.All(results, result =>
+        {
+            Assert.NotEmpty(result);
+            Assert.True(result.Length <= _generator.MaxCharacters);
+
+            // Each result should have some structured content
+            var hasStructuredContent = result.Contains(" ") || result.Any(char.IsLetter);
+            Assert.True(hasStructuredContent, "Each result should have structured content");
+        });
+    }
+
+    [Fact]
+    public void GenerateStage3Drills_ContainsVariousNumericFormats()
+    {
+        // Arrange
+        _generator.EnableSymbol = true;
+
+        // Act
+        var results = new List<string>();
+        for (int i = 0; i < 30; i++)
+        {
+            results.Add(_generator.GenerateDrill(NumericPracticePhases.FullIntegration, 10));
+        }
+
+        var allResults = string.Join(" ", results);
+
+        // Assert
+        // Should contain various numeric formats from GenerateNumericPattern
+        var hasDecimalNumbers = allResults.Contains(".");
+        var hasFormattedNumbers = allResults.Contains(",") || allResults.Contains("$") || allResults.Contains("%");
+        var hasRangeNumbers = allResults.Contains("-");
+        var hasFractionNumbers = allResults.Contains("/");
+        var hasPhoneNumbers = allResults.Contains("-") || allResults.Contains("+");
+
+        var numericFormatCount = new[] { hasDecimalNumbers, hasFormattedNumbers, hasRangeNumbers, hasFractionNumbers, hasPhoneNumbers }
+            .Count(x => x);
+
+        Assert.True(numericFormatCount >= 2, "Should contain at least 2 different numeric formats");
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(20)]
+    [InlineData(50)]
+    public void GenerateStage3Drills_LargeCount_PerformsWell(int count)
+    {
+        // Act
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var result = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, count);
+        stopwatch.Stop();
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.True(result.Length <= _generator.MaxCharacters);
+        Assert.True(stopwatch.ElapsedMilliseconds < 1000, "Should complete within reasonable time");
+    }
+
+
+    /**/
     [Theory]
     [InlineData(1)]
     [InlineData(3)]
@@ -160,6 +439,9 @@ public class NumericDrillGeneratorTests
     [InlineData(5)]
     public void GenerateDrill_CompetitiveSpeed_ReturnsDigitSequence(int count)
     {
+        // Arrange
+        _generator.EnableSymbol = true;
+
         // Act
         var result = _generator.GenerateDrill(NumericPracticePhases.CompetitiveSpeed, count);
 
@@ -252,11 +534,13 @@ public class NumericDrillGeneratorTests
         var result1 = _generator.GenerateDrill(NumericPracticePhases.SingleKeyFocus, count);
         var result2 = _generator.GenerateDrill(NumericPracticePhases.SequenceCombos, count);
         var result3 = _generator.GenerateDrill(NumericPracticePhases.CompetitiveSpeed, count);
+        var result4 = _generator.GenerateDrill(NumericPracticePhases.FullIntegration, count);
 
         // Results should be valid (either empty or have some content)
         Assert.NotNull(result1);
         Assert.NotNull(result2);
         Assert.NotNull(result3);
+        Assert.NotNull(result4);
     }
 
     [Fact]
@@ -264,13 +548,13 @@ public class NumericDrillGeneratorTests
     {
         // Act
         var results = new List<string>();
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             results.Add(_generator.GenerateDrill(NumericPracticePhases.PracticalPatterns, 1));
         }
 
         // Assert
-        Assert.All(results, result => Assert.NotEmpty(result));
+        Assert.All(results, Assert.NotEmpty);
 
         // Should generate various formats over multiple calls
         var uniqueResults = results.Distinct().Count();
