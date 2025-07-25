@@ -9,39 +9,41 @@ namespace TypingMaster.Tests.Course
     public class PhaseControlledPracticeTextTests
     {
         private readonly BeginnerCourse _course;
-        private readonly Mock<ILogger> _mockLogger;
+        private readonly NumericDrillGenerator _numericDrillGenerator = new();
+        private readonly ShiftDrillGenerator _shiftDrillGenerator = new();
+        private readonly SymbolDrillGenerator _symbolDrillGenerator = new();
 
         public PhaseControlledPracticeTextTests()
         {
-            _mockLogger = new Mock<ILogger>();
-            _course = new BeginnerCourse(_mockLogger.Object);
-
-            // Initialize course with settings and lessons
-            _course.Settings = new CourseSetting
+            var mockLogger = new Mock<ILogger>();
+            _course = new BeginnerCourse(_numericDrillGenerator, _shiftDrillGenerator, _symbolDrillGenerator, mockLogger.Object)
             {
-                Minutes = 60,
-                NewKeysPerStep = 1,
-                PhaseAttemptThreshold = 50,
-                TargetStats = new StatsBase { Wpm = 30, Accuracy = 90 }
-            };
-
-            _course.Lessons = new List<Lesson>
-            {
-                new Lesson
+                // Initialize course with settings and lessons
+                Settings = new CourseSetting
                 {
-                    Id = 1,
-                    Target = new[] { "a", "s", "d", "f" },
-                    CommonWords = new[] { "as", "sad", "fad", "add" },
-                    Instruction = "Place your fingers on the home row keys",
-                    Description = "Home row lesson"
+                    Minutes = 60,
+                    NewKeysPerStep = 1,
+                    PhaseAttemptThreshold = 50,
+                    TargetStats = new StatsBase { Wpm = 30, Accuracy = 90 }
                 },
-                new Lesson
+                Lessons = new List<Lesson>
                 {
-                    Id = 2,
-                    Target = new[] { "j", "k", "l", ";" },
-                    CommonWords = new[] { "jak", "kale", "lake", "slay" },
-                    Instruction = "Practice right hand home row keys",
-                    Description = "Right hand home row lesson"
+                    new Lesson
+                    {
+                        Id = 1,
+                        Target = new[] { "a", "s", "d", "f" },
+                        CommonWords = new[] { "as", "sad", "fad", "add" },
+                        Instruction = "Place your fingers on the home row keys",
+                        Description = "Home row lesson"
+                    },
+                    new Lesson
+                    {
+                        Id = 2,
+                        Target = new[] { "j", "k", "l", ";" },
+                        CommonWords = new[] { "jak", "kale", "lake", "slay" },
+                        Instruction = "Practice right hand home row keys",
+                        Description = "Right hand home row lesson"
+                    }
                 }
             };
         }

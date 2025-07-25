@@ -8,7 +8,11 @@ using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Course
 {
-    public class CourseFactory(ILogger logger)
+    public class CourseFactory(
+        INumericDrillGenerator numericDrillGenerator,
+        IShiftDrillGenerator shiftDrillGenerator,
+        ISymbolDrillGenerator symbolDrillGenerator,
+        ILogger logger)
     {
         private static readonly Dictionary<string, List<Lesson>> LessonCache = new();
         private static readonly Lock CacheLock = new();
@@ -24,7 +28,7 @@ namespace TypingMaster.Business.Course
 
             return (courseDto.Type, courseDto.Name) switch
             {
-                (TrainingType.Course, TypingMasterConstants.BeginnerCourseName) => new BeginnerCourse(logger, new RandomNumberGenerator(),
+                (TrainingType.Course, TypingMasterConstants.BeginnerCourseName) => new BeginnerCourse(numericDrillGenerator, shiftDrillGenerator, symbolDrillGenerator, logger, new RandomNumberGenerator(),
                     courseDto.LessonDataUrl)
                 {
                     Id = courseDto.Id,

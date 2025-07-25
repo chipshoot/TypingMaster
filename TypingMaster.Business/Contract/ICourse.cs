@@ -33,6 +33,18 @@ public interface ICourse
     /// <returns>The next practice phase</returns>
     public PracticePhases AdvanceToNextPhase(PracticePhases phase, LessonType lessonType, StatsBase currentStats);
 
+    /// <summary>
+    /// Retrieves the next practice lesson based on the current lesson ID, user statistics, and practice phase.
+    /// If the user meets the target statistics, advances to the next lesson or marks the course as complete.
+    /// Generates appropriate practice text and instructions for the lesson and phase.
+    /// </summary>
+    /// <param name="curLessonId">The current lesson's ID.</param>
+    /// <param name="stats">The user's current typing statistics.</param>
+    /// <param name="phase">The current practice phase.</param>
+    /// <returns>
+    /// A <see cref="PracticeLessonResult"/> containing the lesson, phase, lesson count, and target stats,
+    /// or <c>null</c> if target stats are not set.
+    /// </returns>
     PracticeLessonResult? GetPracticeLesson(int curLessonId, StatsBase stats, PracticePhases phase);
 
     ProcessResult ProcessResult { get; set; }

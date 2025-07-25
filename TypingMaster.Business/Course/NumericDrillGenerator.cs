@@ -294,7 +294,7 @@ public class NumericDrillGenerator : INumericDrillGenerator
                     break;
 
                 case '.': // decimal point
-                    sb.Append(".");
+                    sb.Append('.');
                     break;
 
                 default:

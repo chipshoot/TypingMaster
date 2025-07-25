@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using TypingMaster.Server.Auth;
 using Amazon.CognitoIdentityProvider;
 using TypingMaster.Business.Config;
+using TypingMaster.Business.Course;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,6 +117,9 @@ builder.Services.AddScoped<IPracticeLogService, PracticeLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILoginLogService, LoginLogService>();
 builder.Services.AddScoped<ILoginCredentialService, LoginCredentialService>();
+builder.Services.AddScoped<INumericDrillGenerator, NumericDrillGenerator>();
+builder.Services.AddScoped<IShiftDrillGenerator, ShiftDrillGenerator>();
+builder.Services.AddScoped<ISymbolDrillGenerator, SymbolDrillGenerator>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ITypingTrainer, TypingTrainer>();

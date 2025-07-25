@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using Serilog;
 using TypingMaster.Business;
+using TypingMaster.Business.Course;
 using TypingMaster.Core.Constants;
 using TypingMaster.Core.Models;
 using TypingMaster.Core.Models.Courses;
@@ -18,6 +19,9 @@ namespace TypingMaster.Tests.Course
         private readonly Mock<IAccountRepository> _accountRepositoryMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly CourseService _courseService;
+        private readonly NumericDrillGenerator _numericDrillGenerator = new();
+        private readonly ShiftDrillGenerator _shiftDrillGenerator = new();
+        private readonly SymbolDrillGenerator _symbolDrillGenerator = new();
 
         public CourseServiceTests()
         {
@@ -41,6 +45,9 @@ namespace TypingMaster.Tests.Course
             _courseService = new CourseService(
                 _courseRepositoryMock.Object,
                 _accountRepositoryMock.Object,
+                _numericDrillGenerator,
+                _shiftDrillGenerator,
+                _symbolDrillGenerator,
                 _mapperMock.Object,
                 loggerMock.Object,
                 configuration

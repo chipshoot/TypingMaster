@@ -12,10 +12,17 @@ using TypingMaster.DataAccess.Data;
 
 namespace TypingMaster.Business;
 
-public class CourseService(ICourseRepository courseRepository, IAccountRepository accountRepository, IMapper mapper, ILogger logger, IConfiguration configuration)
-    : ICourseService
+public class CourseService(
+    ICourseRepository courseRepository,
+    IAccountRepository accountRepository,
+    INumericDrillGenerator numericDrillGenerator,
+    IShiftDrillGenerator shiftDrillGenerator,
+    ISymbolDrillGenerator symbolDrillGenerator,
+    IMapper mapper,
+    ILogger logger,
+    IConfiguration configuration) : ICourseService
 {
-    private readonly CourseFactory _courseFactory = new CourseFactory(logger);
+    private readonly CourseFactory _courseFactory = new CourseFactory(numericDrillGenerator, shiftDrillGenerator, symbolDrillGenerator, logger);
 
     public static Guid CourseId1 = new("AB7E8988-4E54-435F-9DC3-25D3193EC378");
 

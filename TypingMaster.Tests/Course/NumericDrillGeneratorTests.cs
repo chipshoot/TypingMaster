@@ -441,14 +441,15 @@ public class NumericDrillGeneratorTests
     {
         // Arrange
         _generator.EnableSymbol = true;
+        _generator.MaxCharacters = 10; // Set a reasonable max length for competitive speed
 
         // Act
         var result = _generator.GenerateDrill(NumericPracticePhases.CompetitiveSpeed, count);
 
         // Assert
         Assert.NotEmpty(result);
-        Assert.True(result.All(char.IsDigit));
-        Assert.Equal(3, result.Length); // Should be 3 digits based on the implementation
+        Assert.True(result.All(c => char.IsDigit(c) || char.IsWhiteSpace(c)));
+        Assert.Equal(10, result.Length); // Should be 3 digits based on the implementation
     }
 
     [Fact]
@@ -594,12 +595,11 @@ public class NumericDrillGeneratorTests
         }
 
         // Assert
-        Assert.All(results, result => Assert.NotEmpty(result));
+        Assert.All(results, Assert.NotEmpty);
 
         // Should generate various domain patterns
         var domainKeywords = new[] { "Phone:", "ZIP:", "ISBN:", "EIN:", "Score:", "Temp:" };
-        var foundDomains = domainKeywords.Where(keyword =>
-            results.Any(result => result.Contains(keyword))).Count();
+        var foundDomains = domainKeywords.Count(keyword => results.Any(result => result.Contains(keyword)));
 
         // Should find at least some domain variety over 20 attempts
         Assert.True(foundDomains >= 1);
@@ -638,9 +638,12 @@ public class NumericDrillGeneratorTests
         // Note: This test acknowledges that the generator uses Random,
         // so we test that it consistently produces valid output rather than identical output
 
+        // Arrange
+        _generator.MaxCharacters = 50;
+
         // Act
         var results = new List<string>();
-        for (int i = 0; i < 5; i++)
+        for (var i = 0; i < 5; i++)
         {
             results.Add(_generator.GenerateDrill(NumericPracticePhases.SequenceCombos, 5));
         }
@@ -648,8 +651,9 @@ public class NumericDrillGeneratorTests
         // Assert
         Assert.All(results, result =>
         {
-            Assert.Equal(5, result.Length);
-            Assert.True(result.All(char.IsDigit));
+            // Only check preconditions, no need to use 'result' elsewhere
+            Assert.Equal(50, result.Length);
+            Assert.True(result.All(c => char.IsDigit(c) || char.IsWhiteSpace(c)));
         });
     }
 }

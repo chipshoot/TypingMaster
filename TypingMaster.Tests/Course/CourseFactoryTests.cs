@@ -9,12 +9,15 @@ namespace TypingMaster.Tests.Course
 {
     public class CourseFactoryTests
     {
+        private readonly NumericDrillGenerator _numericDrillGenerator = new();
+        private readonly ShiftDrillGenerator _shiftDrillGenerator = new();
+        private readonly SymbolDrillGenerator _symbolDrillGenerator = new();
         private readonly CourseFactory _courseFactory;
 
         public CourseFactoryTests()
         {
             var loggerMock = new Mock<ILogger>();
-            _courseFactory = new CourseFactory(loggerMock.Object);
+            _courseFactory = new CourseFactory(_numericDrillGenerator, _shiftDrillGenerator, _symbolDrillGenerator, loggerMock.Object);
 
             // Clear cache before each test
             CourseFactory.ClearLessonCache();

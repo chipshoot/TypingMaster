@@ -7,7 +7,13 @@ using TypingMaster.Core.Utility;
 
 namespace TypingMaster.Business.Course;
 
-public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? randomGenerator = null, string lessonDataFileUrl = "") : ICourse
+public class BeginnerCourse(
+    INumericDrillGenerator numericDrillGenerator,
+    IShiftDrillGenerator shiftDrillGenerator,
+    ISymbolDrillGenerator symbolDrillGenerator,
+    Serilog.ILogger logger,
+    IRandomNumberGenerator? randomGenerator = null,
+    string lessonDataFileUrl = "") : ICourse
 {
     private const string CourseDescription =
         "Master Touch Typing from Scratch: This structured beginner's course guides you from the home row keys (a, s, d, f, j, k, l, ;) to full keyboard proficiency. Starting with your finger placement on home keys, each lesson gradually introduces new keys while reinforcing previously learned ones. Progress at your own pace through interactive exercises designed to build muscle memory, improve accuracy, and increase typing speed. Perfect for new typists or anyone looking to develop proper touch typing technique without looking at the keyboard. Track your WPM and accuracy as you transform from hunt-and-peck to confident touch typing.";
@@ -16,11 +22,12 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
     private const string PatternsInst = "**Patterns Phase**: Practice key patterns to build finger coordination.";
     private const string RealWordsInst = "**RealWord Phase**: Apply your skills by typing these common words.";
 
-    private const string KeyboardSectionNumber = "Number Row";
+    private const string NumberSection = "Number Row";
+    private const string ShiftSection = "Shift Row";
+    private const string SymbolSection = "Symbol Row";
+    private const int RepeatCount = 3;
 
     private readonly IRandomNumberGenerator _randomGenerator = randomGenerator ?? new RandomNumberGenerator();
-    private static readonly List<char> LeftHandDigits = ['1', '2', '3', '4', '5'];
-    private static readonly List<char> RightHandDigits = ['6', '7', '8', '9', '0'];
 
     public Guid Id { get; set; }
 
@@ -131,6 +138,7 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
                         }
 
                         lesson = Lessons.FirstOrDefault(l => l.Id == curLessonId + 1);
+                        phase = PracticePhases.NotSet; // Reset phase for next lesson
                     }
 
                     break;
@@ -139,6 +147,7 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
                 case LessonType.Test:
                 default:
                     lesson = Lessons.FirstOrDefault(l => l.Id == curLessonId + 1);
+                    phase = PracticePhases.NotSet; // Reset phase for next lesson
                     break;
             }
         }
@@ -152,14 +161,28 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
         var nextPhase = AdvanceToNextPhase(phase, lesson.Type, stats);
         if (!string.IsNullOrEmpty(lesson.Description))
         {
-            lesson.PracticeText = lesson.Description.Contains(KeyboardSectionNumber)
-                ? GeneratePracticeText(nextPhase)
-                : GeneratePracticeText(lesson.Target, lesson.CommonWords, nextPhase);
+            if (lesson.Description.Contains(NumberSection))
+            {
+                lesson.PracticeText = GeneratePracticeText(nextPhase, lesson.Point);
+            }
+            else if(lesson.Description.Contains(ShiftSection))
+            {
+                // If the lesson is about Shift keys, generate practice text for Shift keys
+                lesson.PracticeText = GeneratePracticeTextForShift(lesson.CommonWords, nextPhase);
+            }
+            else if(lesson.Description.Contains(SymbolSection))
+            {
+                // If the lesson is about Symbol keys, generate practice text for Shift keys
+                lesson.PracticeText = GeneratePracticeTextForSymbol(lesson.CommonWords, nextPhase);
+            }
+            else
+            {
+                lesson.PracticeText = GeneratePracticeText(lesson.Target, lesson.CommonWords, nextPhase);
+            }
         }
         else
         {
-            lesson.PracticeText =
-                GeneratePracticeText(lesson.Target, lesson.CommonWords, nextPhase);
+            lesson.PracticeText = GeneratePracticeText(lesson.Target, lesson.CommonWords, nextPhase);
         }
 
         lesson.Instruction = GetInstructionForPhase(lesson.Instruction, nextPhase);
@@ -174,18 +197,18 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
 
     private string GetInstructionForPhase(string baseInstruction, PracticePhases phase)
     {
-        var cleanedInst= baseInstruction;
+        var cleanedInst = baseInstruction;
         if (cleanedInst.Contains(RepetitionInst))
         {
-            cleanedInst= cleanedInst.Replace($"\n\n{RepetitionInst}", string.Empty);
+            cleanedInst = cleanedInst.Replace($"\n\n{RepetitionInst}", string.Empty);
         }
         if (cleanedInst.Contains(PatternsInst))
         {
-            cleanedInst= cleanedInst.Replace($"\n\n{PatternsInst}", string.Empty);
+            cleanedInst = cleanedInst.Replace($"\n\n{PatternsInst}", string.Empty);
         }
         if (cleanedInst.Contains(RealWordsInst))
         {
-            cleanedInst= cleanedInst.Replace($"\n\n{RealWordsInst}", string.Empty);
+            cleanedInst = cleanedInst.Replace($"\n\n{RealWordsInst}", string.Empty);
         }
 
         var phaseText = phase switch
@@ -271,98 +294,92 @@ public class BeginnerCourse(Serilog.ILogger logger, IRandomNumberGenerator? rand
         return practiceText.ToString();
     }
 
-    public string GeneratePracticeText(PracticePhases phase)
+    public string GeneratePracticeTextForShift(string[] commonWords, PracticePhases phase)
     {
-        var practiceText = new StringBuilder();
-        var repeatCount = 3;
-        var comboRepeat = 2;
+        shiftDrillGenerator.MaxCharacters = MaxCharacters;
+        shiftDrillGenerator.CommonWords.Clear();
+        shiftDrillGenerator.CommonWords.AddRange(commonWords);
+        var practiceText = shiftDrillGenerator.GenerateDrill(phase);
 
-        while (practiceText.Length < MaxCharacters)
-        {
-            switch (phase)
-            {
-                case PracticePhases.SimpleRepetition:
-                    {
-                        // Generate 111, 222, ..., 999, 000
-                        practiceText.Append(GenerateSingleKeyPattern(LeftHandDigits, repeatCount)).Append(' ');
-                        practiceText.Append(GenerateSingleKeyPattern(RightHandDigits, repeatCount)).Append(' ');
+        return practiceText;
 
-                        break;
-                    }
-                case PracticePhases.Patterns:
-                    {
-                        // Generate 10 10 29 29 38 38 etc.
-                        practiceText.Append(GenerateVerticalCombos(comboRepeat)).Append(' ');
-                        break;
-                    }
-                case PracticePhases.RealWords:
-                    {
-                        practiceText.Append(GenerateFingerSwapPattern());
-                        break;
-                    }
-            }
-        }
-
-
-        // Trim practiceText beyond MaxCharacters
-        if (practiceText.Length > MaxCharacters)
-        {
-            practiceText.Remove(MaxCharacters, practiceText.Length - MaxCharacters);
-        }
-
-        return practiceText.ToString().TrimEnd();
     }
 
 
-    private string GenerateSingleKeyPattern(List<char> digits, int repetitions)
+    /// <summary>
+    /// Get practice text for the numeric drill.
+    /// </summary>
+    /// <param name="phase">The current <see cref="PracticePhases"/> of practice and will map to <see cref="NumericPracticePhases" /> </param>
+    ///     PracticePhases        NumericPracticePhases
+    ///     NotSet            ->  NotSet 
+    ///     SimpleRepetition  ->  SingleKeyFocus (point 1)
+    ///                       ->  PracticalPatterns (point 2)
+    ///     Patterns          ->  SequenceCombos (point 1)
+    ///                       ->  FullIntegration (point 2)
+    ///     RealWords         ->  HorizontalCombination (point 1)
+    ///                       ->  DomainSpecialization (point 2)
+    /// <param name="point">The point value used for control mapping from <see cref="PracticePhases"/> of practice to <see cref="NumericPracticePhases" /> </param>
+    /// <returns>The practice text for training number keys</returns>
+    public string GeneratePracticeText(PracticePhases phase, int point)
     {
-        var sb = new StringBuilder();
-        foreach (var digit in digits)
+        NumericPracticePhases numericPhase;
+        switch (phase)
         {
-            sb.Append(new string(digit, repetitions) + " ");
+            case PracticePhases.NotSet:
+                numericPhase = NumericPracticePhases.SingleKeyFocus;
+                break;
+            case PracticePhases.SimpleRepetition:
+                numericPhase = point switch
+                {
+                    1 => NumericPracticePhases.SingleKeyFocus,
+                    2 => NumericPracticePhases.PracticalPatterns,
+                    _ => NumericPracticePhases.SingleKeyFocus
+                };
+                break;
+            case PracticePhases.Patterns:
+                numericPhase = point switch
+                {
+                    1 => NumericPracticePhases.SequenceCombos,
+                    2 => NumericPracticePhases.FullIntegration,
+                    _ => NumericPracticePhases.SequenceCombos
+                };
+                break;
+            case PracticePhases.RealWords:
+                numericPhase = point switch
+                {
+                    1 => NumericPracticePhases.HorizontalCombination,
+                    2 => NumericPracticePhases.DomainSpecialization,
+                    _ => NumericPracticePhases.HorizontalCombination
+                };
+                break;
+            default:
+                numericPhase = NumericPracticePhases.NotSet;
+                break;
         }
 
-        return sb.ToString().TrimEnd();
+        numericDrillGenerator.EnableCapital = false;
+        numericDrillGenerator.EnableSymbol = false;
+        numericDrillGenerator.MaxCharacters = MaxCharacters;
+        
+        var practiceText = numericDrillGenerator.GenerateDrill(numericPhase, RepeatCount);
+        return practiceText.TrimEnd();
     }
 
-    private string GenerateVerticalCombos(int repetitions)
+    public string GeneratePracticeTextForSymbol(string[] commonWords, PracticePhases phase)
     {
-        var fingerPairs = new List<(char left, char right)>
+        var symbolPhase = phase switch
         {
-            ('1', '0'),
-            ('2', '9'),
-            ('3', '8'),
-            ('4', '7'),
-            ('5', '6'),
+            PracticePhases.NotSet => SymbolPracticePhases.BasicSymbols,
+            PracticePhases.SimpleRepetition => SymbolPracticePhases.BasicSymbols,
+            PracticePhases.Patterns => SymbolPracticePhases.SymbolCombinations,
+            PracticePhases.RealWords => SymbolPracticePhases.ProgrammingSymbols,
+            _ => SymbolPracticePhases.BasicSymbols
         };
 
-        var sb = new StringBuilder();
-        foreach (var combo in fingerPairs.Select(pair => $"{pair.left}{pair.right}"))
-        {
-            sb.Append(combo.Repeat(repetitions)).Append(' ');
-        }
+        symbolDrillGenerator.MaxCharacters = MaxCharacters;
 
-        return sb.ToString();
-    }
-
-    private static string GenerateFingerSwapPattern()
-    {
-        int[] digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-
-        var patterns = digits.Select(digit => digit switch
-            {
-                1 => "1414",
-                2 => "2525",
-                3 => "3636",
-                4 => "4747",
-                5 => "5858",
-                6 => "6969",
-                9 => "9090",
-                8 => "8080",
-                _ => "0101",
-            })
-            .ToList();
-
-        return patterns.Aggregate(new StringBuilder(), (sb, p) => sb.Append(p + " ")).ToString().TrimEnd();
+        
+        var practiceText = symbolDrillGenerator.GenerateDrill(symbolPhase);
+        return practiceText.TrimEnd();
     }
 }

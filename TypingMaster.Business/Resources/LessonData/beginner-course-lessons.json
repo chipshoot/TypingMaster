@@ -6371,163 +6371,55 @@
   {
     "id": 54,
     "target": [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" ],
-    "instruction": "From your letter home row (**ASDF JKL;**), gently stretch your fingers upwards. Your **left index finger handles** **4** and **5**, while your **right index finger** takes **6** and **7**. Your other fingers will reach straight up for their respective numbers: **left pinky for 1, ring for 2, middle for 3**; and on the right, **middle for 8, ring for 9, and pinky for 0**. Always return your fingers to the home row after each keystroke.",
-    "description": "Number Row - This lesson is for practice number row",
+    "instruction": "Single number key focus",
+    "description": "Number Row - This course is for practice number keys for SingleKeyFocus, SequenceCombos and HorizontalCombination phases",
     "type": 1,
-    "point": 5,
-    "commonWords": [ "123", "321", "123", "321", "123", "321", "123", "321" ]
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 55,
-    "target": ["1", "2", "3", "4"],
-    "instruction": "Reach up with your left-hand fingers to type the numbers '1', '2', and '3'. Practice typing the numbers in sequence",
-    "description": "Number Row 1, 2, 3, 4",
+    "target": [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" ],
+    "instruction": "Sequence number key Combination practice",
+    "description": "Number Row - This course is for practice number keys for PracticalPatterns, FullIntegration and DomainSpecialization phases",
     "type": 1,
-    "point": 5,
-    "commonWords": [
-      "1234",
-      "4321",
-      "1234",
-      "4321",
-      "1234",
-      "4321",
-      "1234",
-      "4321"
-    ]
+    "point": 2,
+    "commonWords": [ "1234", "4321", "1234", "4321", "1234", "4321", "1234", "4321" ]
   },
   {
     "id": 56,
-    "target": ["1", "2", "3", "4", "5"],
-    "instruction": "Reach up with your left-hand index finger to type the number '4'. Practice typing the number sequences.",
-    "description": "Number 1, 2, 3, 4, 5",
-    "type": 2,
-    "point": 5,
-    "commonWords": [
-      "12345",
-      "54321",
-      "12345",
-      "54321",
-      "12345",
-      "54321",
-      "12345",
-      "54321"
-    ]
+    "target": [ "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p", "c", "n", "m", "x", ",", "x", ".", ";", "A", "S", "D", "F", "J", "K", "L", "D", "E", "K", "I", "R", "U", "T", "Y", "W", "O", "Q", "P", "C", "N", "M", "X", "Z" ],
+    "instruction": "So far, lessons have used lower case characters only.  New lessons will use upper case letters as well.  Upper case letters are typed by holding down a Shift key at the same time the letter is pressed. There are two Shift keys, one for each hand.  Hold the Shift key down with the little finger of one hand and type the letter with the correct finger on the other hand. For example. To typ an upper case 'E', press the Shift key on the rightr side of the keyboard with the right little finger. While holding the Shift key down, press the 'E' key with the left middle finger.",
+    "description": "Shift Row - Capital Letters",
+    "type": 1,
+    "point": 2,
+    "commonWords": [ "the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "programming", "keyboard", "shift", "practice", "master", "typing", "exercise", "technique", "speed", "accuracy", "challenge", "skill" ]
   },
   {
     "id": 57,
-    "target": ["1", "2", "3", "4", "5", "6"],
-    "instruction": "Reach up with your right-hand index finger to type the number '6'. Practice typing the number sequences.",
-    "description": "Number 1, 2, 3, 4, 5, 6",
+    "target": [",", ".", "!", "?", ";", ":", "'", "\""],
+    "instruction": "",
+    "description": "Symbol Row - This lesson is for symbol practice",
     "type": 2,
-    "point": 5,
-    "commonWords": [
-      "123456",
-      "654321",
-      "123456",
-      "654321",
-      "123456",
-      "654321",
-      "123456",
-      "654321"
-    ]
+    "point": 1,
+    "commonWords": []
   },
   {
     "id": 58,
-    "target": ["1", "2", "3", "4", "5", "6", "7"],
-    "instruction": "Reach up with your right-hand index finger to type the number '7'. Practice typing the number sequences.",
-    "description": "Number 1, 2, 3, 4, 5, 6, 7",
+    "target": ["@", "#", "$", "%", "&", "*", "(", ")", "-", "_", "=", "+"],
+    "instruction": "",
+    "description": "This lesson is for symbol practice",
     "type": 2,
-    "point": 5,
-    "commonWords": [
-      "1234567",
-      "7654321",
-      "1234567",
-      "7654321",
-      "1234567",
-      "7654321",
-      "1234567",
-      "7654321"
-    ]
+    "point": 2,
+    "commonWords": []
   },
   {
     "id": 59,
-    "target": ["1", "2", "3", "4", "5", "6", "7", "8"],
-    "instruction": "Reach up with your right-hand middle finger to type the number '8'. Practice typing the number sequences.",
-    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8",
+    "target": ["[", "]", "{", "}", "<", ">", "|", "\\", "/", "~", "^", "`"],
+    "instruction": "",
+    "description": "This lesson is for symbol practice",
     "type": 2,
-    "point": 5,
-    "commonWords": [
-      "12345678",
-      "87654321",
-      "12345678",
-      "87654321",
-      "12345678",
-      "87654321",
-      "12345678",
-      "87654321"
-    ]
-  },
-  {
-    "id": 60,
-    "target": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
-    "instruction": "9",
-    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9",
-    "type": 2,
-    "point": 5,
-    "commonWords": [
-      "123456789",
-      "987654321",
-      "123456789",
-      "987654321",
-      "123456789",
-      "987654321",
-      "123456789",
-      "987654321"
-    ]
-  },
-  {
-    "id": 61,
-    "target": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-    "instruction": "0",
-    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9, 0",
-    "type": 2,
-    "point": 5,
-    "commonWords": [
-      "1234567890",
-      "0987654321",
-      "1234567890",
-      "0987654321",
-      "1234567890",
-      "0987654321",
-      "1234567890",
-      "0987654321"
-    ]
-  },
-  {
-    "id": 62,
-    "target": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "!"],
-    "instruction": "!",
-    "description": "Number 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, !",
-    "type": 2,
-    "point": 5,
-    "commonWords": [
-      "1234567890!",
-      "!0987654321",
-      "1234567890!",
-      "!0987654321",
-      "1234567890!",
-      "!0987654321",
-      "1234567890!",
-      "!0987654321"
-    ]
-  },
-  {
-    "id": 63,
-    "target": [ "a", "s", "d", "f", "j", "k", "l", "d", "e", "k", "i", "r", "u", "t", "y", "w", "o", "q", "p", "c", "n", "m", "x", ",", "x", ".", ";", "A", "S", "D", "F", "J", "K", "L", "D", "E", "K", "I", "R", "U", "T", "Y", "W", "O", "Q", "P", "C", "N", "M", "X", "Z" ],
-    "description": "Capital Letters",
-    "instruction": "So far, lessons have used lower case characters only.  New lessons will use upper case letters as well.  Upper case letters are typed by holding down a Shift key at the same time the letter is pressed. There are two Shift keys, one for each hand.  Hold the Shift key down with the little finger of one hand and type the letter with the correct finger on the other hand. For example. To typ an upper case 'E', press the Shift key on the rightr side of the keyboard with the right little finger. While holding the Shift key down, press the 'E' key with the left middle finger.",
-    "type": 2,
-    "point": 5,
-    "commonWords": ["AS", "DE", "FJ", "KL", "QW", "ER", "TY", "UI"]
+    "point": 3,
+    "commonWords": []
   }
 ]
